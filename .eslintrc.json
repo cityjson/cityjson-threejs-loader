@@ -1,0 +1,17 @@
+{
+	"root": true,
+	"parserOptions": {
+        "ecmaVersion": 2018
+	},
+
+	"extends": [
+        "mdcs",
+        "plugin:jest/recommended"
+    ],
+	"plugins": [ "jest" ],
+
+	"rules": {
+		"no-unused-vars": [ 1, { "args": "none" } ],
+		"no-var": "warn"
+	}
+}
