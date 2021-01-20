@@ -2,6 +2,7 @@ import {
 	CityJSONLoader
 } from '../src/index';
 import {
+	AmbientLight,
 	PerspectiveCamera,
 	Scene,
 	WebGLRenderer
@@ -23,21 +24,27 @@ function init() {
 	renderer = new WebGLRenderer();
 	renderer.setPixelRatio( window.devicePixelRatio );
 	renderer.setSize( window.innerWidth, window.innerHeight );
+	renderer.setClearColor( 0x1c1c1c );
 
 	document.body.appendChild( renderer.domElement );
 
-	camera = new PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 4000 );
-	camera.position.set( 400, 400, 400 );
+	camera = new PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 0.0001, 4000 );
+	camera.position.set( 10, 10, 10 );
+
+	const ambientLight = new AmbientLight( 0xFFFFFF, 0.7 ); // soft white light
+	scene.add( ambientLight );
 
 	controls = new OrbitControls( camera, renderer.domElement );
 	controls.screenSpacePanning = true;
 
 	controls.addEventListener( 'change', render );
 
-
-
-	let loader = new CityJSONLoader();
+	const loader = new CityJSONLoader();
 	loader.load( cityjson_data );
+
+	scene.add( loader.scene );
+
+	render();
 
 }
 

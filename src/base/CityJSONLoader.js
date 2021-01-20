@@ -1,4 +1,4 @@
-import { Group } from 'three';
+import { Face3, Geometry, Group, Mesh, MeshLambertMaterial, Vector3 } from 'three';
 import earcut from 'earcut';
 
 export class CityJSONLoader {
@@ -48,14 +48,14 @@ export class CityJSONLoader {
 
 			for ( const objId in data.CityObjects ) {
 
-				this.parseObject( objId, data );
+				const geom = this.parseObject( objId, data );
 
 				const objectType = data.CityObjects[ objId ].type;
 
-				const material = new THREE.MeshLambertMaterial();
+				const material = new MeshLambertMaterial();
 				material.color.setHex( this.objectColors[ objectType ] );
 
-				const coMesh = new THREE.Mesh( this.geoms[ objId ], material );
+				const coMesh = new Mesh( geom, material );
 				coMesh.name = objId;
 				coMesh.castShadow = true;
 				coMesh.receiveShadow = true;
@@ -70,10 +70,10 @@ export class CityJSONLoader {
 
 	normaliseVertices( data ) {
 
-		let normGeom = new THREE.Geometry();
+		let normGeom = new Geometry();
 		for ( let i = 0; i < data.vertices.length; i ++ ) {
 
-			const point = new THREE.Vector3(
+			const point = new Vector3(
 				data.vertices[ i ][ 0 ],
 				data.vertices[ i ][ 1 ],
 				data.vertices[ i ][ 2 ]
@@ -105,7 +105,7 @@ export class CityJSONLoader {
 
 		}
 
-		const geom = new THREE.Geometry();
+		const geom = new Geometry();
 		let vertices = [];
 
 		for ( let geom_i = 0; geom_i < json.CityObjects[ cityObj ].geometry.length; geom_i ++ ) {
@@ -149,6 +149,8 @@ export class CityJSONLoader {
 
 		geom.computeFaceNormals();
 
+		return geom;
+
 	}
 
 	parseShell( geom, boundaries, vertices, json ) {
@@ -174,7 +176,7 @@ export class CityJSONLoader {
 
 			if ( boundary.length == 3 ) {
 
-				geom.faces.push( new THREE.Face3( boundary[ 0 ], boundary[ 1 ], boundary[ 2 ] ) );
+				geom.faces.push( new Face3( boundary[ 0 ], boundary[ 1 ], boundary[ 2 ] ) );
 
 			} else if ( boundary.length > 3 ) {
 
@@ -210,7 +212,7 @@ export class CityJSONLoader {
 				for ( let k = 0; k < tr.length; k += 3 ) {
 
 					geom.faces.push(
-						new THREE.Face3(
+						new Face3(
 							boundary[ tr[ k ] ],
 							boundary[ tr[ k + 1 ] ],
 							boundary[ tr[ k + 2 ] ]
@@ -243,7 +245,7 @@ export class CityJSONLoader {
 			} else {
 
 				// Add vertex to geometry
-				const point = new THREE.Vector3(
+				const point = new Vector3(
 					json.vertices[ index ][ 0 ],
 					json.vertices[ index ][ 1 ],
 					json.vertices[ index ][ 2 ]
@@ -282,18 +284,18 @@ export class CityJSONLoader {
 
 		}
 
-		const b = new THREE.Vector3( n[ 0 ], n[ 1 ], n[ 2 ] );
+		const b = new Vector3( n[ 0 ], n[ 1 ], n[ 2 ] );
 		return ( b.normalize() );
 
 	}
 
 	to_2d( p, n ) {
 
-		p = new THREE.Vector3( p.x, p.y, p.z );
-		const x3 = new THREE.Vector3( 1.1, 1.1, 1.1 );
+		p = new Vector3( p.x, p.y, p.z );
+		const x3 = new Vector3( 1.1, 1.1, 1.1 );
 		if ( x3.distanceTo( n ) < 0.01 ) {
 
-		  x3.add( new THREE.Vector3( 1.0, 2.0, 3.0 ) );
+		  x3.add( new Vector3( 1.0, 2.0, 3.0 ) );
 
 		}
 
