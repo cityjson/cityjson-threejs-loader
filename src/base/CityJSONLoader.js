@@ -30,13 +30,13 @@ export class CityJSONLoader {
 			"TunnelPart": 0x999999,
 			"TunnelInstallation": 0x999999,
 			"WaterBody": 0x4da6ff
-		  };
+		};
 
 	}
 
 	setTexturesPath( path ) {
 
-		this.texturesPath = this.path;
+		this.texturesPath = path;
 
 	}
 
@@ -46,21 +46,21 @@ export class CityJSONLoader {
 
       		this.normaliseVertices( data );
 
-			for ( const objId in data.CityObjects ) {
+			for ( const objectId in data.CityObjects ) {
 
-				const geom = this.parseObject( objId, data );
+				const geom = this.parseObject( objectId, data );
 
-				const objectType = data.CityObjects[ objId ].type;
+				const objectType = data.CityObjects[ objectId ].type;
 
 				const material = new MeshLambertMaterial();
 				material.color.setHex( this.objectColors[ objectType ] );
 
-				const coMesh = new Mesh( geom, material );
-				coMesh.name = objId;
-				coMesh.castShadow = true;
-				coMesh.receiveShadow = true;
+				const mesh = new Mesh( geom, material );
+				mesh.name = objectId;
+				mesh.castShadow = true;
+				mesh.receiveShadow = true;
 
-				this.scene.add( coMesh );
+				this.scene.add( mesh );
 
 			}
 
@@ -96,10 +96,12 @@ export class CityJSONLoader {
 
 	}
 
-	parseObject( cityObj, json ) {
+	parseObject( objectId, json ) {
 
-		if ( ! ( json.CityObjects[ cityObj ].geometry &&
-		  json.CityObjects[ cityObj ].geometry.length > 0 ) ) {
+		const cityObject = json.CityObjects[ objectId ];
+
+		if ( ! ( cityObject.geometry &&
+		  cityObject.geometry.length > 0 ) ) {
 
 		  return;
 
@@ -108,14 +110,14 @@ export class CityJSONLoader {
 		const geom = new Geometry();
 		let vertices = [];
 
-		for ( let geom_i = 0; geom_i < json.CityObjects[ cityObj ].geometry.length; geom_i ++ ) {
+		for ( let geom_i = 0; geom_i < cityObject.geometry.length; geom_i ++ ) {
 
 		  //each geometrytype must be handled different
-		  const geomType = json.CityObjects[ cityObj ].geometry[ geom_i ].type;
+		  const geomType = cityObject.geometry[ geom_i ].type;
 
 		  if ( geomType == "Solid" ) {
 
-				const shells = json.CityObjects[ cityObj ].geometry[ geom_i ].boundaries;
+				const shells = cityObject.geometry[ geom_i ].boundaries;
 
 				for ( let i = 0; i < shells.length; i ++ ) {
 
@@ -125,13 +127,13 @@ export class CityJSONLoader {
 
 			} else if ( geomType == "MultiSurface" || geomType == "CompositeSurface" ) {
 
-				const surfaces = json.CityObjects[ cityObj ].geometry[ geom_i ].boundaries;
+				const surfaces = cityObject.geometry[ geom_i ].boundaries;
 
 				this.parseShell( geom, surfaces, vertices, json );
 
 			} else if ( geomType == "MultiSolid" || geomType == "CompositeSolid" ) {
 
-				const solids = json.CityObjects[ cityObj ].geometry[ geom_i ].boundaries;
+				const solids = cityObject.geometry[ geom_i ].boundaries;
 
 				for ( let i = 0; i < solids.length; i ++ ) {
 

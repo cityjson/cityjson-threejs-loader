@@ -1,11 +1,16 @@
 {
   "name": "cityjson-threejs-loader",
   "version": "0.1.0",
-  "description": "A CityJSON loader for three.js",
-  "main": "index.js",
+  "description": "A CityJSON loader for three.js",  
   "repository": "http://github.com/cityjson/cityjson-threejs-loader",
   "author": "Stelios Vitalis",
   "license": "MIT",
+  "type": "module",
+  "main": "src/index.js",
+  "module": "src/index.js",
+  "files": [
+    "src/*"
+  ],
   "scripts": {
     "dev": "parcel example/index.html",
     "lint": "eslint \"src/**/*.js\""
