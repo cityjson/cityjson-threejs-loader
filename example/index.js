@@ -30,6 +30,7 @@ function init() {
 
 	camera = new PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 0.0001, 4000 );
 	camera.position.set( 10, 10, 10 );
+	camera.up.set( 0, 0, 1 );
 
 	const ambientLight = new AmbientLight( 0xFFFFFF, 0.7 ); // soft white light
 	scene.add( ambientLight );

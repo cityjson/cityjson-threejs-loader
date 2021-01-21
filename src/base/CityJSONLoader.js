@@ -1,4 +1,13 @@
-import { Face3, Geometry, Group, Mesh, MeshLambertMaterial, Vector3 } from 'three';
+import {
+	BufferAttribute,
+	BufferGeometry,
+	Face3,
+	Geometry,
+	Group,
+	Matrix4,
+	Mesh,
+	MeshLambertMaterial,
+	Vector3 } from 'three';
 import earcut from 'earcut';
 
 export class CityJSONLoader {
@@ -7,6 +16,7 @@ export class CityJSONLoader {
 
 		this.texturesPath = '';
 		this.scene = new Group();
+		this.matrix = null;
 
 		this.objectColors = {
 			"Building": 0x7497df,
@@ -44,7 +54,12 @@ export class CityJSONLoader {
 
 		if ( typeof data === "object" ) {
 
-      		this.normaliseVertices( data );
+			if ( this.matrix == null ) {
+
+				this.computeMatrix( data );
+
+			}
+
 
 			for ( const objectId in data.CityObjects ) {
 
@@ -68,31 +83,28 @@ export class CityJSONLoader {
 
 	}
 
-	normaliseVertices( data ) {
+	computeMatrix( data ) {
 
-		let normGeom = new Geometry();
-		for ( let i = 0; i < data.vertices.length; i ++ ) {
+		const normGeom = new BufferGeometry();
 
-			const point = new Vector3(
-				data.vertices[ i ][ 0 ],
-				data.vertices[ i ][ 1 ],
-				data.vertices[ i ][ 2 ]
-			);
-			normGeom.vertices.push( point );
+		const vertices = new Float32Array( data.vertices.flat() );
+		normGeom.setAttribute( 'position', new BufferAttribute( vertices, 3 ) );
 
-		}
+		normGeom.computeBoundingSphere();
+		const centre = normGeom.boundingSphere.center;
+		const radius = normGeom.boundingSphere.radius;
 
-		normGeom.normalize();
+		const s = radius === 0 ? 1 : 1.0 / radius;
 
-		for ( let i = 0; i < data.vertices.length; i ++ ) {
+		const matrix = new Matrix4();
+		matrix.set(
+			s, 0, 0, - s * centre.x,
+			0, s, 0, - s * centre.y,
+			0, 0, s, - s * centre.z,
+			0, 0, 0, 1
+		);
 
-			data.vertices[ i ] = [
-				normGeom.vertices[ i ].x,
-				normGeom.vertices[ i ].y,
-				normGeom.vertices[ i ].z
-			];
-
-		}
+		this.matrix = matrix;
 
 	}
 
@@ -149,6 +161,7 @@ export class CityJSONLoader {
 
 		}
 
+		geom.applyMatrix4( this.matrix );
 		geom.computeFaceNormals();
 
 		return geom;
