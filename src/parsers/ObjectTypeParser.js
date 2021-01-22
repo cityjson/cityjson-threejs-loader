@@ -1,6 +1,6 @@
 import {
+	BufferAttribute,
 	BufferGeometry,
-	Float32BufferAttribute,
 	Mesh,
 	MeshLambertMaterial } from 'three';
 import earcut from 'earcut';
@@ -67,20 +67,20 @@ export class ObjectTypeParser {
 
 			const geom = new BufferGeometry();
 
+			let vertices = [];
+
 			geom.setIndex( this.meshTriangles[ coType ] );
-			geom.setAttribute( 'position', new Float32BufferAttribute( this.meshVertices[ coType ].length * 3, 3 ) );
 
-			let positions = geom.attributes.position.array;
-
-			for ( const [ i, vertexIndex ] of this.meshVertices[ coType ].entries() ) {
+			for ( const vertexIndex of this.meshVertices[ coType ] ) {
 
 				const vertex = data.vertices[ vertexIndex ];
 
-				positions[ i * 3 ] = vertex[ 0 ];
-				positions[ i * 3 + 1 ] = vertex[ 1 ];
-				positions[ i * 3 + 2 ] = vertex[ 2 ];
+				vertices.push( ...vertex );
 
 			}
+
+			const vertexArray = new Float32Array( vertices );
+			geom.setAttribute( 'position', new BufferAttribute( vertexArray, 3 ) );
 
 			geom.attributes.position.needsUpdate = true;
 
