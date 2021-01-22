@@ -1,7 +1,6 @@
 import {
 	BufferGeometry,
 	Float32BufferAttribute,
-	Group,
 	Mesh,
 	MeshLambertMaterial } from 'three';
 import earcut from 'earcut';
