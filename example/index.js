@@ -1,5 +1,6 @@
 import {
-	CityJSONLoader
+	CityJSONLoader,
+	ObjectTypeParser
 } from '../src/index';
 import {
 	AmbientLight,
@@ -40,7 +41,9 @@ function init() {
 
 	controls.addEventListener( 'change', render );
 
-	const loader = new CityJSONLoader();
+	const parser = new ObjectTypeParser();
+
+	const loader = new CityJSONLoader( parser );
 	loader.load( cityjson_data );
 
 	scene.add( loader.scene );
