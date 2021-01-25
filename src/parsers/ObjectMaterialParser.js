@@ -26,8 +26,15 @@ export class ObjectMaterialParser {
 
 	parse( data, scene ) {
 
-		// TODO: Check if materials are in here
-		this.materials = data.appearance.materials;
+		if ( "appearance" in data && "materials" in data.appearance ) {
+
+			this.materials = data.appearance.materials;
+
+		} else {
+
+			this.materials = [];
+
+		}
 
 		for ( let i = 0; i < this.materials.length; i ++ ) {
 
@@ -135,37 +142,51 @@ export class ObjectMaterialParser {
 			if ( geomType == "Solid" ) {
 
 				const shells = cityObject.geometry[ geom_i ].boundaries;
-				const materialShells = cityObject.geometry[ geom_i ].material[ this.materialTheme ];
+				const materialShells = this.getMaterialValues( cityObject.geometry[ geom_i ] );
 
 				for ( let i = 0; i < shells.length; i ++ ) {
 
-					this.parseShell( shells[ i ], materialShells[ i ], objectId, json );
+					this.parseShell( shells[ i ], materialShells === null ? null : materialShells[ i ], objectId, json );
 
 				}
 
 			} else if ( geomType == "MultiSurface" || geomType == "CompositeSurface" ) {
 
 				const surfaces = cityObject.geometry[ geom_i ].boundaries;
-				const materialShell = cityObject.geometry[ geom_i ].material[ this.materialTheme ].values;
+				const materialShell = this.getMaterialValues( cityObject.geometry[ geom_i ] );
 
 				this.parseShell( surfaces, materialShell, objectId, json );
 
 			} else if ( geomType == "MultiSolid" || geomType == "CompositeSolid" ) {
 
 				const solids = cityObject.geometry[ geom_i ].boundaries;
-				const materialShells = cityObject.geometry[ geom_i ].material[ this.materialTheme ].values;
+				const materialShells = this.getMaterialValues( cityObject.geometry[ geom_i ] );
 
 				for ( let i = 0; i < solids.length; i ++ ) {
 
 					for ( let j = 0; j < solids[ i ].length; j ++ ) {
 
-						this.parseShell( solids[ i ][ j ], materialShells[ i ][ j ], objectId, json );
+						this.parseShell( solids[ i ][ j ], materialShells === null ? null : materialShells[ i ][ j ], objectId, json );
 
 					}
 
 				}
 
 			}
+
+		}
+
+	}
+
+	getMaterialValues( geometry ) {
+
+		if ( "material" in geometry ) {
+
+			return geometry.material[ this.materialTheme ].values;
+
+		} else {
+
+			return null;
 
 		}
 
@@ -182,7 +203,7 @@ export class ObjectMaterialParser {
 			let vertices;
 			let triangles;
 			let ids;
-			if ( materialValues[ i ] === null ) {
+			if ( materialValues === null || materialValues[ i ] === null ) {
 
 				vertices = this.meshVertices[ this.materials.length ];
 				triangles = this.meshTriangles[ this.materials.length ];
