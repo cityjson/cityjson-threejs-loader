@@ -12,7 +12,7 @@
     "src/*"
   ],
   "scripts": {
-    "dev": "parcel example/index.html",
+    "dev": "parcel example/*.html",
     "lint": "eslint \"src/**/*.js\""
   },
   "dependencies": {
