@@ -11,8 +11,6 @@ import {
 
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
-import cityjson_data from './data/3db_sub.json';
-
 let scene, renderer, camera, controls;
 
 
@@ -44,11 +42,26 @@ function init() {
 	const parser = new ObjectTypeParser();
 
 	const loader = new CityJSONLoader( parser );
-	loader.load( cityjson_data );
 
-	scene.add( loader.scene );
+	fetch( "/example/data/toronto_full.json" )
+		.then( res => {
 
-	render();
+			if ( res.ok ) {
+
+				return res.json();
+
+			}
+
+		} )
+		.then( data => {
+
+			loader.load( data );
+
+			scene.add( loader.scene );
+
+			render();
+
+		} );
 
 }
 
