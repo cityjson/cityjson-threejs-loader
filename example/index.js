@@ -13,7 +13,6 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 let scene, renderer, camera, controls;
 
-
 init();
 
 function init() {
@@ -28,7 +27,7 @@ function init() {
 	document.body.appendChild( renderer.domElement );
 
 	camera = new PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 0.0001, 4000 );
-	camera.position.set( 10, 10, 10 );
+	camera.position.set( 1, 1, 1 );
 	camera.up.set( 0, 0, 1 );
 
 	const ambientLight = new AmbientLight( 0xFFFFFF, 0.7 ); // soft white light
@@ -40,10 +39,15 @@ function init() {
 	controls.addEventListener( 'change', render );
 
 	const parser = new ObjectTypeParser();
+	parser.on_load = () => {
+
+		render();
+
+	};
 
 	const loader = new CityJSONLoader( parser );
 
-	fetch( "/example/data/toronto_full.json" )
+	fetch( "/example/data/montreal.json" )
 		.then( res => {
 
 			if ( res.ok ) {
