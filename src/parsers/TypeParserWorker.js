@@ -1,6 +1,20 @@
 onmessage = function ( e ) {
 
 	const parser = new ObjectTypeParser();
+
+	const props = e.data[ 1 ];
+
+	if ( props ) {
+
+		if ( props.chunkSize ) {
+
+			parser.chunkSize = props.chunkSize;
+			console.log( parser.chunkSize );
+
+		}
+
+	}
+
 	parser.parse( e.data[ 0 ], ( v, t, tis, ctype ) => {
 
 		const vertexArray = new Float32Array( v );
@@ -25,6 +39,7 @@ class ObjectTypeParser {
 	constructor() {
 
 		this.matrix = null;
+		this.chunkSize = 100;
 
 		this.meshVertices = [];
 		this.meshTriangles = [];
@@ -75,7 +90,7 @@ class ObjectTypeParser {
 		for ( const objectId in data.CityObjects ) {
 
 			this.parseObject( objectId, data );
-			if ( i ++ > 100 ) {
+			if ( i ++ > this.chunkSize ) {
 
 				this.returnObjects( data, action );
 

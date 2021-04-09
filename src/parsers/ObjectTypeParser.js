@@ -2,7 +2,7 @@ import {
 	BufferAttribute,
 	BufferGeometry,
 	Mesh,
-	MeshLambertMaterial } from 'three';
+	MeshPhongMaterial } from 'three';
 
 export class ObjectTypeParser {
 
@@ -10,6 +10,7 @@ export class ObjectTypeParser {
 
 		this.matrix = null;
 		this.on_load = null;
+		this.chunkSize = 100;
 
 		this.objectColors = {
 			"Building": 0x7497df,
@@ -68,12 +69,11 @@ export class ObjectTypeParser {
 
 			geom.computeVertexNormals();
 
-			const material = new MeshLambertMaterial();
+			const material = new MeshPhongMaterial();
+			material.flatShading = true;
 			material.color.setHex( objectColors[ e.data.cityobject_type ] );
 
 			const mesh = new Mesh( geom, material );
-			mesh.castShadow = true;
-			mesh.receiveShadow = true;
 
 			mesh.triangleIDs = e.triangle_ids;
 
@@ -87,7 +87,7 @@ export class ObjectTypeParser {
 
 		};
 
-		worker.postMessage( [ data ] );
+		worker.postMessage( [ data, { chunkSize: this.chunkSize } ] );
 
 	}
 
