@@ -15,7 +15,7 @@ onmessage = function ( e ) {
 
 	}
 
-	parser.parse( e.data[ 0 ], ( v, t, tis, ctype ) => {
+	parser.parse( e.data[ 0 ], ( v ) => {
 
 		const vertexArray = new Float32Array( v );
 		const vertexBuffer = vertexArray.buffer;
@@ -23,10 +23,7 @@ onmessage = function ( e ) {
 		console.log( "Sending data... " );
 
 		const msg = {
-			v_buffer: vertexBuffer,
-			triangles: t,
-			triangle_ids: tis,
-			cityobject_type: ctype
+			v_buffer: vertexBuffer
 		};
 		postMessage( msg, [ vertexBuffer ] );
 
@@ -42,8 +39,6 @@ class ObjectTypeParser {
 		this.chunkSize = 100;
 
 		this.meshVertices = [];
-		this.meshTriangles = [];
-		this.meshTriangleIDs = [];
 
 		this.objectColors = {
 			"Building": 0x7497df,
@@ -75,13 +70,7 @@ class ObjectTypeParser {
 
 		console.log( "Starting..." );
 
-		for ( const coType in this.objectColors ) {
-
-			this.meshVertices[ coType ] = [];
-			this.meshTriangles[ coType ] = [];
-			this.meshTriangleIDs[ coType ] = [];
-
-		}
+		this.meshVertices = [];
 
 		let i = 0;
 
@@ -94,13 +83,7 @@ class ObjectTypeParser {
 
 				this.returnObjects( data, action );
 
-				for ( const coType in this.objectColors ) {
-
-					this.meshVertices[ coType ] = [];
-					this.meshTriangles[ coType ] = [];
-					this.meshTriangleIDs[ coType ] = [];
-
-				}
+				this.meshVertices = [];
 
 				i = 0;
 
@@ -114,27 +97,23 @@ class ObjectTypeParser {
 
 	returnObjects( data, action ) {
 
-		for ( const coType in this.objectColors ) {
+		if ( this.meshVertices.length == 0 ) {
 
-			if ( this.meshVertices[ coType ].length == 0 ) {
-
-				continue;
-
-			}
-
-			let vertices = [];
-
-			for ( const vertexIndex of this.meshVertices[ coType ] ) {
-
-				const vertex = data.vertices[ vertexIndex ];
-
-				vertices.push( ...vertex );
-
-			}
-
-			action( vertices, this.meshTriangles[ coType ], this.meshTriangleIDs[ coType ], coType );
+			return;
 
 		}
+
+		let vertices = [];
+
+		for ( const vertexIndex of this.meshVertices ) {
+
+			const vertex = data.vertices[ vertexIndex ];
+
+			vertices.push( ...vertex );
+
+		}
+
+		action( vertices );
 
 	}
 
@@ -149,10 +128,7 @@ class ObjectTypeParser {
 
 		}
 
-		const coType = cityObject.type;
-		let vertices = this.meshVertices[ coType ];
-		let triangles = this.meshTriangles[ coType ];
-		let ids = this.meshTriangleIDs[ coType ];
+		let vertices = this.meshVertices;
 
 		for ( let geom_i = 0; geom_i < cityObject.geometry.length; geom_i ++ ) {
 
@@ -164,7 +140,7 @@ class ObjectTypeParser {
 
 				for ( let i = 0; i < shells.length; i ++ ) {
 
-					this.parseShell( shells[ i ], vertices, triangles, ids, objectId, json );
+					this.parseShell( shells[ i ], vertices, objectId, json );
 
 				}
 
@@ -172,7 +148,7 @@ class ObjectTypeParser {
 
 				const surfaces = cityObject.geometry[ geom_i ].boundaries;
 
-				this.parseShell( surfaces, vertices, triangles, ids, objectId, json );
+				this.parseShell( surfaces, vertices, objectId, json );
 
 			} else if ( geomType == "MultiSolid" || geomType == "CompositeSolid" ) {
 
@@ -182,7 +158,7 @@ class ObjectTypeParser {
 
 					for ( let j = 0; j < solids[ i ].length; j ++ ) {
 
-						this.parseShell( solids[ i ][ j ], vertices, triangles, ids, objectId, json );
+						this.parseShell( solids[ i ][ j ], vertices, objectId, json );
 
 					}
 
@@ -194,7 +170,7 @@ class ObjectTypeParser {
 
 	}
 
-	parseShell( boundaries, vertices, triangles, ids, id, json ) {
+	parseShell( boundaries, vertices, id, json ) {
 
 		// Contains the boundary but with the right verticeId
 		for ( let i = 0; i < boundaries.length; i ++ ) {
@@ -220,20 +196,7 @@ class ObjectTypeParser {
 
 				for ( let n = 0; n < 3; n ++ ) {
 
-					const index = vertices.indexOf( boundary[ n ] );
-
-					if ( index == - 1 ) {
-
-						triangles.push( vertices.length );
-						vertices.push( boundary[ n ] );
-
-					} else {
-
-						triangles.push( index );
-
-					}
-
-					ids.push( id );
+					vertices.push( boundary[ n ] );
 
 				}
 
@@ -274,18 +237,7 @@ class ObjectTypeParser {
 					for ( let n = 0; n < 3; n ++ ) {
 
 						const vertex = boundary[ tr[ k + n ] ];
-						const index = vertices.indexOf( vertex );
-
-						if ( index == - 1 ) {
-
-							triangles.push( vertices.length );
-							vertices.push( vertex );
-
-						} else {
-
-							triangles.push( index );
-
-						}
+						vertices.push( vertex );
 
 					}
 

@@ -76,8 +76,6 @@ function init() {
 
 		} );
 
-		console.log( `Bytes used ${memCount}` );
-
 		render();
 
 	};

@@ -54,8 +54,6 @@ export class ObjectTypeParser {
 
 			const geom = new BufferGeometry();
 
-			geom.setIndex( e.data.triangles );
-
 			const vertexArray = new Float32Array( vertices );
 			geom.setAttribute( 'position', new BufferAttribute( vertexArray, 3 ) );
 
@@ -71,11 +69,9 @@ export class ObjectTypeParser {
 
 			const material = new MeshPhongMaterial();
 			material.flatShading = true;
-			material.color.setHex( objectColors[ e.data.cityobject_type ] );
+			material.color.setHex( 0xcccccc );
 
 			const mesh = new Mesh( geom, material );
-
-			mesh.triangleIDs = e.triangle_ids;
 
 			scene.add( mesh );
 
