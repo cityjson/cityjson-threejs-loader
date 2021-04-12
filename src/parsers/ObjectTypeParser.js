@@ -2,15 +2,10 @@ import {
 	BufferAttribute,
 	BufferGeometry,
 	Color,
-	DataTexture,
-	Float32BufferAttribute,
 	Int32BufferAttribute,
-	Int8BufferAttribute,
 	Mesh,
-	RGBFormat,
 	ShaderLib,
 	ShaderMaterial,
-	Uint8BufferAttribute,
 	UniformsUtils,
 	Vector3 } from 'three';
 
@@ -123,8 +118,8 @@ export class ObjectTypeParser {
 
 			const vertexArray = new Float32Array( vertices );
 			geom.setAttribute( 'position', new BufferAttribute( vertexArray, 3 ) );
-			// const idsArray = new Uint16Array( e.data.objectIds );
-			// geom.setAttribute( 'objectid', new BufferAttribute( idsArray, 1 ) );
+			const idsArray = new Uint16Array( e.data.objectIds );
+			geom.setAttribute( 'objectid', new BufferAttribute( idsArray, 1 ) );
 			const typeArray = new Uint8Array( e.data.objectType );
 			geom.setAttribute( 'type', new Int32BufferAttribute( typeArray, 1 ) );
 

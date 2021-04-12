@@ -6,16 +6,20 @@ import {
 	AmbientLight,
 	DirectionalLight,
 	PerspectiveCamera,
+	Raycaster,
 	Scene,
+	Vector2,
 	WebGLRenderer
 } from 'three';
 import { BufferGeometryUtils } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 
-let scene, renderer, camera, controls, stats;
+let scene, renderer, camera, controls, stats, raycaster;
+let citymodel;
 
 init();
+render();
 
 function init() {
 
@@ -41,7 +45,13 @@ function init() {
 	scene.add( dirLight );
 
 	controls = new OrbitControls( camera, renderer.domElement );
-	controls.screenSpacePanning = true;
+	controls.screenSpacePanning = false;
+	controls.enableDamping = true;
+	controls.dampingFactor = 0.05;
+
+	raycaster = new Raycaster();
+
+	renderer.domElement.addEventListener( 'click', onMouseUp, false );
 
 	// controls.addEventListener( 'change', render );
 
@@ -90,9 +100,7 @@ function init() {
 
 	statsContainer.innerHTML = "Fetching...";
 
-	render();
-
-	fetch( "/example/data/montreal.json" )
+	fetch( "/example/data/singapore.json" )
 		.then( res => {
 
 			if ( res.ok ) {
@@ -104,6 +112,8 @@ function init() {
 		} )
 		.then( data => {
 
+			citymodel = data;
+
 			loader.load( data );
 
 			statsContainer.innerHTML = "Parsing...";
@@ -114,10 +124,41 @@ function init() {
 
 }
 
+function onMouseUp( e ) {
+
+	const bounds = this.getBoundingClientRect();
+	const mouse = new Vector2();
+	mouse.x = e.clientX - bounds.x;
+	mouse.y = e.clientY - bounds.y;
+	mouse.x = ( mouse.x / bounds.width ) * 2 - 1;
+	mouse.y = - ( mouse.y / bounds.height ) * 2 + 1;
+	raycaster.setFromCamera( mouse, camera );
+
+	const results = raycaster.intersectObject( scene, true );
+	if ( results.length ) {
+
+		const { face, object } = results[ 0 ];
+
+		const objIds = object.geometry.getAttribute( 'objectid' );
+
+		if ( objIds ) {
+
+			const idx = objIds.getX( face.a );
+			const objectId = Object.keys( citymodel.CityObjects )[ idx ];
+
+			console.log( objectId );
+
+		}
+
+	}
+
+}
+
 function render() {
 
 	requestAnimationFrame( render );
 
+	controls.update();
 	renderer.render( scene, camera );
 	stats.update();
 

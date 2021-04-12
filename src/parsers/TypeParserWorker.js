@@ -70,6 +70,8 @@ class ObjectTypeParser {
 			"WaterBody": 0x4da6ff
 		};
 
+		this.objectIds = [];
+
 	}
 
 	parse( data, action ) {
@@ -81,6 +83,8 @@ class ObjectTypeParser {
 		let i = 0;
 
 		for ( const objectId in data.CityObjects ) {
+
+			this.objectIds.push( objectId );
 
 			this.parseObject( objectId, data );
 			if ( i ++ > this.chunkSize ) {
@@ -180,6 +184,8 @@ class ObjectTypeParser {
 		let objIds = this.meshObjIds;
 		let objTypes = this.meshObjType;
 
+		const idIdx = this.objectIds.indexOf( id );
+
 		const objType = Object.keys( this.objectColors ).indexOf( json.CityObjects[ id ].type );
 
 		// Contains the boundary but with the right verticeId
@@ -207,7 +213,7 @@ class ObjectTypeParser {
 				for ( let n = 0; n < 3; n ++ ) {
 
 					vertices.push( boundary[ n ] );
-					objIds.push( id );
+					objIds.push( idIdx );
 					objTypes.push( objType );
 
 				}
@@ -250,7 +256,7 @@ class ObjectTypeParser {
 
 						const vertex = boundary[ tr[ k + n ] ];
 						vertices.push( vertex );
-						objIds.push( id );
+						objIds.push( idIdx );
 						objTypes.push( objType );
 
 					}
