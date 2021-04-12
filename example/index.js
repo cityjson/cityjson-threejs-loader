@@ -51,7 +51,7 @@ function init() {
 
 	raycaster = new Raycaster();
 
-	renderer.domElement.addEventListener( 'click', onMouseUp, false );
+	renderer.domElement.addEventListener( 'dblclick', onMouseUp, false );
 
 	// controls.addEventListener( 'change', render );
 
@@ -100,7 +100,7 @@ function init() {
 
 	statsContainer.innerHTML = "Fetching...";
 
-	fetch( "/example/data/singapore.json" )
+	fetch( "/example/data/montreal.json" )
 		.then( res => {
 
 			if ( res.ok ) {

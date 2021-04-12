@@ -82,9 +82,9 @@ class ObjectTypeParser {
 
 		let i = 0;
 
-		for ( const objectId in data.CityObjects ) {
+		this.objectIds = Object.keys( data.CityObjects );
 
-			this.objectIds.push( objectId );
+		for ( const objectId in data.CityObjects ) {
 
 			this.parseObject( objectId, data );
 			if ( i ++ > this.chunkSize ) {
