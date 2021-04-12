@@ -11,8 +11,9 @@ import {
 } from 'three';
 import { BufferGeometryUtils } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import Stats from 'three/examples/jsm/libs/stats.module.js';
 
-let scene, renderer, camera, controls;
+let scene, renderer, camera, controls, stats;
 
 init();
 
@@ -42,7 +43,7 @@ function init() {
 	controls = new OrbitControls( camera, renderer.domElement );
 	controls.screenSpacePanning = true;
 
-	controls.addEventListener( 'change', render );
+	// controls.addEventListener( 'change', render );
 
 	const statsContainer = document.createElement( 'div' );
 	statsContainer.style.position = 'absolute';
@@ -56,8 +57,12 @@ function init() {
 	statsContainer.style.lineHeight = '1.5em';
 	document.body.appendChild( statsContainer );
 
+	stats = new Stats();
+	stats.showPanel( 0 );
+	document.body.appendChild( stats.dom );
+
 	const parser = new ObjectTypeParser();
-	parser.chunkSize = 200;
+	parser.chunkSize = 500;
 	parser.on_load = () => {
 
 		let objCount = 0;
@@ -75,8 +80,6 @@ function init() {
 			statsContainer.innerHTML = `${ objCount } Meshes (${ ( memCount / 1024 / 1024 ).toFixed( 2 ) } MB)`;
 
 		} );
-
-		render();
 
 	};
 
@@ -104,14 +107,15 @@ function init() {
 
 			scene.add( loader.scene );
 
-			render();
-
 		} );
 
 }
 
 function render() {
 
+	requestAnimationFrame( render );
+
 	renderer.render( scene, camera );
+	stats.update();
 
 }

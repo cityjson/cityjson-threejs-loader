@@ -9,21 +9,20 @@ onmessage = function ( e ) {
 		if ( props.chunkSize ) {
 
 			parser.chunkSize = props.chunkSize;
-			console.log( parser.chunkSize );
 
 		}
 
 	}
 
-	parser.parse( e.data[ 0 ], ( v ) => {
+	parser.parse( e.data[ 0 ], ( v, objectIds, objectType ) => {
 
 		const vertexArray = new Float32Array( v );
 		const vertexBuffer = vertexArray.buffer;
 
-		console.log( "Sending data... " );
-
 		const msg = {
-			v_buffer: vertexBuffer
+			v_buffer: vertexBuffer,
+			objectIds,
+			objectType
 		};
 		postMessage( msg, [ vertexBuffer ] );
 
@@ -39,6 +38,8 @@ class ObjectTypeParser {
 		this.chunkSize = 100;
 
 		this.meshVertices = [];
+		this.meshObjIds = [];
+		this.meshObjType = [];
 
 		this.objectColors = {
 			"Building": 0x7497df,
@@ -68,13 +69,11 @@ class ObjectTypeParser {
 
 	parse( data, action ) {
 
-		console.log( "Starting..." );
-
 		this.meshVertices = [];
+		this.meshObjIds = [];
+		this.meshObjType = [];
 
 		let i = 0;
-
-		console.log( data );
 
 		for ( const objectId in data.CityObjects ) {
 
@@ -84,6 +83,8 @@ class ObjectTypeParser {
 				this.returnObjects( data, action );
 
 				this.meshVertices = [];
+				this.meshObjIds = [];
+				this.meshObjType = [];
 
 				i = 0;
 
@@ -113,7 +114,7 @@ class ObjectTypeParser {
 
 		}
 
-		action( vertices );
+		action( vertices, this.meshObjIds, this.meshObjType );
 
 	}
 
@@ -128,8 +129,6 @@ class ObjectTypeParser {
 
 		}
 
-		let vertices = this.meshVertices;
-
 		for ( let geom_i = 0; geom_i < cityObject.geometry.length; geom_i ++ ) {
 
 			const geomType = cityObject.geometry[ geom_i ].type;
@@ -140,7 +139,7 @@ class ObjectTypeParser {
 
 				for ( let i = 0; i < shells.length; i ++ ) {
 
-					this.parseShell( shells[ i ], vertices, objectId, json );
+					this.parseShell( shells[ i ], objectId, json );
 
 				}
 
@@ -148,7 +147,7 @@ class ObjectTypeParser {
 
 				const surfaces = cityObject.geometry[ geom_i ].boundaries;
 
-				this.parseShell( surfaces, vertices, objectId, json );
+				this.parseShell( surfaces, objectId, json );
 
 			} else if ( geomType == "MultiSolid" || geomType == "CompositeSolid" ) {
 
@@ -158,7 +157,7 @@ class ObjectTypeParser {
 
 					for ( let j = 0; j < solids[ i ].length; j ++ ) {
 
-						this.parseShell( solids[ i ][ j ], vertices, objectId, json );
+						this.parseShell( solids[ i ][ j ], objectId, json );
 
 					}
 
@@ -170,7 +169,13 @@ class ObjectTypeParser {
 
 	}
 
-	parseShell( boundaries, vertices, id, json ) {
+	parseShell( boundaries, id, json ) {
+
+		let vertices = this.meshVertices;
+		let objIds = this.meshObjIds;
+		let objTypes = this.meshObjType;
+
+		const objType = Object.keys( this.objectColors ).indexOf( json.CityObjects[ id ].type );
 
 		// Contains the boundary but with the right verticeId
 		for ( let i = 0; i < boundaries.length; i ++ ) {
@@ -197,6 +202,8 @@ class ObjectTypeParser {
 				for ( let n = 0; n < 3; n ++ ) {
 
 					vertices.push( boundary[ n ] );
+					objIds.push( id );
+					objTypes.push( objType );
 
 				}
 
@@ -238,6 +245,8 @@ class ObjectTypeParser {
 
 						const vertex = boundary[ tr[ k + n ] ];
 						vertices.push( vertex );
+						objIds.push( id );
+						objTypes.push( objType );
 
 					}
 
