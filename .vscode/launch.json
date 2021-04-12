@@ -14,6 +14,16 @@
                 "../*": "${webRoot}/example/*"
             },
             "runtimeExecutable": "/usr/bin/chromium"
+        },
+        {
+            "type": "chrome",
+            "request": "launch",
+            "name": "Launch Chrome",
+            "url": "http://localhost:9080/example/dev-bundle/index.html",
+            "webRoot": "${workspaceFolder}",
+            "sourceMapPathOverrides": {
+                "../*": "${webRoot}/example/*"
+            }
         }
     ]
 }
