@@ -6,8 +6,7 @@ import {
 	Mesh,
 	ShaderLib,
 	ShaderMaterial,
-	UniformsUtils,
-	Vector3 } from 'three';
+	UniformsUtils } from 'three';
 
 // Adjusts the three.js standard shader to include batchid highlight
 function batchIdHighlightShaderMixin( shader ) {
@@ -93,13 +92,13 @@ export class ObjectTypeParser {
 
 			const color = new Color( this.objectColors[ objType ] );
 
-			cm_data.push( new Vector3( color.r, color.g, color.b ) );
+			cm_data.push( color.convertSRGBToLinear() );
 
 		}
 
 		for ( let i = cm_data.length; i < 256; i ++ ) {
 
-			cm_data.push( new Vector3( 1.0, 1.0, 1.0 ) );
+			cm_data.push( new Color( 0xffffff ).convertSRGBToLinear() );
 
 		}
 

@@ -8,6 +8,7 @@ import {
 	PerspectiveCamera,
 	Raycaster,
 	Scene,
+	sRGBEncoding,
 	Vector2,
 	WebGLRenderer
 } from 'three';
@@ -29,6 +30,7 @@ function init() {
 	renderer.setPixelRatio( window.devicePixelRatio );
 	renderer.setSize( window.innerWidth, window.innerHeight );
 	renderer.setClearColor( 0x1c1c1c );
+	renderer.outputEncoding = sRGBEncoding;
 
 	document.body.appendChild( renderer.domElement );
 
