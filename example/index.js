@@ -146,9 +146,19 @@ function onMouseUp( e ) {
 			const idx = objIds.getX( face.a );
 			const objectId = Object.keys( citymodel.CityObjects )[ idx ];
 
+			object.material.uniforms.highlightedObjId.value = idx;
+
 			console.log( objectId );
 
 		}
+
+	} else {
+
+		scene.traverse( c => {
+
+			if ( c.material ) c.material.uniforms.highlightedObjId.value = - 1;
+
+		} );
 
 	}
 

@@ -15,6 +15,8 @@ function batchIdHighlightShaderMixin( shader ) {
 	const newShader = { ...shader };
 	newShader.uniforms = {
 		objectColors: { type: "v3v", value: [] },
+		highlightedObjId: { value: - 1 },
+		highlightColor: { value: new Color( 0xFFC107 ).convertSRGBToLinear() },
 		...UniformsUtils.clone( shader.uniforms ),
 	};
 	newShader.extensions = {
@@ -23,15 +25,18 @@ function batchIdHighlightShaderMixin( shader ) {
 	newShader.lights = true;
 	newShader.vertexShader =
 		`
+			attribute float objectid;
 			attribute int type;
 			varying vec3 diffuse_;
 			uniform vec3 objectColors[256];
+			uniform vec3 highlightColor;
+			uniform float highlightedObjId;
 		` +
 		newShader.vertexShader.replace(
 			/#include <uv_vertex>/,
 			`
 			#include <uv_vertex>
-			diffuse_ = objectColors[type];
+			diffuse_ = abs( objectid - highlightedObjId ) < 0.5 ? highlightColor : objectColors[type];
 			`
 		);
 	newShader.fragmentShader =
