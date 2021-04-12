@@ -1,6 +1,6 @@
 import {
 	CityJSONLoader,
-	ObjectTypeParser
+	CityJSONWorkerParser
 } from '../src/index';
 import {
 	AmbientLight,
@@ -96,7 +96,7 @@ function init() {
 	stats.showPanel( 0 );
 	document.body.appendChild( stats.dom );
 
-	parser = new ObjectTypeParser();
+	parser = new CityJSONWorkerParser();
 	parser.chunkSize = 2000;
 	parser.onChunkLoad = () => {
 
@@ -178,7 +178,7 @@ function onDrop( e ) {
 
 				const cm = JSON.parse( evt.target.result );
 
-				statsContainer.innerHTML = "Okay. Now for loading it...";
+				statsContainer.innerHTML = "Okay. Now I'll load it...";
 
 				citymodel = cm;
 

@@ -68,7 +68,7 @@ function createObjectColorShader( shader, objectColors ) {
 
 }
 
-export class ObjectTypeParser {
+export class CityJSONWorkerParser {
 
 	constructor() {
 
@@ -112,7 +112,7 @@ export class ObjectTypeParser {
 
 	parse( data, scene ) {
 
-		const worker = new Worker( "./TypeParserWorker.js" );
+		const worker = new Worker( "./ParserWorker.js" );
 		const m = this.matrix;
 		const onChunkLoad = this.onChunkLoad;
 		const material = this.material;

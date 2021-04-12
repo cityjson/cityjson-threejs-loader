@@ -1,6 +1,6 @@
 import { Group, Matrix4 } from "three";
 
-export class ObjectTypeParser {
+export class CityJSONWorkerParser {
 
     matrix: Matrix4;
     

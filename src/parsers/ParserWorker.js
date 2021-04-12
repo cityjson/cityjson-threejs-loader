@@ -5,7 +5,7 @@ import earcut from 'earcut';
 
 onmessage = function ( e ) {
 
-	const parser = new ObjectTypeParser();
+	const parser = new CityJSONParser();
 
 	const props = e.data[ 1 ];
 
@@ -41,7 +41,7 @@ onmessage = function ( e ) {
 
 };
 
-class ObjectTypeParser {
+class CityJSONParser {
 
 	constructor() {
 
