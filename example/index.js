@@ -5,6 +5,7 @@ import {
 import {
 	AmbientLight,
 	DirectionalLight,
+	Group,
 	PerspectiveCamera,
 	Raycaster,
 	Scene,
@@ -17,7 +18,11 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 
 let scene, renderer, camera, controls, stats, raycaster;
+let modelgroup;
 let citymodel;
+let parser;
+let loader;
+let statsContainer;
 
 init();
 render();
@@ -46,6 +51,9 @@ function init() {
 	dirLight.position.set( 1, 2, 3 );
 	scene.add( dirLight );
 
+	modelgroup = new Group();
+	scene.add( modelgroup );
+
 	controls = new OrbitControls( camera, renderer.domElement );
 	controls.screenSpacePanning = false;
 	controls.enableDamping = true;
@@ -54,10 +62,12 @@ function init() {
 	raycaster = new Raycaster();
 
 	renderer.domElement.addEventListener( 'dblclick', onMouseUp, false );
+	renderer.domElement.ondragover = ev => ev.preventDefault();
+	renderer.domElement.ondrop = onDrop;
 
 	// controls.addEventListener( 'change', render );
 
-	const statsContainer = document.createElement( 'div' );
+	statsContainer = document.createElement( 'div' );
 	statsContainer.style.position = 'absolute';
 	statsContainer.style.top = 0;
 	statsContainer.style.left = 0;
@@ -73,8 +83,8 @@ function init() {
 	stats.showPanel( 0 );
 	document.body.appendChild( stats.dom );
 
-	const parser = new ObjectTypeParser();
-	parser.chunkSize = 500;
+	parser = new ObjectTypeParser();
+	parser.chunkSize = 2000;
 	parser.on_load = () => {
 
 		let objCount = 0;
@@ -98,11 +108,11 @@ function init() {
 
 	};
 
-	const loader = new CityJSONLoader( parser );
+	loader = new CityJSONLoader( parser );
 
 	statsContainer.innerHTML = "Fetching...";
 
-	fetch( "/example/data/montreal.json" )
+	fetch( "/example/data/tetra.json" )
 		.then( res => {
 
 			if ( res.ok ) {
@@ -120,9 +130,49 @@ function init() {
 
 			statsContainer.innerHTML = "Parsing...";
 
-			scene.add( loader.scene );
+			modelgroup.add( loader.scene );
 
 		} );
+
+}
+
+function onDrop( e ) {
+
+	e.preventDefault();
+
+	for ( const item of e.dataTransfer.items ) {
+
+		if ( item.kind === 'file' ) {
+
+			statsContainer.innerHTML = "Oh, a file! Let me parse this...";
+
+			const file = item.getAsFile();
+			const reader = new FileReader();
+			reader.readAsText( file, "UTF-8" );
+			reader.onload = evt => {
+
+				statsContainer.innerHTML = "Let's convert it to JSON...";
+
+				const cm = JSON.parse( evt.target.result );
+
+				statsContainer.innerHTML = "Okay. Now for loading it...";
+
+				const loader = new CityJSONLoader( parser );
+
+				modelgroup.remove( modelgroup.children[ 0 ] );
+
+				citymodel = cm;
+
+				loader.matrix = null;
+				loader.load( cm );
+
+				modelgroup.add( loader.scene );
+
+			};
+
+		}
+
+	}
 
 }
 

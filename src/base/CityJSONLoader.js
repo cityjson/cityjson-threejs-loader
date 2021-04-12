@@ -43,7 +43,7 @@ export class CityJSONLoader {
 
 		const normGeom = new BufferGeometry();
 
-		const vertices = new Float32Array( data.vertices.flat() );
+		const vertices = new Float32Array( data.vertices.map( v => [ v[ 0 ], v[ 1 ], 0 ] ).flat() );
 		normGeom.setAttribute( 'position', new BufferAttribute( vertices, 3 ) );
 
 		normGeom.computeBoundingSphere();
