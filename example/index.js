@@ -98,7 +98,7 @@ function init() {
 
 	parser = new ObjectTypeParser();
 	parser.chunkSize = 2000;
-	parser.on_load = () => {
+	parser.onChunkLoad = () => {
 
 		let objCount = 0;
 		let memCount = 0;
@@ -211,6 +211,8 @@ function onDblClick( e ) {
 		if ( c.material ) c.material.uniforms.highlightedObjId.value = - 1;
 
 	} );
+
+	infoContainer.innerHTML = "";
 
 	const results = raycaster.intersectObject( scene, true );
 	if ( results.length ) {

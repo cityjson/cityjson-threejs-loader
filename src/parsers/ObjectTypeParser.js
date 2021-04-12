@@ -9,11 +9,26 @@ import {
 	UniformsUtils } from 'three';
 
 // Adjusts the three.js standard shader to include batchid highlight
-function batchIdHighlightShaderMixin( shader ) {
+function createObjectColorShader( shader, objectColors ) {
+
+	const cm_data = [];
+	for ( const objType in objectColors ) {
+
+		const color = new Color( objectColors[ objType ] );
+
+		cm_data.push( color.convertSRGBToLinear() );
+
+	}
+
+	for ( let i = cm_data.length; i < 256; i ++ ) {
+
+		cm_data.push( new Color( 0xffffff ).convertSRGBToLinear() );
+
+	}
 
 	const newShader = { ...shader };
 	newShader.uniforms = {
-		objectColors: { type: "v3v", value: [] },
+		objectColors: { type: "v3v", value: cm_data },
 		highlightedObjId: { value: - 1 },
 		highlightColor: { value: new Color( 0xFFC107 ).convertSRGBToLinear() },
 		...UniformsUtils.clone( shader.uniforms ),
@@ -58,7 +73,7 @@ export class ObjectTypeParser {
 	constructor() {
 
 		this.matrix = null;
-		this.on_load = null;
+		this.onChunkLoad = null;
 		this.chunkSize = 100;
 
 		this.objectColors = {
@@ -91,24 +106,7 @@ export class ObjectTypeParser {
 
 	resetMaterial() {
 
-		this.material = new ShaderMaterial( batchIdHighlightShaderMixin( ShaderLib.lambert ) );
-
-		const cm_data = [];
-		for ( const objType in this.objectColors ) {
-
-			const color = new Color( this.objectColors[ objType ] );
-
-			cm_data.push( color.convertSRGBToLinear() );
-
-		}
-
-		for ( let i = cm_data.length; i < 256; i ++ ) {
-
-			cm_data.push( new Color( 0xffffff ).convertSRGBToLinear() );
-
-		}
-
-		this.material.uniforms.objectColors.value = cm_data;
+		this.material = new ShaderMaterial( createObjectColorShader( ShaderLib.lambert, this.objectColors ) );
 
 	}
 
@@ -116,7 +114,7 @@ export class ObjectTypeParser {
 
 		const worker = new Worker( "./TypeParserWorker.js" );
 		const m = this.matrix;
-		const on_load = this.on_load;
+		const onChunkLoad = this.onChunkLoad;
 		const material = this.material;
 		worker.onmessage = function ( e ) {
 
@@ -145,9 +143,9 @@ export class ObjectTypeParser {
 
 			scene.add( mesh );
 
-			if ( on_load ) {
+			if ( onChunkLoad ) {
 
-				on_load();
+				onChunkLoad();
 
 			}
 
