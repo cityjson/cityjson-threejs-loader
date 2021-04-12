@@ -228,7 +228,7 @@ function onDblClick( e ) {
 
 			const data = Object.assign( {}, citymodel.CityObjects[ objectId ] );
 			delete data.geometry;
-			let str = data.type;
+			let str = `<b>${ data.type }</b>`;
 			if ( data.attributes ) {
 
 				Object.keys( data.attributes ).map( k => {
