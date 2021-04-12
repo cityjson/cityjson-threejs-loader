@@ -85,6 +85,12 @@ export class ObjectTypeParser {
 			"WaterBody": 0x4da6ff
 		};
 
+		this.resetMaterial();
+
+	}
+
+	resetMaterial() {
+
 		this.material = new ShaderMaterial( batchIdHighlightShaderMixin( ShaderLib.lambert ) );
 
 		const cm_data = [];
@@ -107,8 +113,6 @@ export class ObjectTypeParser {
 	}
 
 	parse( data, scene ) {
-
-		console.log( "Starting..." );
 
 		const worker = new Worker( "./TypeParserWorker.js" );
 		const m = this.matrix;

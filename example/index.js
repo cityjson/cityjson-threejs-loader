@@ -23,6 +23,7 @@ let citymodel;
 let parser;
 let loader;
 let statsContainer;
+let infoContainer;
 
 init();
 render();
@@ -61,7 +62,7 @@ function init() {
 
 	raycaster = new Raycaster();
 
-	renderer.domElement.addEventListener( 'dblclick', onMouseUp, false );
+	renderer.domElement.addEventListener( 'dblclick', onDblClick, false );
 	renderer.domElement.ondragover = ev => ev.preventDefault();
 	renderer.domElement.ondrop = onDrop;
 
@@ -78,6 +79,18 @@ function init() {
 	statsContainer.style.pointerEvents = 'none';
 	statsContainer.style.lineHeight = '1.5em';
 	document.body.appendChild( statsContainer );
+
+	infoContainer = document.createElement( 'div' );
+	infoContainer.style.position = 'absolute';
+	infoContainer.style.bottom = 0;
+	infoContainer.style.left = 0;
+	infoContainer.style.color = 'white';
+	infoContainer.style.width = '30%';
+	infoContainer.style.textAlign = 'left';
+	infoContainer.style.padding = '5px';
+	infoContainer.style.pointerEvents = 'none';
+	infoContainer.style.lineHeight = '1.5em';
+	document.body.appendChild( infoContainer );
 
 	stats = new Stats();
 	stats.showPanel( 0 );
@@ -140,6 +153,18 @@ function onDrop( e ) {
 
 	e.preventDefault();
 
+	if ( ! e.ctrlKey ) {
+
+		while ( loader.scene.children.length > 0 ) {
+
+			loader.scene.remove( loader.scene.children[ 0 ] );
+
+		}
+
+		loader.matrix = null;
+
+	}
+
 	for ( const item of e.dataTransfer.items ) {
 
 		if ( item.kind === 'file' ) {
@@ -151,22 +176,17 @@ function onDrop( e ) {
 			reader.readAsText( file, "UTF-8" );
 			reader.onload = evt => {
 
-				statsContainer.innerHTML = "Let's convert it to JSON...";
-
 				const cm = JSON.parse( evt.target.result );
 
 				statsContainer.innerHTML = "Okay. Now for loading it...";
 
-				const loader = new CityJSONLoader( parser );
-
-				modelgroup.remove( modelgroup.children[ 0 ] );
-
 				citymodel = cm;
 
-				loader.matrix = null;
+				parser.resetMaterial();
+
 				loader.load( cm );
 
-				modelgroup.add( loader.scene );
+				scene.add( loader.scene );
 
 			};
 
@@ -176,7 +196,7 @@ function onDrop( e ) {
 
 }
 
-function onMouseUp( e ) {
+function onDblClick( e ) {
 
 	const bounds = this.getBoundingClientRect();
 	const mouse = new Vector2();
@@ -185,6 +205,12 @@ function onMouseUp( e ) {
 	mouse.x = ( mouse.x / bounds.width ) * 2 - 1;
 	mouse.y = - ( mouse.y / bounds.height ) * 2 + 1;
 	raycaster.setFromCamera( mouse, camera );
+
+	scene.traverse( c => {
+
+		if ( c.material ) c.material.uniforms.highlightedObjId.value = - 1;
+
+	} );
 
 	const results = raycaster.intersectObject( scene, true );
 	if ( results.length ) {
@@ -198,19 +224,24 @@ function onMouseUp( e ) {
 			const idx = objIds.getX( face.a );
 			const objectId = Object.keys( citymodel.CityObjects )[ idx ];
 
+			const data = Object.assign( {}, citymodel.CityObjects[ objectId ] );
+			delete data.geometry;
+			let str = data.type;
+			if ( data.attributes ) {
+
+				Object.keys( data.attributes ).map( k => {
+
+					str += `<br/>${ k }: ${ data.attributes[ k ] }`;
+
+				} );
+
+			}
+
+			infoContainer.innerHTML = str;
+
 			object.material.uniforms.highlightedObjId.value = idx;
 
-			console.log( objectId );
-
 		}
-
-	} else {
-
-		scene.traverse( c => {
-
-			if ( c.material ) c.material.uniforms.highlightedObjId.value = - 1;
-
-		} );
 
 	}
 
