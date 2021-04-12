@@ -11,8 +11,8 @@ import {
 	ShaderLib,
 	ShaderMaterial,
 	Uint8BufferAttribute,
-	UniformsUtils, 
-	Vector3} from 'three';
+	UniformsUtils,
+	Vector3 } from 'three';
 
 // Adjusts the three.js standard shader to include batchid highlight
 function batchIdHighlightShaderMixin( shader ) {

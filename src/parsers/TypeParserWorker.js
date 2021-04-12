@@ -1,3 +1,8 @@
+import {
+	Vector3
+} from 'three';
+import earcut from 'earcut';
+
 onmessage = function ( e ) {
 
 	const parser = new ObjectTypeParser();
@@ -277,7 +282,7 @@ class ObjectTypeParser {
 			} else {
 
 				// Add vertex to geometry
-				let point = new THREE.Vector3(
+				let point = new Vector3(
 					json.vertices[ index ][ 0 ],
 					json.vertices[ index ][ 1 ],
 					json.vertices[ index ][ 2 ]
@@ -389,18 +394,18 @@ class ObjectTypeParser {
 
 		}
 
-		let b = new THREE.Vector3( n[ 0 ], n[ 1 ], n[ 2 ] );
+		let b = new Vector3( n[ 0 ], n[ 1 ], n[ 2 ] );
 		return ( b.normalize() );
 
 	}
 
 	to_2d( p, n ) {
 
-		p = new THREE.Vector3( p.x, p.y, p.z );
-		let x3 = new THREE.Vector3( 1.1, 1.1, 1.1 );
+		p = new Vector3( p.x, p.y, p.z );
+		let x3 = new Vector3( 1.1, 1.1, 1.1 );
 		if ( x3.distanceTo( n ) < 0.01 ) {
 
-			x3.add( new THREE.Vector3( 1.0, 2.0, 3.0 ) );
+			x3.add( new Vector3( 1.0, 2.0, 3.0 ) );
 
 		}
 
