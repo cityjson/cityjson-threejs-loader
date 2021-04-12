@@ -67,6 +67,7 @@ function init() {
 
 		let objCount = 0;
 		let memCount = 0;
+		let vCount = 0;
 
 		scene.traverse( c => {
 
@@ -74,10 +75,12 @@ function init() {
 
 				objCount ++;
 				memCount += BufferGeometryUtils.estimateBytesUsed( c.geometry );
+				const attr = c.geometry.getAttribute( "type" );
+				vCount += attr.count;
 
 			}
 
-			statsContainer.innerHTML = `${ objCount } Meshes (${ ( memCount / 1024 / 1024 ).toFixed( 2 ) } MB)`;
+			statsContainer.innerHTML = `${ objCount } meshes (${ ( memCount / 1024 / 1024 ).toFixed( 2 ) } MB) - ${ vCount } vertices`;
 
 		} );
 

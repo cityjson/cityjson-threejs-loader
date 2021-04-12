@@ -3,18 +3,23 @@ import {
 	BufferGeometry,
 	Color,
 	DataTexture,
+	Float32BufferAttribute,
+	Int32BufferAttribute,
+	Int8BufferAttribute,
 	Mesh,
 	RGBFormat,
 	ShaderLib,
 	ShaderMaterial,
-	UniformsUtils } from 'three';
+	Uint8BufferAttribute,
+	UniformsUtils, 
+	Vector3} from 'three';
 
 // Adjusts the three.js standard shader to include batchid highlight
 function batchIdHighlightShaderMixin( shader ) {
 
 	const newShader = { ...shader };
 	newShader.uniforms = {
-		objectColors: { type: "t", value: new DataTexture( new Uint8Array( 3 * 256 ), 256, 1, RGBFormat ) },
+		objectColors: { type: "v3v", value: [] },
 		...UniformsUtils.clone( shader.uniforms ),
 	};
 	newShader.extensions = {
@@ -23,16 +28,15 @@ function batchIdHighlightShaderMixin( shader ) {
 	newShader.lights = true;
 	newShader.vertexShader =
 		`
-			attribute float type;
+			attribute int type;
 			varying vec3 diffuse_;
-			uniform sampler2D objectColors;
+			uniform vec3 objectColors[256];
 		` +
 		newShader.vertexShader.replace(
 			/#include <uv_vertex>/,
 			`
 			#include <uv_vertex>
-			float texCoord = type * 0.00390625 + 0.001953125;
-			diffuse_ = texture( objectColors, vec2( texCoord, 0 ) ).xyz;
+			diffuse_ = objectColors[type];
 			`
 		);
 	newShader.fragmentShader =
@@ -84,22 +88,22 @@ export class ObjectTypeParser {
 
 		this.material = new ShaderMaterial( batchIdHighlightShaderMixin( ShaderLib.lambert ) );
 
-		const cm_data = new Uint8Array( 3 * 256 );
-		let i = 0;
+		const cm_data = [];
 		for ( const objType in this.objectColors ) {
 
 			const color = new Color( this.objectColors[ objType ] );
-			const stride = i * 3;
 
-			cm_data[ stride ] = Math.floor( color.r * 255 );
-			cm_data[ stride + 1 ] = Math.floor( color.g * 255 );
-			cm_data[ stride + 2 ] = Math.floor( color.b * 255 );
-
-			i ++;
+			cm_data.push( new Vector3( color.r, color.g, color.b ) );
 
 		}
 
-		this.material.uniforms.objectColors.value = new DataTexture( cm_data, 256, 1, RGBFormat );
+		for ( let i = cm_data.length; i < 256; i ++ ) {
+
+			cm_data.push( new Vector3( 1.0, 1.0, 1.0 ) );
+
+		}
+
+		this.material.uniforms.objectColors.value = cm_data;
 
 	}
 
@@ -122,7 +126,7 @@ export class ObjectTypeParser {
 			// const idsArray = new Uint16Array( e.data.objectIds );
 			// geom.setAttribute( 'objectid', new BufferAttribute( idsArray, 1 ) );
 			const typeArray = new Uint8Array( e.data.objectType );
-			geom.setAttribute( 'type', new BufferAttribute( typeArray, 1 ) );
+			geom.setAttribute( 'type', new Int32BufferAttribute( typeArray, 1 ) );
 
 			geom.attributes.position.needsUpdate = true;
 
