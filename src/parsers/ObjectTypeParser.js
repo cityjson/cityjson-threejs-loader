@@ -151,7 +151,7 @@ export class ObjectTypeParser {
 
 		};
 
-		worker.postMessage( [ data, { chunkSize: this.chunkSize } ] );
+		worker.postMessage( [ data, { chunkSize: this.chunkSize, objectColors: this.objectColors } ] );
 
 	}
 

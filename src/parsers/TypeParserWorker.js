@@ -17,6 +17,12 @@ onmessage = function ( e ) {
 
 		}
 
+		if ( props.objectColors ) {
+
+			parser.objectColors = props.objectColors;
+
+		}
+
 	}
 
 	parser.parse( e.data[ 0 ], ( v, objectIds, objectType ) => {
@@ -266,116 +272,6 @@ class ObjectTypeParser {
 			}
 
 		}
-
-	}
-
-	extractLocalIndices( geom, boundary, indices, json ) {
-
-		let new_boundary = [];
-
-		let j;
-		for ( j = 0; j < boundary.length; j ++ ) {
-
-			//the original index from the json file
-			let index = boundary[ j ];
-
-			//if this index is already there
-			if ( indices.includes( index ) ) {
-
-				let vertPos = indices.indexOf( index );
-				new_boundary.push( vertPos );
-
-			} else {
-
-				// Add vertex to geometry
-				let point = new Vector3(
-					json.vertices[ index ][ 0 ],
-					json.vertices[ index ][ 1 ],
-					json.vertices[ index ][ 2 ]
-				);
-				geom.vertices.push( point );
-
-				new_boundary.push( indices.length );
-				indices.push( index );
-
-			}
-
-		}
-
-		return new_boundary;
-
-	}
-
-	getBbox( data ) {
-
-		let bbox;
-
-		if ( data[ "metadata" ] != undefined && data[ "metadata" ][ "geographicalExtent" ] != undefined ) {
-
-
-			bbox = data[ "metadata" ][ "geographicalExtent" ];
-
-			if ( data[ "transform" ] != undefined ) {
-
-				const transform = data[ "transform" ];
-
-				for ( let i = 0; i < 3; i ++ ) {
-
-					bbox[ i ] = bbox[ i ] - transform[ "translate" ][ i ];
-					bbox[ i + 3 ] = ( bbox[ i + 3 ] - transform[ "translate" ][ i ] ) / transform[ "scale" ][ i ];
-
-				}
-
-			}
-
-
-		} else {
-
-			const vertices = data.vertices;
-
-			bbox = [ Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE, Number.MIN_VALUE, Number.MIN_VALUE, Number.MIN_VALUE ];
-
-			for ( const v of vertices ) {
-
-				const x = v[ 0 ];
-				const y = v[ 1 ];
-				const z = v[ 2 ];
-
-				if ( x < bbox[ 0 ] ) {
-
-					bbox[ 0 ] = x;
-
-				} else if ( x > bbox[ 3 ] ) {
-
-					bbox[ 3 ] = x;
-
-				}
-
-				if ( y < bbox[ 1 ] ) {
-
-					bbox[ 1 ] = y;
-
-				} else if ( y > bbox[ 4 ] ) {
-
-					bbox[ 4 ] = y;
-
-				}
-
-				if ( z < bbox[ 2 ] ) {
-
-					bbox[ 2 ] = z;
-
-				} else if ( z > bbox[ 5 ] ) {
-
-					bbox[ 5 ] = z;
-
-				}
-
-			}
-
-		}
-
-		return bbox;
 
 	}
 
