@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "earcut": "^2.2.2",
-    "three": "^0.124.0"
+    "three": "^0.127.0"
   },
   "devDependencies": {
     "concurrently": "^6.0.0",
