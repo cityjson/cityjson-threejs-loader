@@ -240,7 +240,7 @@ class CityJSONParser {
 				}
 
 				//get normal of these points
-				const normal = this.get_normal_newell( pList );
+				const normal = this.getNewellsNormal( pList );
 
 				//convert to 2d (for triangulation)
 				let pv = [];
@@ -275,7 +275,7 @@ class CityJSONParser {
 
 	}
 
-	get_normal_newell( indices ) {
+	getNewellsNormal( indices ) {
 
 		// find normal with Newell's method
 		let n = [ 0.0, 0.0, 0.0 ];
