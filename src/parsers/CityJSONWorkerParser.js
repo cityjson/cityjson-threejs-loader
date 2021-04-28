@@ -74,7 +74,7 @@ export class CityJSONWorkerParser {
 
 		this.matrix = null;
 		this.onChunkLoad = null;
-		this.chunkSize = 100;
+		this.chunkSize = 2000;
 
 		this.objectColors = {
 			"Building": 0x7497df,
