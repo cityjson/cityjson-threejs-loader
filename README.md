@@ -11,4 +11,5 @@ This is a basic loader for CityJSON files in `three.js`.
 ## Examples
 
 - Run `npm run dev` or `yarn run dev`.
-- Visit [http://localhost:1234](http://localhost:1234)
+- Visit [http://localhost:9080/example/dev-run/index.html](http://localhost:9080/example/dev-run/index.html)
+- Drag 'n' drop any file to visualise it.
