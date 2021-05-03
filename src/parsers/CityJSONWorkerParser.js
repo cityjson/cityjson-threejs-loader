@@ -7,6 +7,7 @@ import {
 	ShaderLib,
 	ShaderMaterial,
 	UniformsUtils } from 'three';
+import { defaultSemanticsColors } from '../defaults/colors.js';
 
 // Adjusts the three.js standard shader to include batchid highlight
 function createObjectColorShader( shader, objectColors ) {
@@ -26,9 +27,26 @@ function createObjectColorShader( shader, objectColors ) {
 
 	}
 
+	const surface_data = [];
+	for ( const surfType in defaultSemanticsColors ) {
+
+		const color = new Color( defaultSemanticsColors[ surfType ] );
+
+		surface_data.push( color.convertSRGBToLinear() );
+
+	}
+
+	for ( let i = surface_data.length; i < 256; i ++ ) {
+
+		surface_data.push( new Color( 0xffffff ).convertSRGBToLinear() );
+
+	}
+
 	const newShader = { ...shader };
 	newShader.uniforms = {
 		objectColors: { type: "v3v", value: cm_data },
+		surfaceColors: { type: "v3v", value: surface_data },
+		showSemantics: { value: true },
 		highlightedObjId: { value: - 1 },
 		highlightColor: { value: new Color( 0xFFC107 ).convertSRGBToLinear() },
 		...UniformsUtils.clone( shader.uniforms ),
@@ -41,16 +59,27 @@ function createObjectColorShader( shader, objectColors ) {
 		`
 			attribute float objectid;
 			attribute int type;
+			attribute int surfacetype;
 			varying vec3 diffuse_;
 			uniform vec3 objectColors[256];
+			uniform vec3 surfaceColors[256];
 			uniform vec3 highlightColor;
 			uniform float highlightedObjId;
+			uniform bool showSemantics;
 		` +
 		newShader.vertexShader.replace(
 			/#include <uv_vertex>/,
 			`
 			#include <uv_vertex>
-			diffuse_ = abs( objectid - highlightedObjId ) < 0.5 ? highlightColor : objectColors[type];
+			vec3 color_;
+			
+			if ( showSemantics ) {
+				color_ = surfacetype > -1 ? surfaceColors[surfacetype] : objectColors[type];
+			}
+			else {
+				color_ = objectColors[type];
+			}
+			diffuse_ = abs( objectid - highlightedObjId ) < 0.5 ? highlightColor : color_;
 			`
 		);
 	newShader.fragmentShader =
@@ -128,6 +157,8 @@ export class CityJSONWorkerParser {
 			geom.setAttribute( 'objectid', new BufferAttribute( idsArray, 1 ) );
 			const typeArray = new Uint8Array( e.data.objectType );
 			geom.setAttribute( 'type', new Int32BufferAttribute( typeArray, 1 ) );
+			const surfaceTypeArray = new Int8Array( e.data.surfaceType );
+			geom.setAttribute( 'surfacetype', new Int32BufferAttribute( surfaceTypeArray, 1 ) );
 
 			geom.attributes.position.needsUpdate = true;
 

@@ -3,6 +3,8 @@ import {
 } from 'three';
 import earcut from 'earcut';
 
+import { defaultSemanticsColors } from '../defaults/colors.js';
+
 export class GeometryParser {
 
 	constructor( json, objectIds, objectColors ) {
@@ -11,6 +13,7 @@ export class GeometryParser {
 
 		this.objectIds = objectIds;
 		this.objectColors = objectColors;
+		this.surfaceColors = defaultSemanticsColors;
 
 		this.meshVertices = [];
 		this.meshObjIds = [];
@@ -32,13 +35,17 @@ export class GeometryParser {
 
 		const geomType = geometry.type;
 
+		const semanticSurfaces = geometry.semantics ? geometry.semantics.surfaces : [];
+
 		if ( geomType == "Solid" ) {
 
 			const shells = geometry.boundaries;
 
 			for ( let i = 0; i < shells.length; i ++ ) {
 
-				this.parseShell( shells[ i ], objectId );
+				const semantics = geometry.semantics ? geometry.semantics.values[ i ] : [];
+
+				this.parseShell( shells[ i ], objectId, semantics, semanticSurfaces );
 
 			}
 
@@ -46,7 +53,8 @@ export class GeometryParser {
 
 			const surfaces = geometry.boundaries;
 
-			this.parseShell( surfaces, objectId );
+			const semantics = geometry.semantics ? geometry.semantics.values : [];
+			this.parseShell( surfaces, objectId, semantics, semanticSurfaces );
 
 		} else if ( geomType == "MultiSolid" || geomType == "CompositeSolid" ) {
 
@@ -56,7 +64,9 @@ export class GeometryParser {
 
 				for ( let j = 0; j < solids[ i ].length; j ++ ) {
 
-					this.parseShell( solids[ i ][ j ], objectId );
+					const semantics = geometry.semantics ? geometry.semantics.values[ i ][ j ] : [];
+
+					this.parseShell( solids[ i ][ j ], objectId, semantics, semanticSurfaces );
 
 				}
 
@@ -66,22 +76,27 @@ export class GeometryParser {
 
 	}
 
-	parseShell( boundaries, id ) {
+	parseShell( boundaries, objectId, semantics = [], surfaces = [] ) {
 
 		const vertices = this.meshVertices;
 		const objIds = this.meshObjIds;
 		const objTypes = this.meshObjType;
+		const semanticTypes = this.meshSemanticSurfaces;
+
 		const json = this.json;
 
-		const idIdx = this.objectIds.indexOf( id );
+		const idIdx = this.objectIds.indexOf( objectId );
 
-		const objType = Object.keys( this.objectColors ).indexOf( json.CityObjects[ id ].type );
+		// TODO: If not found, it should be appended
+		const objType = Object.keys( this.objectColors ).indexOf( json.CityObjects[ objectId ].type );
 
 		// Contains the boundary but with the right verticeId
 		for ( let i = 0; i < boundaries.length; i ++ ) {
 
 			let boundary = [];
 			let holes = [];
+
+			const surfaceType = semantics.length == 0 ? - 1 : Object.keys( this.surfaceColors ).indexOf( surfaces[ semantics[ i ] ].type );
 
 			for ( let j = 0; j < boundaries[ i ].length; j ++ ) {
 
@@ -104,6 +119,7 @@ export class GeometryParser {
 					vertices.push( boundary[ n ] );
 					objIds.push( idIdx );
 					objTypes.push( objType );
+					semanticTypes.push( surfaceType );
 
 				}
 
@@ -147,6 +163,7 @@ export class GeometryParser {
 						vertices.push( vertex );
 						objIds.push( idIdx );
 						objTypes.push( objType );
+						semanticTypes.push( surfaceType );
 
 					}
 

@@ -93,7 +93,7 @@ export class ChunkParser {
 
 		}
 
-		this.onchunkload( vertices, parser.meshObjIds, parser.meshObjType );
+		this.onchunkload( vertices, parser.meshObjIds, parser.meshObjType, parser.meshSemanticSurfaces );
 
 	}
 
