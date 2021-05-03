@@ -137,6 +137,8 @@ export class CityJSONWorkerParser {
 			"WaterBody": 0x4da6ff
 		};
 
+		this.surfaceColors = {};
+
 		this.resetMaterial();
 
 	}
@@ -153,6 +155,8 @@ export class CityJSONWorkerParser {
 		const m = this.matrix;
 		const onChunkLoad = this.onChunkLoad;
 		const material = this.material;
+		const context = this;
+
 		worker.onmessage = function ( e ) {
 
 			const vertices = e.data.v_buffer;
@@ -179,6 +183,7 @@ export class CityJSONWorkerParser {
 			geom.computeVertexNormals();
 
 			material.uniforms.surfaceColors.value = createColorsArray( e.data.surfaceColors );
+			context.surfaceColors = e.data.surfaceColors;
 
 			const mesh = new Mesh( geom, material );
 

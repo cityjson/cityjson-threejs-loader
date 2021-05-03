@@ -35,6 +35,8 @@ export class ChunkParser {
 			"WaterBody": 0x4da6ff
 		};
 
+		this.surfaceColors = {};
+
 		this.onchunkload = null;
 
 	}
@@ -72,6 +74,8 @@ export class ChunkParser {
 		}
 
 		this.returnObjects( geomParser, data );
+
+		this.surfaceColors = geomParser.surfaceColors;
 
 	}
 

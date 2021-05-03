@@ -86,6 +86,7 @@ function init() {
 	infoContainer.style.left = 0;
 	infoContainer.style.color = 'white';
 	infoContainer.style.width = '30%';
+	infoContainer.style.maxHeight = '100%';
 	infoContainer.style.textAlign = 'left';
 	infoContainer.style.padding = '5px';
 	infoContainer.style.pointerEvents = 'none';
@@ -220,6 +221,7 @@ function onDblClick( e ) {
 		const { face, object } = results[ 0 ];
 
 		const objIds = object.geometry.getAttribute( 'objectid' );
+		const semIds = object.geometry.getAttribute( 'surfacetype' );
 
 		if ( objIds ) {
 
@@ -228,7 +230,11 @@ function onDblClick( e ) {
 
 			const data = Object.assign( {}, citymodel.CityObjects[ objectId ] );
 			delete data.geometry;
-			let str = `<b>${ data.type }</b>`;
+
+			const semId = semIds.getX( face.a );
+			const surfacetype = semId < 0 ? '-' : Object.keys( parser.surfaceColors )[ semId ];
+
+			let str = `<b>${ data.type } - ${ surfacetype }</b>`;
 			if ( data.attributes ) {
 
 				Object.keys( data.attributes ).map( k => {
