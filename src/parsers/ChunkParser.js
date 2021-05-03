@@ -43,24 +43,19 @@ export class ChunkParser {
 
 		let i = 0;
 
-		console.log( "this" );
-
 		const geomParser = new GeometryParser( data, Object.keys( data.CityObjects ), this.objectColors );
 
 		for ( const objectId in data.CityObjects ) {
 
 			const cityObject = data.CityObjects[ objectId ];
 
-			if ( ! ( cityObject.geometry &&
-					cityObject.geometry.length > 0 ) ) {
+			if ( cityObject.geometry && cityObject.geometry.length > 0 ) {
 
-				return;
+				for ( let geom_i = 0; geom_i < cityObject.geometry.length; geom_i ++ ) {
 
-			}
+					geomParser.parseGeometry( cityObject.geometry[ geom_i ], objectId );
 
-			for ( let geom_i = 0; geom_i < cityObject.geometry.length; geom_i ++ ) {
-
-				geomParser.parseGeometry( cityObject.geometry[ geom_i ], objectId );
+				}
 
 			}
 
