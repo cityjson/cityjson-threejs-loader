@@ -9,6 +9,27 @@ import {
 	UniformsUtils } from 'three';
 import { defaultSemanticsColors } from '../defaults/colors.js';
 
+function createColorsArray( colors ) {
+
+	const surface_data = [];
+	for ( const surfType in colors ) {
+
+		const color = new Color( colors[ surfType ] );
+
+		surface_data.push( color.convertSRGBToLinear() );
+
+	}
+
+	for ( let i = surface_data.length; i < 256; i ++ ) {
+
+		surface_data.push( new Color( 0xffffff ).convertSRGBToLinear() );
+
+	}
+
+	return surface_data;
+
+}
+
 // Adjusts the three.js standard shader to include batchid highlight
 function createObjectColorShader( shader, objectColors ) {
 
@@ -27,20 +48,7 @@ function createObjectColorShader( shader, objectColors ) {
 
 	}
 
-	const surface_data = [];
-	for ( const surfType in defaultSemanticsColors ) {
-
-		const color = new Color( defaultSemanticsColors[ surfType ] );
-
-		surface_data.push( color.convertSRGBToLinear() );
-
-	}
-
-	for ( let i = surface_data.length; i < 256; i ++ ) {
-
-		surface_data.push( new Color( 0xffffff ).convertSRGBToLinear() );
-
-	}
+	const surface_data = createColorsArray( defaultSemanticsColors );
 
 	const newShader = { ...shader };
 	newShader.uniforms = {
@@ -169,6 +177,8 @@ export class CityJSONWorkerParser {
 			}
 
 			geom.computeVertexNormals();
+
+			material.uniforms.surfaceColors.value = createColorsArray( e.data.surfaceColors );
 
 			const mesh = new Mesh( geom, material );
 

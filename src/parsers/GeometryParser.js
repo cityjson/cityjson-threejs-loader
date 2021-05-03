@@ -96,7 +96,20 @@ export class GeometryParser {
 			let boundary = [];
 			let holes = [];
 
-			const surfaceType = semantics.length == 0 ? - 1 : Object.keys( this.surfaceColors ).indexOf( surfaces[ semantics[ i ] ].type );
+			let surfaceType = - 1;
+			if ( semantics.length > 0 ) {
+
+				const surfaceTypeName = surfaces[ semantics[ i ] ].type;
+
+				surfaceType = Object.keys( this.surfaceColors ).indexOf( surfaceTypeName );
+
+				if ( surfaceType < 0 ) {
+
+					this.surfaceColors[ surfaceTypeName ] = Math.floor( Math.random() * 0xffffff );
+
+				}
+
+			}
 
 			for ( let j = 0; j < boundaries[ i ].length; j ++ ) {
 
