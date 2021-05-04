@@ -232,9 +232,9 @@ function onDblClick( e ) {
 			delete data.geometry;
 
 			const semId = semIds.getX( face.a );
-			const surfacetype = semId < 0 ? '-' : Object.keys( parser.surfaceColors )[ semId ];
 
-			let str = `<b>${ data.type } - ${ surfacetype }</b>`;
+			let str = `<b>${ data.type }${ semId >= 0 ? ' - ' + Object.keys( parser.surfaceColors )[ semId ] : '' }</b>`;
+			str += `<br/>Geometry: ${ object.geometry.getAttribute( 'geometryid' ).getX( face.a ) } / Surface: ${ object.geometry.getAttribute( 'boundaryid' ).getX( face.a ) }`;
 			if ( data.attributes ) {
 
 				Object.keys( data.attributes ).map( k => {

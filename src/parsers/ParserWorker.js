@@ -22,7 +22,7 @@ onmessage = function ( e ) {
 
 	}
 
-	parser.onchunkload = ( v, objectIds, objectType, surfaceType, surfaceColors ) => {
+	parser.onchunkload = ( v, objectIds, objectType, surfaceType, geomIds, boundaryIds, surfaceColors ) => {
 
 		const vertexArray = new Float32Array( v );
 		const vertexBuffer = vertexArray.buffer;
@@ -32,6 +32,8 @@ onmessage = function ( e ) {
 			objectIds,
 			objectType,
 			surfaceType,
+			geomIds,
+			boundaryIds,
 			surfaceColors
 		};
 		postMessage( msg, [ vertexBuffer ] );

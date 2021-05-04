@@ -55,7 +55,7 @@ export class ChunkParser {
 
 				for ( let geom_i = 0; geom_i < cityObject.geometry.length; geom_i ++ ) {
 
-					geomParser.parseGeometry( cityObject.geometry[ geom_i ], objectId );
+					geomParser.parseGeometry( cityObject.geometry[ geom_i ], objectId, geom_i );
 
 				}
 
@@ -97,7 +97,7 @@ export class ChunkParser {
 
 		}
 
-		this.onchunkload( vertices, parser.meshObjIds, parser.meshObjType, parser.meshSemanticSurfaces, parser.surfaceColors );
+		this.onchunkload( vertices, parser.meshObjIds, parser.meshObjType, parser.meshSemanticSurfaces, parser.meshGeomIds, parser.meshBoundaryIds, parser.surfaceColors );
 
 	}
 

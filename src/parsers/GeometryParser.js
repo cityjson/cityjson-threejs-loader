@@ -19,6 +19,8 @@ export class GeometryParser {
 		this.meshObjIds = [];
 		this.meshObjType = [];
 		this.meshSemanticSurfaces = [];
+		this.meshGeomIds = [];
+		this.meshBoundaryIds = [];
 
 	}
 
@@ -28,10 +30,12 @@ export class GeometryParser {
 		this.meshObjIds = [];
 		this.meshObjType = [];
 		this.meshSemanticSurfaces = [];
+		this.meshGeomIds = [];
+		this.meshBoundaryIds = [];
 
 	}
 
-	parseGeometry( geometry, objectId ) {
+	parseGeometry( geometry, objectId, geomIdx ) {
 
 		const geomType = geometry.type;
 
@@ -45,7 +49,7 @@ export class GeometryParser {
 
 				const semantics = geometry.semantics ? geometry.semantics.values[ i ] : [];
 
-				this.parseShell( shells[ i ], objectId, semantics, semanticSurfaces );
+				this.parseShell( shells[ i ], objectId, geomIdx, semantics, semanticSurfaces );
 
 			}
 
@@ -54,7 +58,7 @@ export class GeometryParser {
 			const surfaces = geometry.boundaries;
 
 			const semantics = geometry.semantics ? geometry.semantics.values : [];
-			this.parseShell( surfaces, objectId, semantics, semanticSurfaces );
+			this.parseShell( surfaces, objectId, geomIdx, semantics, semanticSurfaces );
 
 		} else if ( geomType == "MultiSolid" || geomType == "CompositeSolid" ) {
 
@@ -66,7 +70,7 @@ export class GeometryParser {
 
 					const semantics = geometry.semantics ? geometry.semantics.values[ i ][ j ] : [];
 
-					this.parseShell( solids[ i ][ j ], objectId, semantics, semanticSurfaces );
+					this.parseShell( solids[ i ][ j ], objectId, geomIdx, semantics, semanticSurfaces );
 
 				}
 
@@ -76,12 +80,14 @@ export class GeometryParser {
 
 	}
 
-	parseShell( boundaries, objectId, semantics = [], surfaces = [] ) {
+	parseShell( boundaries, objectId, geomIdx, semantics = [], surfaces = [] ) {
 
 		const vertices = this.meshVertices;
 		const objIds = this.meshObjIds;
 		const objTypes = this.meshObjType;
 		const semanticTypes = this.meshSemanticSurfaces;
+		const geomIds = this.meshGeomIds;
+		const boundaryIds = this.meshBoundaryIds;
 
 		const json = this.json;
 
@@ -134,6 +140,8 @@ export class GeometryParser {
 					objIds.push( idIdx );
 					objTypes.push( objType );
 					semanticTypes.push( surfaceType );
+					geomIds.push( geomIdx );
+					boundaryIds.push( i );
 
 				}
 
@@ -178,6 +186,8 @@ export class GeometryParser {
 						objIds.push( idIdx );
 						objTypes.push( objType );
 						semanticTypes.push( surfaceType );
+						geomIds.push( geomIdx );
+						boundaryIds.push( i );
 
 					}
 
