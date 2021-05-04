@@ -105,6 +105,7 @@ export class GeometryParser {
 
 				if ( surfaceType < 0 ) {
 
+					surfaceType = Object.keys( this.surfaceColors ).length;
 					this.surfaceColors[ surfaceTypeName ] = Math.floor( Math.random() * 0xffffff );
 
 				}
