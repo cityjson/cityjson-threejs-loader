@@ -55,7 +55,10 @@ function createObjectColorShader( shader, objectColors ) {
 		objectColors: { type: "v3v", value: cm_data },
 		surfaceColors: { type: "v3v", value: surface_data },
 		showSemantics: { value: true },
+		selectSurface: { value: true },
 		highlightedObjId: { value: - 1 },
+		highlightedGeomId: { value: - 1 },
+		highlightedBoundId: { value: - 1 },
 		highlightColor: { value: new Color( 0xFFC107 ).convertSRGBToLinear() },
 		...UniformsUtils.clone( shader.uniforms ),
 	};
@@ -66,6 +69,8 @@ function createObjectColorShader( shader, objectColors ) {
 	newShader.vertexShader =
 		`
 			attribute float objectid;
+			attribute float geometryid;
+			attribute float boundaryid;
 			attribute int type;
 			attribute int surfacetype;
 			varying vec3 diffuse_;
@@ -73,7 +78,10 @@ function createObjectColorShader( shader, objectColors ) {
 			uniform vec3 surfaceColors[256];
 			uniform vec3 highlightColor;
 			uniform float highlightedObjId;
+			uniform float highlightedGeomId;
+			uniform float highlightedBoundId;
 			uniform bool showSemantics;
+			uniform bool selectSurface;
 		` +
 		newShader.vertexShader.replace(
 			/#include <uv_vertex>/,
@@ -87,7 +95,13 @@ function createObjectColorShader( shader, objectColors ) {
 			else {
 				color_ = objectColors[type];
 			}
-			diffuse_ = abs( objectid - highlightedObjId ) < 0.5 ? highlightColor : color_;
+
+			if ( selectSurface ) {
+				diffuse_ = abs( objectid - highlightedObjId ) < 0.5 && abs( geometryid - highlightedGeomId ) < 0.5 && abs( boundaryid - highlightedBoundId ) < 0.5 ? highlightColor : color_;
+			}
+			else {
+				diffuse_ = abs( objectid - highlightedObjId ) < 0.5 ? highlightColor : color_;
+			}
 			`
 		);
 	newShader.fragmentShader =
@@ -171,10 +185,10 @@ export class CityJSONWorkerParser {
 			geom.setAttribute( 'type', new Int32BufferAttribute( typeArray, 1 ) );
 			const surfaceTypeArray = new Int8Array( e.data.surfaceType );
 			geom.setAttribute( 'surfacetype', new Int32BufferAttribute( surfaceTypeArray, 1 ) );
-			const geomIdsArray = new Int32Array( e.data.geomIds );
-			geom.setAttribute( 'geometryid', new Int32BufferAttribute( geomIdsArray, 1 ) );
-			const boundaryIdsArray = new Int32Array( e.data.boundaryIds );
-			geom.setAttribute( 'boundaryid', new Int32BufferAttribute( boundaryIdsArray, 1 ) );
+			const geomIdsArray = new Float32Array( e.data.geomIds );
+			geom.setAttribute( 'geometryid', new BufferAttribute( geomIdsArray, 1 ) );
+			const boundaryIdsArray = new Float32Array( e.data.boundaryIds );
+			geom.setAttribute( 'boundaryid', new BufferAttribute( boundaryIdsArray, 1 ) );
 
 			geom.attributes.position.needsUpdate = true;
 

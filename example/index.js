@@ -228,13 +228,16 @@ function onDblClick( e ) {
 			const idx = objIds.getX( face.a );
 			const objectId = Object.keys( citymodel.CityObjects )[ idx ];
 
+			const geomId = object.geometry.getAttribute( 'geometryid' ).getX( face.a );
+			const boundId = object.geometry.getAttribute( 'boundaryid' ).getX( face.a );
+
 			const data = Object.assign( {}, citymodel.CityObjects[ objectId ] );
 			delete data.geometry;
 
 			const semId = semIds.getX( face.a );
 
 			let str = `<b>${ data.type }${ semId >= 0 ? ' - ' + Object.keys( parser.surfaceColors )[ semId ] : '' }</b>`;
-			str += `<br/>Geometry: ${ object.geometry.getAttribute( 'geometryid' ).getX( face.a ) } / Surface: ${ object.geometry.getAttribute( 'boundaryid' ).getX( face.a ) }`;
+			str += `<br/>Geometry: ${ geomId } / Surface: ${ boundId }`;
 			if ( data.attributes ) {
 
 				Object.keys( data.attributes ).map( k => {
@@ -248,6 +251,10 @@ function onDblClick( e ) {
 			infoContainer.innerHTML = str;
 
 			object.material.uniforms.highlightedObjId.value = idx;
+			object.material.uniforms.highlightedGeomId.value = geomId;
+			object.material.uniforms.highlightedBoundId.value = boundId;
+
+			object.material.uniforms.selectSurface.value = e.ctrlKey;
 
 		}
 
