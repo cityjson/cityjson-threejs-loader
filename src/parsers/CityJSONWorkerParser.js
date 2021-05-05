@@ -56,6 +56,7 @@ function createObjectColorShader( shader, objectColors ) {
 		surfaceColors: { type: "v3v", value: surface_data },
 		showSemantics: { value: true },
 		selectSurface: { value: true },
+		showGeometry: { value: - 1 },
 		highlightedObjId: { value: - 1 },
 		highlightedGeomId: { value: - 1 },
 		highlightedBoundId: { value: - 1 },
@@ -82,6 +83,7 @@ function createObjectColorShader( shader, objectColors ) {
 			uniform float highlightedBoundId;
 			uniform bool showSemantics;
 			uniform bool selectSurface;
+			uniform float showGeometry;
 		` +
 		newShader.vertexShader.replace(
 			/#include <uv_vertex>/,
@@ -101,6 +103,12 @@ function createObjectColorShader( shader, objectColors ) {
 			}
 			else {
 				diffuse_ = abs( objectid - highlightedObjId ) < 0.5 ? highlightColor : color_;
+			}
+			`
+		).replace(/#include <fog_vertex>/,
+			`
+			if ( abs ( geometryid - showGeometry ) > 0.5 && showGeometry >= 0.0 ) {
+				gl_Position = vec4(0.0, 0.0, 0.0, 1.0);
 			}
 			`
 		);
