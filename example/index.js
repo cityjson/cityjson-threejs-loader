@@ -4,6 +4,7 @@ import {
 } from '../src/index';
 import {
 	AmbientLight,
+	Color,
 	DirectionalLight,
 	Group,
 	PerspectiveCamera,
@@ -15,6 +16,7 @@ import {
 } from 'three';
 import { BufferGeometryUtils } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import * as dat from 'three/examples/jsm/libs/dat.gui.module.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 
 let scene, renderer, camera, controls, stats, raycaster;
@@ -24,6 +26,16 @@ let parser;
 let loader;
 let statsContainer;
 let infoContainer;
+let colorOptions;
+let semanticOptions;
+
+let params = {
+
+	'showOnlyGeometry': - 1,
+	'showSemantics': true,
+	'highlightColor': '#FFC107'
+
+};
 
 init();
 render();
@@ -93,6 +105,23 @@ function init() {
 	infoContainer.style.lineHeight = '1.5em';
 	document.body.appendChild( infoContainer );
 
+	// GUI
+	const gui = new dat.GUI();
+	gui.width = 300;
+
+	const visualOptions = gui.addFolder( 'Visual Options' );
+	visualOptions.add( params, 'showSemantics' );
+	visualOptions.add( params, 'showOnlyGeometry' ).min( - 1 ).max( 10 ).step( 1 );
+	visualOptions.open();
+
+	colorOptions = gui.addFolder( 'Colors' );
+	colorOptions.addColor( params, 'highlightColor' );
+	colorOptions.open();
+
+	semanticOptions = colorOptions.addFolder( 'Semantics' );
+
+	gui.open();
+
 	stats = new Stats();
 	stats.showPanel( 0 );
 	document.body.appendChild( stats.dom );
@@ -119,6 +148,47 @@ function init() {
 			statsContainer.innerHTML = `${ objCount } meshes (${ ( memCount / 1024 / 1024 ).toFixed( 2 ) } MB) - ${ vCount } vertices`;
 
 		} );
+
+		for ( const surface in parser.surfaceColors ) {
+
+			const exists = Object.keys( params ).indexOf( surface ) > - 1;
+
+			params[ surface ] = '#' + parser.surfaceColors[ surface ].toString( 16 ).padStart( 6, '0' );
+
+			if ( ! exists ) {
+
+				semanticOptions.addColor( params, surface ).onChange( () => {
+
+					scene.traverse( c => {
+
+						if ( c.material ) {
+
+							c.material.uniforms.showSemantics.value = params.showSemantics;
+							c.material.uniforms.showGeometry.value = params.showOnlyGeometry;
+							c.material.uniforms.highlightColor.value.setHex( params.highlightColor.replace( '#', '0x' ) );
+
+							for ( const surface in params ) {
+
+								const idx = Object.keys( parser.surfaceColors ).indexOf( surface );
+								if ( idx > - 1 ) {
+
+									const col = new Color();
+									col.setHex( params[ surface ].replace( '#', '0x' ) );
+									c.material.uniforms.surfaceColors.value[ idx ] = col;
+
+								}
+
+							}
+
+						}
+
+					} );
+
+				} );
+
+			}
+
+		}
 
 	};
 
@@ -265,6 +335,18 @@ function onDblClick( e ) {
 function render() {
 
 	requestAnimationFrame( render );
+
+	scene.traverse( c => {
+
+		if ( c.material ) {
+
+			c.material.uniforms.showSemantics.value = params.showSemantics;
+			c.material.uniforms.showGeometry.value = params.showOnlyGeometry;
+			c.material.uniforms.highlightColor.value.setHex( params.highlightColor.replace( '#', '0x' ) );
+
+		}
+
+	} );
 
 	controls.update();
 	renderer.render( scene, camera );

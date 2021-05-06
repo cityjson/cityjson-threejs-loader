@@ -25,5 +25,9 @@ export const objectColors = {
 export const defaultSemanticsColors = {
 	"GroundSurface": 0x999999,
 	"WallSurface": 0xffffff,
-	"RoofSurface": 0xff0000
+	"RoofSurface": 0xff0000,
+	"TrafficArea": 0x6e6e6e,
+	"AuxiliaryTrafficArea": 0x2c8200,
+	"Window": 0x0059ff,
+	"Door": 0x640000
 };
