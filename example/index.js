@@ -5,13 +5,19 @@ import {
 import {
 	AmbientLight,
 	Color,
+	CylinderBufferGeometry,
 	DirectionalLight,
 	Group,
+	Matrix4,
+	Mesh,
+	MeshBasicMaterial,
 	PerspectiveCamera,
 	Raycaster,
 	Scene,
+	SphereBufferGeometry,
 	sRGBEncoding,
 	Vector2,
+	Vector3,
 	WebGLRenderer
 } from 'three';
 import { BufferGeometryUtils } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
@@ -28,6 +34,7 @@ let statsContainer;
 let infoContainer;
 let colorOptions;
 let semanticOptions;
+let marker;
 
 let params = {
 
@@ -77,6 +84,12 @@ function init() {
 	renderer.domElement.addEventListener( 'dblclick', onDblClick, false );
 	renderer.domElement.ondragover = ev => ev.preventDefault();
 	renderer.domElement.ondrop = onDrop;
+	renderer.domElement.addEventListener( 'mousemove', onMouseMove, false );
+
+	const mat = new MeshBasicMaterial( { color: 0xe91e64 } );
+	marker = new Mesh( new SphereBufferGeometry( 0.001 ), mat );
+	scene.add( marker );
+	marker.visible = false;
 
 	// controls.addEventListener( 'change', render );
 
@@ -134,7 +147,7 @@ function init() {
 		let memCount = 0;
 		let vCount = 0;
 
-		scene.traverse( c => {
+		modelgroup.traverse( c => {
 
 			if ( c.geometry ) {
 
@@ -220,6 +233,83 @@ function init() {
 
 }
 
+function onMouseMove( e ) {
+
+	if ( ! e.ctrlKey ) {
+
+		return;
+
+	}
+
+	const bounds = this.getBoundingClientRect();
+	const mouse = new Vector2();
+	mouse.x = e.clientX - bounds.x;
+	mouse.y = e.clientY - bounds.y;
+	mouse.x = ( mouse.x / bounds.width ) * 2 - 1;
+	mouse.y = - ( mouse.y / bounds.height ) * 2 + 1;
+	raycaster.setFromCamera( mouse, camera );
+
+	const results = raycaster.intersectObject( modelgroup, true );
+	if ( results.length ) {
+
+		const { face, point, object } = results[ 0 ];
+
+		let closestPoint = null;
+
+		// Snap to closest point
+		const position = object.geometry.getAttribute( 'position' );
+		const m = object.matrixWorld;
+		const points = [
+			new Vector3( position.getX( face.a ), position.getY( face.a ), position.getZ( face.a ) ).applyMatrix4( m ),
+			new Vector3( position.getX( face.b ), position.getY( face.b ), position.getZ( face.b ) ).applyMatrix4( m ),
+			new Vector3( position.getX( face.c ), position.getY( face.c ), position.getZ( face.c ) ).applyMatrix4( m )
+		];
+		let dist = point.distanceTo( points[ 0 ] );
+		closestPoint = points[ 0 ];
+		for ( let i = 0; i < 3; i ++ ) {
+
+			const newDist = point.distanceTo( points[ i ] );
+			if ( newDist < dist ) {
+
+				closestPoint = points[ i ];
+				dist = newDist;
+
+			}
+
+		}
+
+		if ( closestPoint === null ) {
+
+			closestPoint = point;
+
+		}
+
+		// Compute and show a marker at the intersection point
+		marker.position.copy( closestPoint );
+		const normal = face.normal;
+		normal.transformDirection( object.matrixWorld );
+		marker.lookAt(
+			closestPoint.x + normal.x,
+			closestPoint.y + normal.y,
+			closestPoint.z + normal.z
+		);
+
+		marker.visible = true;
+
+		const mm = new Matrix4();
+		mm.copy( parser.matrix );
+		mm.invert();
+
+		closestPoint.applyMatrix4( mm );
+
+		let str = `${ Math.round( closestPoint.x * 1000 ) / 1000 }, ${ Math.round( closestPoint.y * 1000 ) / 1000 }, ${ Math.round( closestPoint.z * 1000 ) / 1000 }`;
+
+		infoContainer.innerHTML = str;
+
+	}
+
+}
+
 function onDrop( e ) {
 
 	e.preventDefault();
@@ -257,7 +347,7 @@ function onDrop( e ) {
 
 				loader.load( cm );
 
-				scene.add( loader.scene );
+				modelgroup.add( loader.scene );
 
 			};
 
@@ -277,7 +367,7 @@ function onDblClick( e ) {
 	mouse.y = - ( mouse.y / bounds.height ) * 2 + 1;
 	raycaster.setFromCamera( mouse, camera );
 
-	scene.traverse( c => {
+	modelgroup.traverse( c => {
 
 		if ( c.material ) c.material.uniforms.highlightedObjId.value = - 1;
 
@@ -285,7 +375,7 @@ function onDblClick( e ) {
 
 	infoContainer.innerHTML = "";
 
-	const results = raycaster.intersectObject( scene, true );
+	const results = raycaster.intersectObject( modelgroup, true );
 	if ( results.length ) {
 
 		const { face, object } = results[ 0 ];
@@ -339,6 +429,12 @@ function render() {
 	scene.traverse( c => {
 
 		if ( c.material ) {
+
+			if ( c.material instanceof MeshBasicMaterial ) {
+
+				return;
+
+			}
 
 			c.material.uniforms.showSemantics.value = params.showSemantics;
 			c.material.uniforms.showGeometry.value = params.showOnlyGeometry;
