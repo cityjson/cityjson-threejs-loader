@@ -172,7 +172,7 @@ function init() {
 
 				semanticOptions.addColor( params, surface ).onChange( () => {
 
-					scene.traverse( c => {
+					modelgroup.traverse( c => {
 
 						if ( c.material ) {
 
