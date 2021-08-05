@@ -407,6 +407,29 @@ function onDblClick( e ) {
 				} );
 
 			}
+			if ( data.parents ) {
+
+				Object.values( data.parents ).map( parentID => {
+					str += '<br/><b> Parent attributes</b>';
+
+					const parentObject = Object.assign( {}, citymodel.CityObjects[ parentID ] );
+					delete parentObject.geometry;
+
+					if ( parentObject.attributes ) {
+
+						console.log(parentObject.attributes);
+
+						Object.keys( parentObject.attributes ).map( k => {
+		
+							str += `<br/>${ k }: ${ parentObject.attributes[ k ] }`;
+		
+						} );
+		
+					}
+
+				} );
+
+			}
 
 			infoContainer.innerHTML = str;
 
