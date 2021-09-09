@@ -26,6 +26,8 @@ export class CityJSONLoader {
 
 		if ( typeof data === "object" ) {
 
+			data.vertices = this.applyTransform( data );
+
 			if ( this.matrix == null ) {
 
 				this.computeMatrix( data );
@@ -36,6 +38,29 @@ export class CityJSONLoader {
 			this.parser.parse( data, this.scene );
 
 		}
+
+	}
+
+	applyTransform( data ) {
+
+		if ( data[ "transform" ] != undefined ) {
+
+			const t = data.transform.translate;
+			const s = data.transform.scale;
+
+			const vertices = data.vertices.map( v =>
+				[
+					v[ 0 ] * s[ 0 ] + t[ 0 ],
+					v[ 1 ] * s[ 1 ] + t[ 1 ],
+					v[ 2 ] * s[ 2 ] + t[ 2 ]
+				]
+			);
+
+			return vertices;
+
+		}
+
+		return data.vertices;
 
 	}
 
