@@ -26,16 +26,19 @@ export class CityJSONLoader {
 
 		if ( typeof data === "object" ) {
 
-			data.vertices = this.applyTransform( data );
+			// We shallow clone the object to avoid modifying the original
+			// objects vertices
+			const new_data = Object.assign({}, data);
+			new_data.vertices = this.applyTransform( data );
 
 			if ( this.matrix == null ) {
 
-				this.computeMatrix( data );
+				this.computeMatrix( new_data );
 
 			}
 
 			this.parser.matrix = this.matrix;
-			this.parser.parse( data, this.scene );
+			this.parser.parse( new_data, this.scene );
 
 		}
 
