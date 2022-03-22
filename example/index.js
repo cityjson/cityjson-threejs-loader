@@ -34,13 +34,17 @@ let statsContainer;
 let infoContainer;
 let colorOptions;
 let semanticOptions;
+let objectOptions;
 let marker;
 
 let params = {
 
 	'showOnlyGeometry': - 1,
 	'showSemantics': true,
-	'highlightColor': '#FFC107'
+	'highlightColor': '#FFC107',
+	'backgroundColor': '#1c1c1c',
+	'ambientIntensity': 0.7,
+	'directionalIntensity': 1
 
 };
 
@@ -54,7 +58,7 @@ function init() {
 	renderer = new WebGLRenderer();
 	renderer.setPixelRatio( window.devicePixelRatio );
 	renderer.setSize( window.innerWidth, window.innerHeight );
-	renderer.setClearColor( 0x1c1c1c );
+	renderer.setClearColor( params.backgroundColor );
 	renderer.outputEncoding = sRGBEncoding;
 
 	document.body.appendChild( renderer.domElement );
@@ -63,11 +67,11 @@ function init() {
 	camera.position.set( 1, 1, 1 );
 	camera.up.set( 0, 0, 1 );
 
-	const ambientLight = new AmbientLight( 0x666666, 0.7 ); // soft white light
+	const ambientLight = new AmbientLight( 0x666666, params.ambientIntensity ); // soft white light
 	scene.add( ambientLight );
 
 	// lights
-	const dirLight = new DirectionalLight( 0xffffff );
+	const dirLight = new DirectionalLight( 0xffffff, params.directionalIntensity );
 	dirLight.position.set( 1, 2, 3 );
 	scene.add( dirLight );
 
@@ -128,10 +132,32 @@ function init() {
 	visualOptions.open();
 
 	colorOptions = gui.addFolder( 'Colors' );
+	colorOptions.addColor( params, 'backgroundColor' ).onChange( v => {
+
+		renderer.setClearColor( v );
+
+	} );
 	colorOptions.addColor( params, 'highlightColor' );
 	colorOptions.open();
 
 	semanticOptions = colorOptions.addFolder( 'Semantics' );
+
+	objectOptions = colorOptions.addFolder( 'City Objects' );
+
+	const lightingOptions = gui.addFolder( 'Lights' );
+
+	lightingOptions.add( params, "ambientIntensity" ).min( 0 ).max( 1 ).step( 0.1 ).onChange( ( v ) => {
+
+		ambientLight.intensity = v;
+
+	} );
+
+	lightingOptions.add( params, "directionalIntensity" ).min( 0 ).max( 1 ).step( 0.1 ).onChange( ( v ) => {
+
+		dirLight.intensity = v;
+
+	} );
+
 
 	gui.open();
 
@@ -188,6 +214,43 @@ function init() {
 									const col = new Color();
 									col.setHex( params[ surface ].replace( '#', '0x' ) );
 									c.material.uniforms.surfaceColors.value[ idx ] = col;
+
+								}
+
+							}
+
+						}
+
+					} );
+
+				} );
+
+			}
+
+		}
+
+		for ( const objtype in parser.objectColors ) {
+
+			const exists = Object.keys( params ).indexOf( objtype ) > - 1;
+
+			params[ objtype ] = '#' + parser.objectColors[ objtype ].toString( 16 ).padStart( 6, '0' );
+
+			if ( ! exists ) {
+
+				objectOptions.addColor( params, objtype ).onChange( () => {
+
+					modelgroup.traverse( c => {
+
+						if ( c.material ) {
+
+							for ( const objtype in params ) {
+
+								const idx = Object.keys( parser.objectColors ).indexOf( objtype );
+								if ( idx > - 1 ) {
+
+									const col = new Color();
+									col.setHex( params[ objtype ].replace( '#', '0x' ) );
+									c.material.uniforms.objectColors.value[ idx ] = col;
 
 								}
 
@@ -407,9 +470,11 @@ function onDblClick( e ) {
 				} );
 
 			}
+
 			if ( data.parents ) {
 
 				Object.values( data.parents ).map( parentID => {
+
 					str += '<br/><b> Parent attributes</b>';
 
 					const parentObject = Object.assign( {}, citymodel.CityObjects[ parentID ] );
@@ -417,14 +482,14 @@ function onDblClick( e ) {
 
 					if ( parentObject.attributes ) {
 
-						console.log(parentObject.attributes);
+						console.log( parentObject.attributes );
 
 						Object.keys( parentObject.attributes ).map( k => {
-		
+
 							str += `<br/>${ k }: ${ parentObject.attributes[ k ] }`;
-		
+
 						} );
-		
+
 					}
 
 				} );
