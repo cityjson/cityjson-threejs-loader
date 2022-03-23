@@ -11,8 +11,8 @@ export class ChunkParser {
 		this.meshObjIds = [];
 		this.meshObjType = [];
 
+		this.lods = [];
 		this.objectColors = {};
-
 		this.surfaceColors = {};
 
 		this.onchunkload = null;
@@ -24,6 +24,7 @@ export class ChunkParser {
 		let i = 0;
 
 		const geomParser = new GeometryParser( data, Object.keys( data.CityObjects ), this.objectColors );
+		geomParser.lods = this.lods;
 
 		for ( const objectId in data.CityObjects ) {
 
@@ -81,7 +82,9 @@ export class ChunkParser {
 						  parser.meshObjType,
 						  parser.meshSemanticSurfaces,
 						  parser.meshGeomIds,
+						  parser.meshLodIds,
 						  parser.meshBoundaryIds,
+						  parser.lods,
 						  parser.objectColors,
 						  parser.surfaceColors );
 

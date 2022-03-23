@@ -39,7 +39,7 @@ let marker;
 
 let params = {
 
-	'showOnlyGeometry': - 1,
+	'showOnlyLod': - 1,
 	'showSemantics': true,
 	'highlightColor': '#FFC107',
 	'backgroundColor': '#1c1c1c',
@@ -128,7 +128,7 @@ function init() {
 
 	const visualOptions = gui.addFolder( 'Visual Options' );
 	visualOptions.add( params, 'showSemantics' );
-	visualOptions.add( params, 'showOnlyGeometry' ).min( - 1 ).max( 10 ).step( 1 );
+	visualOptions.add( params, 'showOnlyLod' ).min( - 1 ).max( 10 ).step( 1 );
 	visualOptions.open();
 
 	colorOptions = gui.addFolder( 'Colors' );
@@ -203,7 +203,7 @@ function init() {
 						if ( c.material ) {
 
 							c.material.uniforms.showSemantics.value = params.showSemantics;
-							c.material.uniforms.showGeometry.value = params.showOnlyGeometry;
+							c.material.uniforms.showLod.value = params.showOnlyLod;
 							c.material.uniforms.highlightColor.value.setHex( params.highlightColor.replace( '#', '0x' ) );
 
 							for ( const surface in params ) {
@@ -453,6 +453,7 @@ function onDblClick( e ) {
 
 			const geomId = object.geometry.getAttribute( 'geometryid' ).getX( face.a );
 			const boundId = object.geometry.getAttribute( 'boundaryid' ).getX( face.a );
+			const lodId = object.geometry.getAttribute( 'lodid' ).getX( face.a );
 
 			const data = Object.assign( {}, citymodel.CityObjects[ objectId ] );
 			delete data.geometry;
@@ -460,7 +461,7 @@ function onDblClick( e ) {
 			const semId = semIds.getX( face.a );
 
 			let str = `<b>${ data.type }${ semId >= 0 ? ' - ' + Object.keys( parser.surfaceColors )[ semId ] : '' }</b>`;
-			str += `<br/>Geometry: ${ geomId } / Surface: ${ boundId }`;
+			str += `<br/>Geometry: ${ geomId } / Surface: ${ boundId } / LoD: ${ parser.lods[ lodId ] }`;
 			if ( data.attributes ) {
 
 				Object.keys( data.attributes ).map( k => {
@@ -525,7 +526,7 @@ function render() {
 			}
 
 			c.material.uniforms.showSemantics.value = params.showSemantics;
-			c.material.uniforms.showGeometry.value = params.showOnlyGeometry;
+			c.material.uniforms.showLod.value = params.showOnlyLod;
 			c.material.uniforms.highlightColor.value.setHex( params.highlightColor.replace( '#', '0x' ) );
 
 		}

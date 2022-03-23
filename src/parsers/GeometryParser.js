@@ -14,6 +14,7 @@ export class GeometryParser {
 		this.objectIds = objectIds;
 		this.objectColors = objectColors;
 		this.surfaceColors = defaultSemanticsColors;
+		this.lods = [];
 
 		this.meshVertices = [];
 		this.meshObjIds = [];
@@ -21,6 +22,7 @@ export class GeometryParser {
 		this.meshSemanticSurfaces = [];
 		this.meshGeomIds = [];
 		this.meshBoundaryIds = [];
+		this.meshLodIds = [];
 
 	}
 
@@ -32,6 +34,7 @@ export class GeometryParser {
 		this.meshSemanticSurfaces = [];
 		this.meshGeomIds = [];
 		this.meshBoundaryIds = [];
+		this.meshLodIds = [];
 
 	}
 
@@ -80,6 +83,22 @@ export class GeometryParser {
 
 	}
 
+	getLodIndex( lod ) {
+
+		const lodIdx = this.lods.indexOf( lod );
+
+		if ( lodIdx < 0 ) {
+
+			const newIdx = this.lods.length;
+			this.lods.push( lod );
+			return newIdx;
+
+		}
+
+		return lodIdx;
+
+	}
+
 	parseShell( boundaries, objectId, geomIdx, semantics = [], surfaces = [] ) {
 
 		const vertices = this.meshVertices;
@@ -87,6 +106,7 @@ export class GeometryParser {
 		const objTypes = this.meshObjType;
 		const semanticTypes = this.meshSemanticSurfaces;
 		const geomIds = this.meshGeomIds;
+		const lodIds = this.meshLodIds;
 		const boundaryIds = this.meshBoundaryIds;
 
 		const json = this.json;
@@ -102,6 +122,8 @@ export class GeometryParser {
 			this.objectColors[ cityObjectTypeName ] = Math.floor( Math.random() * 0xffffff );
 
 		}
+
+		const lodIdx = this.getLodIndex( json.CityObjects[ objectId ].geometry[ geomIdx ].lod );
 
 		// Contains the boundary but with the right verticeId
 		for ( let i = 0; i < boundaries.length; i ++ ) {
@@ -148,6 +170,7 @@ export class GeometryParser {
 					objTypes.push( objType );
 					semanticTypes.push( surfaceType );
 					geomIds.push( geomIdx );
+					lodIds.push( lodIdx );
 					boundaryIds.push( i );
 
 				}
@@ -194,6 +217,7 @@ export class GeometryParser {
 						objTypes.push( objType );
 						semanticTypes.push( surfaceType );
 						geomIds.push( geomIdx );
+						lodIds.push( lodIdx );
 						boundaryIds.push( i );
 
 					}

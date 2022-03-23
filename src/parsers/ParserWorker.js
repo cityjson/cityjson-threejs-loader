@@ -20,9 +20,15 @@ onmessage = function ( e ) {
 
 		}
 
+		if ( props.lods ) {
+
+			parser.lods = props.lods;
+
+		}
+
 	}
 
-	parser.onchunkload = ( v, objectIds, objectType, surfaceType, geomIds, boundaryIds, objectColors, surfaceColors ) => {
+	parser.onchunkload = ( v, objectIds, objectType, surfaceType, geomIds, lodIds, boundaryIds, lods, objectColors, surfaceColors ) => {
 
 		const vertexArray = new Float32Array( v );
 		const vertexBuffer = vertexArray.buffer;
@@ -33,7 +39,9 @@ onmessage = function ( e ) {
 			objectType,
 			surfaceType,
 			geomIds,
+			lodIds,
 			boundaryIds,
+			lods,
 			objectColors,
 			surfaceColors
 		};

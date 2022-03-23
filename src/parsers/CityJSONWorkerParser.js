@@ -42,7 +42,7 @@ function createObjectColorShader( shader, objectColors ) {
 		surfaceColors: { type: "v3v", value: surface_data },
 		showSemantics: { value: true },
 		selectSurface: { value: true },
-		showGeometry: { value: - 1 },
+		showLod: { value: - 1 },
 		highlightedObjId: { value: - 1 },
 		highlightedGeomId: { value: - 1 },
 		highlightedBoundId: { value: - 1 },
@@ -58,6 +58,7 @@ function createObjectColorShader( shader, objectColors ) {
 			attribute float objectid;
 			attribute float geometryid;
 			attribute float boundaryid;
+			attribute float lodid;
 			attribute int type;
 			attribute int surfacetype;
 			varying vec3 diffuse_;
@@ -69,7 +70,7 @@ function createObjectColorShader( shader, objectColors ) {
 			uniform float highlightedBoundId;
 			uniform bool showSemantics;
 			uniform bool selectSurface;
-			uniform float showGeometry;
+			uniform float showLod;
 		` +
 		newShader.vertexShader.replace(
 			/#include <uv_vertex>/,
@@ -95,7 +96,7 @@ function createObjectColorShader( shader, objectColors ) {
 			/#include <fog_vertex>/,
 			`
 			#include <fog_vertex>
-			if ( abs ( geometryid - showGeometry ) > 0.5 && showGeometry >= 0.0 ) {
+			if ( abs ( lodid - showLod ) > 0.5 && showLod >= 0.0 ) {
 				gl_Position = vec4(0.0, 0.0, 0.0, 1.0);
 			}
 			`
@@ -126,6 +127,8 @@ export class CityJSONWorkerParser {
 		this.objectColors = defaultObjectColors;
 
 		this.surfaceColors = {};
+
+		this.lods = [];
 
 		this.resetMaterial();
 
@@ -161,6 +164,8 @@ export class CityJSONWorkerParser {
 			geom.setAttribute( 'surfacetype', new Int32BufferAttribute( surfaceTypeArray, 1 ) );
 			const geomIdsArray = new Float32Array( e.data.geomIds );
 			geom.setAttribute( 'geometryid', new BufferAttribute( geomIdsArray, 1 ) );
+			const lodIdsArray = new Float32Array( e.data.lodIds );
+			geom.setAttribute( 'lodid', new BufferAttribute( lodIdsArray, 1 ) );
 			const boundaryIdsArray = new Float32Array( e.data.boundaryIds );
 			geom.setAttribute( 'boundaryid', new BufferAttribute( boundaryIdsArray, 1 ) );
 
@@ -177,6 +182,7 @@ export class CityJSONWorkerParser {
 			material.uniforms.objectColors.value = createColorsArray( e.data.objectColors );
 			material.uniforms.surfaceColors.value = createColorsArray( e.data.surfaceColors );
 
+			context.lods = e.data.lods;
 			context.objectColors = e.data.objectColors;
 			context.surfaceColors = e.data.surfaceColors;
 
@@ -192,7 +198,7 @@ export class CityJSONWorkerParser {
 
 		};
 
-		worker.postMessage( [ data, { chunkSize: this.chunkSize, objectColors: this.objectColors } ] );
+		worker.postMessage( [ data, { chunkSize: this.chunkSize, objectColors: this.objectColors, lods: this.lods } ] );
 
 	}
 
