@@ -5,7 +5,6 @@ import {
 import {
 	AmbientLight,
 	Color,
-	CylinderBufferGeometry,
 	DirectionalLight,
 	Group,
 	Matrix4,
