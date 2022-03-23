@@ -75,6 +75,7 @@ export class ChunkParser {
 
 		this.returnObjects( geomParser, data );
 
+		this.objectColors = geomParser.objectColors;
 		this.surfaceColors = geomParser.surfaceColors;
 
 	}
@@ -97,7 +98,14 @@ export class ChunkParser {
 
 		}
 
-		this.onchunkload( vertices, parser.meshObjIds, parser.meshObjType, parser.meshSemanticSurfaces, parser.meshGeomIds, parser.meshBoundaryIds, parser.surfaceColors );
+		this.onchunkload( vertices,
+						  parser.meshObjIds,
+						  parser.meshObjType,
+						  parser.meshSemanticSurfaces,
+						  parser.meshGeomIds,
+						  parser.meshBoundaryIds,
+						  parser.objectColors,
+						  parser.surfaceColors );
 
 	}
 

@@ -93,8 +93,15 @@ export class GeometryParser {
 
 		const idIdx = this.objectIds.indexOf( objectId );
 
-		// TODO: If not found, it should be appended
-		const objType = Object.keys( this.objectColors ).indexOf( json.CityObjects[ objectId ].type );
+		const cityObjectTypeName = json.CityObjects[ objectId ].type;
+		let objType = Object.keys( this.objectColors ).indexOf( cityObjectTypeName );
+
+		if ( objType < 0 ) {
+
+			objType = Object.keys( this.objectColors ).length;
+			this.objectColors[ cityObjectTypeName ] = Math.floor( Math.random() * 0xffffff );
+
+		}
 
 		// Contains the boundary but with the right verticeId
 		for ( let i = 0; i < boundaries.length; i ++ ) {

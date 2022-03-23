@@ -153,7 +153,7 @@ export class CityJSONWorkerParser {
 			"Railway": 0x000000,
 			"Road": 0x999999,
 			"SolitaryVegetationObject": 0x39ac39,
-			"TINRelief": 0xffdb99,
+			"TINRelief": 0xf6b26b,
 			"TransportSquare": 0x999999,
 			"Tunnel": 0x999999,
 			"TunnelPart": 0x999999,
@@ -210,7 +210,10 @@ export class CityJSONWorkerParser {
 
 			geom.computeVertexNormals();
 
+			material.uniforms.objectColors.value = createColorsArray( e.data.objectColors );
 			material.uniforms.surfaceColors.value = createColorsArray( e.data.surfaceColors );
+
+			context.objectColors = e.data.objectColors;
 			context.surfaceColors = e.data.surfaceColors;
 
 			const mesh = new Mesh( geom, material );

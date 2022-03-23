@@ -28,7 +28,7 @@ export class CityJSONLoader {
 
 			// We shallow clone the object to avoid modifying the original
 			// objects vertices
-			const new_data = Object.assign({}, data);
+			const new_data = Object.assign( {}, data );
 			new_data.vertices = this.applyTransform( data );
 
 			if ( this.matrix == null ) {
