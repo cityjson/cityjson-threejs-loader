@@ -1,4 +1,4 @@
-export const objectColors = {
+export const defaultObjectColors = {
 	"Building": 0x7497df,
 	"BuildingPart": 0x7497df,
 	"BuildingInstallation": 0x7497df,
