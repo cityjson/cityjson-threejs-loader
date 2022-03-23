@@ -20,7 +20,7 @@ function createColorsArray( colors ) {
 
 	}
 
-	for ( let i = surface_data.length; i < 256; i ++ ) {
+	for ( let i = surface_data.length; i < 110; i ++ ) {
 
 		surface_data.push( new Color( 0xffffff ).convertSRGBToLinear() );
 
@@ -38,8 +38,8 @@ function createObjectColorShader( shader, objectColors ) {
 
 	const newShader = { ...shader };
 	newShader.uniforms = {
-		objectColors: { type: "v3v", value: cm_data },
-		surfaceColors: { type: "v3v", value: surface_data },
+		objectColors: { value: cm_data },
+		surfaceColors: { value: surface_data },
 		showSemantics: { value: true },
 		selectSurface: { value: true },
 		showLod: { value: - 1 },
@@ -62,8 +62,8 @@ function createObjectColorShader( shader, objectColors ) {
 			attribute int type;
 			attribute int surfacetype;
 			varying vec3 diffuse_;
-			uniform vec3 objectColors[256];
-			uniform vec3 surfaceColors[256];
+			uniform vec3 objectColors[ 110 ];
+			uniform vec3 surfaceColors[ 110 ];
 			uniform vec3 highlightColor;
 			uniform float highlightedObjId;
 			uniform float highlightedGeomId;
