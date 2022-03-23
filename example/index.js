@@ -420,6 +420,33 @@ function onDrop( e ) {
 
 }
 
+function getActiveResult( results ) {
+
+	// Only pick a result as soon as its LoD is shown
+	if ( params.showOnlyLod > - 1 ) {
+
+		for ( let i = 0; i < results.length; i ++ ) {
+
+			const { face, object } = results[ i ];
+
+			const lodIdx = object.geometry.getAttribute( "lodid" ).getX( face.a );
+
+			if ( lodIdx == params.showOnlyLod ) {
+
+				return results[ i ];
+
+			}
+
+		}
+
+	} else {
+
+		return results[ 0 ];
+
+	}
+
+}
+
 function onDblClick( e ) {
 
 	const bounds = this.getBoundingClientRect();
@@ -441,7 +468,7 @@ function onDblClick( e ) {
 	const results = raycaster.intersectObject( modelgroup, true );
 	if ( results.length ) {
 
-		const { face, object } = results[ 0 ];
+		const { face, object } = getActiveResult( results );
 
 		const objIds = object.geometry.getAttribute( 'objectid' );
 		const semIds = object.geometry.getAttribute( 'surfacetype' );
