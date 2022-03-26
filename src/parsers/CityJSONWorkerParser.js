@@ -31,10 +31,10 @@ function createColorsArray( colors ) {
 }
 
 // Adjusts the three.js standard shader to include batchid highlight
-function createObjectColorShader( shader, objectColors ) {
+function createObjectColorShader( shader, objectColors, surfaceColors ) {
 
 	const cm_data = createColorsArray( objectColors );
-	const surface_data = createColorsArray( defaultSemanticsColors );
+	const surface_data = createColorsArray( surfaceColors );
 
 	const newShader = { ...shader };
 	newShader.uniforms = {
@@ -126,8 +126,7 @@ export class CityJSONWorkerParser {
 		this.loading = false;
 
 		this.objectColors = defaultObjectColors;
-
-		this.surfaceColors = {};
+		this.surfaceColors = defaultSemanticsColors;
 
 		this.lods = [];
 
@@ -137,7 +136,7 @@ export class CityJSONWorkerParser {
 
 	resetMaterial() {
 
-		this.material = new ShaderMaterial( createObjectColorShader( ShaderLib.lambert, this.objectColors ) );
+		this.material = new ShaderMaterial( createObjectColorShader( ShaderLib.lambert, this.objectColors, this.surfaceColors ) );
 
 	}
 
