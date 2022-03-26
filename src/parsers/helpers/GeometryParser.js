@@ -3,7 +3,7 @@ import {
 } from 'three';
 import earcut from 'earcut';
 
-import { defaultSemanticsColors } from '../defaults/colors.js';
+import { defaultSemanticsColors } from '../../defaults/colors.js';
 
 export class GeometryParser {
 

@@ -142,7 +142,7 @@ export class CityJSONWorkerParser {
 
 	parse( data, scene ) {
 
-		const worker = new Worker( "./ParserWorker.js" );
+		const worker = new Worker( "./helpers/ParserWorker.js" );
 		const m = this.matrix;
 		const onChunkLoad = this.onChunkLoad;
 		const material = this.material;
