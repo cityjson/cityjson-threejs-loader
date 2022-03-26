@@ -42,7 +42,7 @@ export class ChunkParser {
 
 			if ( i ++ > this.chunkSize ) {
 
-				this.returnObjects( geomParser, data );
+				this.returnObjects( geomParser, data, false );
 
 				geomParser.clean();
 
@@ -52,14 +52,14 @@ export class ChunkParser {
 
 		}
 
-		this.returnObjects( geomParser, data );
+		this.returnObjects( geomParser, data, true );
 
 		this.objectColors = geomParser.objectColors;
 		this.surfaceColors = geomParser.surfaceColors;
 
 	}
 
-	returnObjects( parser, data ) {
+	returnObjects( parser, data, finished ) {
 
 		if ( parser.meshVertices.length == 0 ) {
 
@@ -86,7 +86,8 @@ export class ChunkParser {
 						  parser.meshBoundaryIds,
 						  parser.lods,
 						  parser.objectColors,
-						  parser.surfaceColors );
+						  parser.surfaceColors,
+						  finished );
 
 	}
 

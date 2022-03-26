@@ -185,6 +185,12 @@ function init() {
 
 			statsContainer.innerHTML = `${ objCount } meshes (${ ( memCount / 1024 / 1024 ).toFixed( 2 ) } MB) - ${ vCount } vertices`;
 
+			if ( parser.loading ) {
+
+				statsContainer.innerHTML += " - Parsing...";
+
+			}
+
 		} );
 
 		for ( const surface in parser.surfaceColors ) {

@@ -123,6 +123,7 @@ export class CityJSONWorkerParser {
 		this.matrix = null;
 		this.onChunkLoad = null;
 		this.chunkSize = 2000;
+		this.loading = false;
 
 		this.objectColors = defaultObjectColors;
 
@@ -141,6 +142,8 @@ export class CityJSONWorkerParser {
 	}
 
 	parse( data, scene ) {
+
+		this.loading = true;
 
 		const worker = new Worker( "./helpers/ParserWorker.js" );
 		const m = this.matrix;
@@ -189,6 +192,8 @@ export class CityJSONWorkerParser {
 			const mesh = new Mesh( geom, material );
 
 			scene.add( mesh );
+
+			context.loading = ! e.data.finished;
 
 			if ( onChunkLoad ) {
 
