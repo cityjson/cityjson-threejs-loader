@@ -134,14 +134,18 @@ export class GeometryParser {
 			let surfaceType = - 1;
 			if ( semantics.length > 0 ) {
 
-				const surfaceTypeName = surfaces[ semantics[ i ] ].type;
+				const surface = surfaces[ semantics[ i ] ];
 
-				surfaceType = Object.keys( this.surfaceColors ).indexOf( surfaceTypeName );
+				if ( surface ) {
 
-				if ( surfaceType < 0 ) {
+					surfaceType = Object.keys( this.surfaceColors ).indexOf( surface.type );
 
-					surfaceType = Object.keys( this.surfaceColors ).length;
-					this.surfaceColors[ surfaceTypeName ] = Math.floor( Math.random() * 0xffffff );
+					if ( surfaceType < 0 ) {
+
+						surfaceType = Object.keys( this.surfaceColors ).length;
+						this.surfaceColors[ surface.type ] = Math.floor( Math.random() * 0xffffff );
+
+					}
 
 				}
 
