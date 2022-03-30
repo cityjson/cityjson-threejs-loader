@@ -166,9 +166,9 @@ export class CityJSONWorkerParser {
 			geom.setAttribute( 'surfacetype', new Int32BufferAttribute( surfaceTypeArray, 1 ) );
 			const geomIdsArray = new Float32Array( e.data.geomIds );
 			geom.setAttribute( 'geometryid', new BufferAttribute( geomIdsArray, 1 ) );
-			const lodIdsArray = new Float32Array( e.data.lodIds );
+			const lodIdsArray = new Int8Array( e.data.lodIds );
 			geom.setAttribute( 'lodid', new BufferAttribute( lodIdsArray, 1 ) );
-			const boundaryIdsArray = new Int8Array( e.data.boundaryIds );
+			const boundaryIdsArray = new Float32Array( e.data.boundaryIds );
 			geom.setAttribute( 'boundaryid', new BufferAttribute( boundaryIdsArray, 1 ) );
 
 			geom.attributes.position.needsUpdate = true;
