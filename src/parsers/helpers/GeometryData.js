@@ -11,11 +11,23 @@ export class GeometryData {
 
 		this.vertexIds = [];
 		this.objectIds = [];
-		this.objectType = [];
+		this.objectTypes = [];
 		this.semanticSurfaces = [];
 		this.geometryIds = [];
 		this.boundaryIds = [];
 		this.lodIds = [];
+
+	}
+
+	addVertex( vertexId, objectId, objectType, surfaceType, geometryIdx, boundaryIdx, lodIdx ) {
+
+		this.vertexIds.push( vertexId );
+		this.objectIds.push( objectId );
+		this.objectTypes.push( objectType );
+		this.semanticSurfaces.push( surfaceType );
+		this.geometryIds.push( geometryIdx );
+		this.boundaryIds.push( boundaryIdx );
+		this.lodIds.push( lodIdx );
 
 	}
 
@@ -46,7 +58,7 @@ export class GeometryData {
 		return {
 			geometryType: this.geometryType,
 			objectIds: this.objectIds,
-			objectType: this.objectType,
+			objectType: this.objectTypes,
 			semanticSurfaces: this.semanticSurfaces,
 			geometryIds: this.geometryIds,
 			boundaryIds: this.boundaryIds,

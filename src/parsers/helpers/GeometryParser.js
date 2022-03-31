@@ -90,14 +90,6 @@ export class GeometryParser {
 
 	parseShell( boundaries, objectId, geomIdx, semantics = [], surfaces = [] ) {
 
-		const vertices = this.geomData.vertexIds;
-		const objIds = this.geomData.objectIds;
-		const objTypes = this.geomData.objectType;
-		const semanticTypes = this.geomData.semanticSurfaces;
-		const geomIds = this.geomData.geometryIds;
-		const lodIds = this.geomData.lodIds;
-		const boundaryIds = this.geomData.boundaryIds;
-
 		const json = this.json;
 
 		const idIdx = this.objectIds.indexOf( objectId );
@@ -158,13 +150,13 @@ export class GeometryParser {
 
 				for ( let n = 0; n < 3; n ++ ) {
 
-					vertices.push( boundary[ n ] );
-					objIds.push( idIdx );
-					objTypes.push( objType );
-					semanticTypes.push( surfaceType );
-					geomIds.push( geomIdx );
-					lodIds.push( lodIdx );
-					boundaryIds.push( i );
+					this.geomData.addVertex( boundary[ n ],
+											 idIdx,
+											 objType,
+											 surfaceType,
+											 geomIdx,
+											 i,
+											 lodIdx );
 
 				}
 
@@ -205,13 +197,14 @@ export class GeometryParser {
 					for ( let n = 0; n < 3; n ++ ) {
 
 						const vertex = boundary[ tr[ k + n ] ];
-						vertices.push( vertex );
-						objIds.push( idIdx );
-						objTypes.push( objType );
-						semanticTypes.push( surfaceType );
-						geomIds.push( geomIdx );
-						lodIds.push( lodIdx );
-						boundaryIds.push( i );
+
+						this.geomData.addVertex( vertex,
+											 	 idIdx,
+												 objType,
+												 surfaceType,
+												 geomIdx,
+												 i,
+												 lodIdx );
 
 					}
 
