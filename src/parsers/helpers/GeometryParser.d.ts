@@ -1,4 +1,4 @@
-import { Vector3 } from "three";
+import { GeometryData } from "./GeometryData";
 
 /**
  * A class that parses geometries of CityJSON and creates lists of vertices and
@@ -11,18 +11,12 @@ import { Vector3 } from "three";
  * // We assume that objId, geom and geomIdx are set
  * parser.parse( geom, objId, geomIdx );
  * 
- * // Then this retrieves the vertices that were parsed so far
- * const vertices = parser.meshVetrices;
+ * // Then this retrieves the geometry data that were parsed so far
+ * const geometryData = parser.geomData;
  */
 export class GeometryParser {
 
-    meshVertices: Vector3[];
-	meshObjIds: Number[];
-	meshObjType: Number[];
-	meshSemanticSurfaces: Number[];
-	meshGeomIds: Number[];
-	meshBoundaryIds: Number[];
-	meshLodIds: Number[];
+    geomData : GeometryData
 
     constructor( json: Object, objectIds: Number[], objectColors: Object );
 
