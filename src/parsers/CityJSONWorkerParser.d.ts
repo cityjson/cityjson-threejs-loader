@@ -1,5 +1,8 @@
 import { Group, Matrix4 } from "three";
 
+/**
+ * A parser that uses a WebWorker to parse chunks of CityJSON on the background.
+ */
 export class CityJSONWorkerParser {
 
     /**
