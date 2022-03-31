@@ -61,7 +61,7 @@ export class ChunkParser {
 
 	returnObjects( parser, data, finished ) {
 
-		if ( parser.meshVertices.length == 0 ) {
+		if ( parser.geomData.vertices.length == 0 ) {
 
 			return;
 
@@ -69,7 +69,7 @@ export class ChunkParser {
 
 		let vertices = [];
 
-		for ( const vertexIndex of parser.meshVertices ) {
+		for ( const vertexIndex of parser.geomData.vertices ) {
 
 			const vertex = data.vertices[ vertexIndex ];
 
@@ -78,12 +78,7 @@ export class ChunkParser {
 		}
 
 		this.onchunkload( vertices,
-						  parser.meshObjIds,
-						  parser.meshObjType,
-						  parser.meshSemanticSurfaces,
-						  parser.meshGeomIds,
-						  parser.meshLodIds,
-						  parser.meshBoundaryIds,
+						  parser.geomData.toObject(),
 						  parser.lods,
 						  parser.objectColors,
 						  parser.surfaceColors,

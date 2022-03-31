@@ -8,6 +8,7 @@ import {
 	ShaderMaterial,
 	UniformsUtils } from 'three';
 import { defaultObjectColors, defaultSemanticsColors } from '../defaults/colors.js';
+import { POINTS, LINES, TRIANGLES } from './helpers/GeometryData';
 
 function createColorsArray( colors ) {
 
@@ -158,17 +159,17 @@ export class CityJSONWorkerParser {
 
 			const vertexArray = new Float32Array( vertices );
 			geom.setAttribute( 'position', new BufferAttribute( vertexArray, 3 ) );
-			const idsArray = new Uint16Array( e.data.objectIds );
+			const idsArray = new Uint16Array( e.data.geometryData.objectIds );
 			geom.setAttribute( 'objectid', new BufferAttribute( idsArray, 1 ) );
-			const typeArray = new Uint8Array( e.data.objectType );
+			const typeArray = new Uint8Array( e.data.geometryData.objectType );
 			geom.setAttribute( 'type', new Int32BufferAttribute( typeArray, 1 ) );
-			const surfaceTypeArray = new Int8Array( e.data.surfaceType );
+			const surfaceTypeArray = new Int8Array( e.data.geometryData.semanticSurfaces );
 			geom.setAttribute( 'surfacetype', new Int32BufferAttribute( surfaceTypeArray, 1 ) );
-			const geomIdsArray = new Float32Array( e.data.geomIds );
+			const geomIdsArray = new Float32Array( e.data.geometryData.geometryIds );
 			geom.setAttribute( 'geometryid', new BufferAttribute( geomIdsArray, 1 ) );
-			const lodIdsArray = new Int8Array( e.data.lodIds );
+			const lodIdsArray = new Int8Array( e.data.geometryData.lodIds );
 			geom.setAttribute( 'lodid', new BufferAttribute( lodIdsArray, 1 ) );
-			const boundaryIdsArray = new Float32Array( e.data.boundaryIds );
+			const boundaryIdsArray = new Float32Array( e.data.geometryData.boundaryIds );
 			geom.setAttribute( 'boundaryid', new BufferAttribute( boundaryIdsArray, 1 ) );
 
 			geom.attributes.position.needsUpdate = true;
@@ -188,9 +189,13 @@ export class CityJSONWorkerParser {
 			context.objectColors = e.data.objectColors;
 			context.surfaceColors = e.data.surfaceColors;
 
-			const mesh = new Mesh( geom, material );
+			if ( e.data.geometryData.geometryType == TRIANGLES ) {
 
-			scene.add( mesh );
+				const mesh = new Mesh( geom, material );
+
+				scene.add( mesh );
+
+			}
 
 			context.loading = ! e.data.finished;
 

@@ -4,6 +4,7 @@ import {
 import earcut from 'earcut';
 
 import { defaultSemanticsColors } from '../../defaults/colors.js';
+import { TRIANGLES, GeometryData } from './GeometryData.js';
 
 export class GeometryParser {
 
@@ -16,25 +17,13 @@ export class GeometryParser {
 		this.surfaceColors = defaultSemanticsColors;
 		this.lods = [];
 
-		this.meshVertices = [];
-		this.meshObjIds = [];
-		this.meshObjType = [];
-		this.meshSemanticSurfaces = [];
-		this.meshGeomIds = [];
-		this.meshBoundaryIds = [];
-		this.meshLodIds = [];
+		this.geomData = new GeometryData( TRIANGLES );
 
 	}
 
 	clean() {
 
-		this.meshVertices = [];
-		this.meshObjIds = [];
-		this.meshObjType = [];
-		this.meshSemanticSurfaces = [];
-		this.meshGeomIds = [];
-		this.meshBoundaryIds = [];
-		this.meshLodIds = [];
+		this.geomData = new GeometryData( TRIANGLES );
 
 	}
 
@@ -101,13 +90,13 @@ export class GeometryParser {
 
 	parseShell( boundaries, objectId, geomIdx, semantics = [], surfaces = [] ) {
 
-		const vertices = this.meshVertices;
-		const objIds = this.meshObjIds;
-		const objTypes = this.meshObjType;
-		const semanticTypes = this.meshSemanticSurfaces;
-		const geomIds = this.meshGeomIds;
-		const lodIds = this.meshLodIds;
-		const boundaryIds = this.meshBoundaryIds;
+		const vertices = this.geomData.vertices;
+		const objIds = this.geomData.objectIds;
+		const objTypes = this.geomData.objectType;
+		const semanticTypes = this.geomData.semanticSurfaces;
+		const geomIds = this.geomData.geometryIds;
+		const lodIds = this.geomData.lodIds;
+		const boundaryIds = this.geomData.boundaryIds;
 
 		const json = this.json;
 
