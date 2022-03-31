@@ -72,6 +72,53 @@ export class GeometryParser {
 
 	}
 
+	getObjectIdx( objectId ) {
+
+		return this.objectIds.indexOf( objectId );
+
+	}
+
+	getObjectTypeIdx( cityObjectTypeName ) {
+
+		let objType = Object.keys( this.objectColors ).indexOf( cityObjectTypeName );
+
+		if ( objType < 0 ) {
+
+			objType = Object.keys( this.objectColors ).length;
+			this.objectColors[ cityObjectTypeName ] = Math.floor( Math.random() * 0xffffff );
+
+		}
+
+		return objType;
+
+	}
+
+	getSurfaceTypeIdx( idx, semantics, surfaces ) {
+
+		let surfaceType = - 1;
+		if ( semantics.length > 0 ) {
+
+			const surface = surfaces[ semantics[ idx ] ];
+
+			if ( surface ) {
+
+				surfaceType = Object.keys( this.surfaceColors ).indexOf( surface.type );
+
+				if ( surfaceType < 0 ) {
+
+					surfaceType = Object.keys( this.surfaceColors ).length;
+					this.surfaceColors[ surface.type ] = Math.floor( Math.random() * 0xffffff );
+
+				}
+
+			}
+
+		}
+
+		return surfaceType;
+
+	}
+
 	getLodIndex( lod ) {
 
 		const lodIdx = this.lods.indexOf( lod );
@@ -90,21 +137,13 @@ export class GeometryParser {
 
 	parseShell( boundaries, objectId, geomIdx, semantics = [], surfaces = [] ) {
 
-		const json = this.json;
+		const cityObj = this.json.CityObjects[ objectId ];
 
-		const idIdx = this.objectIds.indexOf( objectId );
+		const idIdx = this.getObjectIdx( objectId );
 
-		const cityObjectTypeName = json.CityObjects[ objectId ].type;
-		let objType = Object.keys( this.objectColors ).indexOf( cityObjectTypeName );
+		const objType = this.getObjectTypeIdx( cityObj.type );
 
-		if ( objType < 0 ) {
-
-			objType = Object.keys( this.objectColors ).length;
-			this.objectColors[ cityObjectTypeName ] = Math.floor( Math.random() * 0xffffff );
-
-		}
-
-		const lodIdx = this.getLodIndex( json.CityObjects[ objectId ].geometry[ geomIdx ].lod );
+		const lodIdx = this.getLodIndex( cityObj.geometry[ geomIdx ].lod );
 
 		// Contains the boundary but with the right verticeId
 		for ( let i = 0; i < boundaries.length; i ++ ) {
@@ -112,25 +151,7 @@ export class GeometryParser {
 			let boundary = [];
 			let holes = [];
 
-			let surfaceType = - 1;
-			if ( semantics.length > 0 ) {
-
-				const surface = surfaces[ semantics[ i ] ];
-
-				if ( surface ) {
-
-					surfaceType = Object.keys( this.surfaceColors ).indexOf( surface.type );
-
-					if ( surfaceType < 0 ) {
-
-						surfaceType = Object.keys( this.surfaceColors ).length;
-						this.surfaceColors[ surface.type ] = Math.floor( Math.random() * 0xffffff );
-
-					}
-
-				}
-
-			}
+			const surfaceType = this.getSurfaceTypeIdx( i, semantics, surfaces );
 
 			for ( let j = 0; j < boundaries[ i ].length; j ++ ) {
 
@@ -168,9 +189,9 @@ export class GeometryParser {
 				for ( let k = 0; k < boundary.length; k ++ ) {
 
 					pList.push( {
-						x: json.vertices[ boundary[ k ] ][ 0 ],
-						y: json.vertices[ boundary[ k ] ][ 1 ],
-						z: json.vertices[ boundary[ k ] ][ 2 ]
+						x: this.json.vertices[ boundary[ k ] ][ 0 ],
+						y: this.json.vertices[ boundary[ k ] ][ 1 ],
+						z: this.json.vertices[ boundary[ k ] ][ 2 ]
 					} );
 
 				}
