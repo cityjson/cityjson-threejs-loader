@@ -9,7 +9,7 @@ export class GeometryData {
 
 		this.geometryType = geometryType;
 
-		this.vertices = [];
+		this.vertexIds = [];
 		this.objectIds = [];
 		this.objectType = [];
 		this.semanticSurfaces = [];
@@ -19,11 +19,32 @@ export class GeometryData {
 
 	}
 
+	count() {
+
+		return this.vertexIds.length;
+
+	}
+
+	getVertices( vertexList ) {
+
+		let vertices = [];
+
+		for ( const vertexIndex of this.vertexIds ) {
+
+			const vertex = vertexList[ vertexIndex ];
+
+			vertices.push( ...vertex );
+
+		}
+
+		return vertices;
+
+	}
+
 	toObject() {
 
 		return {
 			geometryType: this.geometryType,
-			vertices: this.vertices,
 			objectIds: this.objectIds,
 			objectType: this.objectType,
 			semanticSurfaces: this.semanticSurfaces,

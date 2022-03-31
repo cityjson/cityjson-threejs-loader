@@ -7,10 +7,6 @@ export class ChunkParser {
 		this.matrix = null;
 		this.chunkSize = 2000;
 
-		this.meshVertices = [];
-		this.meshObjIds = [];
-		this.meshObjType = [];
-
 		this.lods = [];
 		this.objectColors = {};
 		this.surfaceColors = {};
@@ -61,28 +57,16 @@ export class ChunkParser {
 
 	returnObjects( parser, data, finished ) {
 
-		if ( parser.geomData.vertices.length == 0 ) {
+		if ( parser.geomData.count() > 0 ) {
 
-			return;
-
-		}
-
-		let vertices = [];
-
-		for ( const vertexIndex of parser.geomData.vertices ) {
-
-			const vertex = data.vertices[ vertexIndex ];
-
-			vertices.push( ...vertex );
+			this.onchunkload( parser.geomData.getVertices( data.vertices ),
+							  parser.geomData.toObject(),
+							  parser.lods,
+							  parser.objectColors,
+							  parser.surfaceColors,
+							  finished );
 
 		}
-
-		this.onchunkload( vertices,
-						  parser.geomData.toObject(),
-						  parser.lods,
-						  parser.objectColors,
-						  parser.surfaceColors,
-						  finished );
 
 	}
 

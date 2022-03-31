@@ -90,7 +90,7 @@ export class GeometryParser {
 
 	parseShell( boundaries, objectId, geomIdx, semantics = [], surfaces = [] ) {
 
-		const vertices = this.geomData.vertices;
+		const vertices = this.geomData.vertexIds;
 		const objIds = this.geomData.objectIds;
 		const objTypes = this.geomData.objectType;
 		const semanticTypes = this.geomData.semanticSurfaces;
