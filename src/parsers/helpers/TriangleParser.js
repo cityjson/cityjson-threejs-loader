@@ -6,7 +6,7 @@ import earcut from 'earcut';
 import { defaultSemanticsColors } from '../../defaults/colors.js';
 import { TRIANGLES, GeometryData } from './GeometryData.js';
 
-export class GeometryParser {
+export class TriangleParser {
 
 	constructor( json, objectIds, objectColors ) {
 

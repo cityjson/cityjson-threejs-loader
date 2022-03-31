@@ -14,7 +14,7 @@ import { GeometryData } from "./GeometryData";
  * // Then this retrieves the geometry data that were parsed so far
  * const geometryData = parser.geomData;
  */
-export class GeometryParser {
+export class TriangleParser {
 
     geomData : GeometryData
 

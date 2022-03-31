@@ -1,4 +1,4 @@
-import { GeometryParser } from './GeometryParser.js';
+import { TriangleParser } from './TriangleParser.js';
 
 export class ChunkParser {
 
@@ -19,7 +19,7 @@ export class ChunkParser {
 
 		let i = 0;
 
-		const geomParser = new GeometryParser( data, Object.keys( data.CityObjects ), this.objectColors );
+		const geomParser = new TriangleParser( data, Object.keys( data.CityObjects ), this.objectColors );
 		geomParser.lods = this.lods;
 
 		for ( const objectId in data.CityObjects ) {
