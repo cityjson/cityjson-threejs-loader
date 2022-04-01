@@ -3,7 +3,6 @@ import {
 	BufferGeometry,
 	Color,
 	Int32BufferAttribute,
-	LineBasicMaterial,
 	LineSegments,
 	Mesh,
 	Points,

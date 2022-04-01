@@ -84,7 +84,7 @@ function init() {
 	controls.dampingFactor = 0.05;
 
 	raycaster = new Raycaster();
-	raycaster.params.Line.threshold = 0.01;
+	raycaster.params.Line.threshold = 0.001;
 
 	renderer.domElement.addEventListener( 'dblclick', onDblClick, false );
 	renderer.domElement.ondragover = ev => ev.preventDefault();
@@ -322,33 +322,42 @@ function onMouseMove( e ) {
 	const results = raycaster.intersectObject( modelgroup, true );
 	if ( results.length ) {
 
-		const { face, point, object } = results[ 0 ];
+		const { face, point, object, index } = results[ 0 ];
 
 		let closestPoint = null;
 
 		// Snap to closest point
 		const position = object.geometry.getAttribute( 'position' );
-		const m = object.matrixWorld;
-		const points = [
-			new Vector3( position.getX( face.a ), position.getY( face.a ), position.getZ( face.a ) ).applyMatrix4( m ),
-			new Vector3( position.getX( face.b ), position.getY( face.b ), position.getZ( face.b ) ).applyMatrix4( m ),
-			new Vector3( position.getX( face.c ), position.getY( face.c ), position.getZ( face.c ) ).applyMatrix4( m )
-		];
-		let dist = point.distanceTo( points[ 0 ] );
-		closestPoint = points[ 0 ];
-		for ( let i = 0; i < 3; i ++ ) {
 
-			const newDist = point.distanceTo( points[ i ] );
-			if ( newDist < dist ) {
+		if ( index ) {
 
-				closestPoint = points[ i ];
-				dist = newDist;
+			closestPoint = position[ index ];
+
+		} else {
+
+			const m = object.matrixWorld;
+			const points = [
+				new Vector3( position.getX( face.a ), position.getY( face.a ), position.getZ( face.a ) ).applyMatrix4( m ),
+				new Vector3( position.getX( face.b ), position.getY( face.b ), position.getZ( face.b ) ).applyMatrix4( m ),
+				new Vector3( position.getX( face.c ), position.getY( face.c ), position.getZ( face.c ) ).applyMatrix4( m )
+			];
+			let dist = point.distanceTo( points[ 0 ] );
+			closestPoint = points[ 0 ];
+			for ( let i = 0; i < 3; i ++ ) {
+
+				const newDist = point.distanceTo( points[ i ] );
+				if ( newDist < dist ) {
+
+					closestPoint = points[ i ];
+					dist = newDist;
+
+				}
 
 			}
 
 		}
 
-		if ( closestPoint === null ) {
+		if ( closestPoint === undefined ) {
 
 			closestPoint = point;
 
@@ -356,13 +365,13 @@ function onMouseMove( e ) {
 
 		// Compute and show a marker at the intersection point
 		marker.position.copy( closestPoint );
-		const normal = face.normal;
-		normal.transformDirection( object.matrixWorld );
-		marker.lookAt(
-			closestPoint.x + normal.x,
-			closestPoint.y + normal.y,
-			closestPoint.z + normal.z
-		);
+		// const normal = face.normal;
+		// normal.transformDirection( object.matrixWorld );
+		// marker.lookAt(
+		// 	closestPoint.x + normal.x,
+		// 	closestPoint.y + normal.y,
+		// 	closestPoint.z + normal.z
+		// );
 
 		marker.visible = true;
 
@@ -475,24 +484,35 @@ function onDblClick( e ) {
 	const results = raycaster.intersectObject( modelgroup, true );
 	if ( results.length ) {
 
-		const { face, object } = getActiveResult( results );
+		const { face, object, index } = getActiveResult( results );
+
+		let vertexIdx;
+		if ( index ) {
+
+			vertexIdx = index;
+
+		} else {
+
+			vertexIdx = face.a;
+
+		}
 
 		const objIds = object.geometry.getAttribute( 'objectid' );
 		const semIds = object.geometry.getAttribute( 'surfacetype' );
 
-		if ( objIds && face ) {
+		if ( objIds ) {
 
-			const idx = objIds.getX( face.a );
+			const idx = objIds.getX( vertexIdx );
 			const objectId = Object.keys( citymodel.CityObjects )[ idx ];
 
-			const geomId = object.geometry.getAttribute( 'geometryid' ).getX( face.a );
-			const boundId = object.geometry.getAttribute( 'boundaryid' ).getX( face.a );
-			const lodId = object.geometry.getAttribute( 'lodid' ).getX( face.a );
+			const geomId = object.geometry.getAttribute( 'geometryid' ).getX( vertexIdx );
+			const boundId = object.geometry.getAttribute( 'boundaryid' ).getX( vertexIdx );
+			const lodId = object.geometry.getAttribute( 'lodid' ).getX( vertexIdx );
 
 			const data = Object.assign( {}, citymodel.CityObjects[ objectId ] );
 			delete data.geometry;
 
-			const semId = semIds.getX( face.a );
+			const semId = semIds.getX( vertexIdx );
 
 			let str = `<b>${ data.type }${ semId >= 0 ? ' - ' + Object.keys( parser.surfaceColors )[ semId ] : '' }</b>`;
 			str += `<br/>Geometry: ${ geomId } / Surface: ${ boundId } / LoD: ${ parser.lods[ lodId ] }`;
