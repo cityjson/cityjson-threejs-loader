@@ -23,6 +23,7 @@ import { BufferGeometryUtils } from 'three/examples/jsm/utils/BufferGeometryUtil
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import * as dat from 'three/examples/jsm/libs/dat.gui.module.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
+import { LineBasicMaterial } from 'three';
 
 let scene, renderer, camera, controls, stats, raycaster;
 let modelgroup;
@@ -83,6 +84,7 @@ function init() {
 	controls.dampingFactor = 0.05;
 
 	raycaster = new Raycaster();
+	raycaster.params.Line.threshold = 0.01;
 
 	renderer.domElement.addEventListener( 'dblclick', onDblClick, false );
 	renderer.domElement.ondragover = ev => ev.preventDefault();
@@ -478,7 +480,7 @@ function onDblClick( e ) {
 		const objIds = object.geometry.getAttribute( 'objectid' );
 		const semIds = object.geometry.getAttribute( 'surfacetype' );
 
-		if ( objIds ) {
+		if ( objIds && face ) {
 
 			const idx = objIds.getX( face.a );
 			const objectId = Object.keys( citymodel.CityObjects )[ idx ];
@@ -551,7 +553,7 @@ function render() {
 
 		if ( c.material ) {
 
-			if ( c.material instanceof MeshBasicMaterial ) {
+			if ( c.material instanceof MeshBasicMaterial || c.material instanceof LineBasicMaterial ) {
 
 				return;
 

@@ -1,4 +1,5 @@
-import { TriangleParser } from './TriangleParser.js';
+import { LineParser } from '../geometry/LineParser.js';
+import { TriangleParser } from '../geometry/TriangleParser.js';
 
 export class ChunkParser {
 
@@ -19,8 +20,10 @@ export class ChunkParser {
 
 		let i = 0;
 
-		const geomParser = new TriangleParser( data, Object.keys( data.CityObjects ), this.objectColors );
-		geomParser.lods = this.lods;
+		const geometryParsers = [
+			new TriangleParser( data, Object.keys( data.CityObjects ), this.objectColors ),
+			new LineParser( data, Object.keys( data.CityObjects ), this.objectColors )
+		];
 
 		for ( const objectId in data.CityObjects ) {
 
@@ -30,7 +33,13 @@ export class ChunkParser {
 
 				for ( let geom_i = 0; geom_i < cityObject.geometry.length; geom_i ++ ) {
 
-					geomParser.parseGeometry( cityObject.geometry[ geom_i ], objectId, geom_i );
+					for ( const geometryParser of geometryParsers ) {
+
+						geometryParser.lods = this.lods;
+						geometryParser.parseGeometry( cityObject.geometry[ geom_i ], objectId, geom_i );
+						this.lods = geometryParser.lods;
+
+					}
 
 				}
 
@@ -38,9 +47,13 @@ export class ChunkParser {
 
 			if ( i ++ > this.chunkSize ) {
 
-				this.returnObjects( geomParser, data, false );
+				for ( const geometryParser of geometryParsers ) {
 
-				geomParser.clean();
+					this.returnObjects( geometryParser, data, false );
+
+					geometryParser.clean();
+
+				}
 
 				i = 0;
 
@@ -48,10 +61,20 @@ export class ChunkParser {
 
 		}
 
-		this.returnObjects( geomParser, data, true );
+		for ( const geometryParser of geometryParsers ) {
 
-		this.objectColors = geomParser.objectColors;
-		this.surfaceColors = geomParser.surfaceColors;
+			// TODO: fix the "finished" flag here - probably better be a
+			// different callback
+			this.returnObjects( geometryParser, data, true );
+
+			geometryParser.clean();
+
+		}
+
+		// TODO: this needs some fix - probably a common configuration class
+		// shared between the parsers
+		this.objectColors = geometryParsers[ 0 ].objectColors;
+		this.surfaceColors = geometryParsers[ 0 ].surfaceColors;
 
 	}
 

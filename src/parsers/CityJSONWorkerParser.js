@@ -3,12 +3,15 @@ import {
 	BufferGeometry,
 	Color,
 	Int32BufferAttribute,
+	LineBasicMaterial,
+	LineSegments,
 	Mesh,
+	Points,
 	ShaderLib,
 	ShaderMaterial,
 	UniformsUtils } from 'three';
 import { defaultObjectColors, defaultSemanticsColors } from '../defaults/colors.js';
-import { POINTS, LINES, TRIANGLES } from './helpers/GeometryData';
+import { POINTS, LINES, TRIANGLES } from './geometry/GeometryData';
 
 function createColorsArray( colors ) {
 
@@ -192,8 +195,21 @@ export class CityJSONWorkerParser {
 			if ( e.data.geometryData.geometryType == TRIANGLES ) {
 
 				const mesh = new Mesh( geom, material );
-
 				scene.add( mesh );
+
+			}
+
+			if ( e.data.geometryData.geometryType == LINES ) {
+
+				const line = new LineSegments( geom, context.material );
+				scene.add( line );
+
+			}
+
+			if ( e.data.geometryData.geometryType == POINTS ) {
+
+				const points = new Points( geom );
+				scene.add( points );
 
 			}
 
