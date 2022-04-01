@@ -3,7 +3,6 @@ import {
 	BufferGeometry,
 	Color,
 	Int32BufferAttribute,
-	LineSegments,
 	Mesh,
 	Points,
 	ShaderLib,
@@ -11,6 +10,10 @@ import {
 	UniformsUtils } from 'three';
 import { defaultObjectColors, defaultSemanticsColors } from '../defaults/colors.js';
 import { POINTS, LINES, TRIANGLES } from './geometry/GeometryData';
+import 'three/examples/jsm/lines/LineMaterial';
+import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
+import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2';
+import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry';
 
 function createColorsArray( colors ) {
 
@@ -33,8 +36,24 @@ function createColorsArray( colors ) {
 
 }
 
+function createLineSegmentsGeometry( geometry ) {
+
+	const lineGeometry = new LineSegmentsGeometry();
+
+	lineGeometry.setPositions( geometry.attributes.position.array );
+	lineGeometry.setAttribute( 'objectid', geometry.attributes.objectid );
+	lineGeometry.setAttribute( 'type', geometry.attributes.type );
+	lineGeometry.setAttribute( 'surfacetype', geometry.attributes.surfacetype );
+	lineGeometry.setAttribute( 'geometryid', geometry.attributes.geometryid );
+	lineGeometry.setAttribute( 'lodid', geometry.attributes.lodid );
+	lineGeometry.setAttribute( 'boundaryid', geometry.attributes.boundaryid );
+
+	return lineGeometry;
+
+}
+
 // Adjusts the three.js standard shader to include batchid highlight
-function createObjectColorShader( shader, objectColors, surfaceColors ) {
+function createObjectColorShader( shader, objectColors, surfaceColors, needsLight = true ) {
 
 	const cm_data = createColorsArray( objectColors );
 	const surface_data = createColorsArray( surfaceColors );
@@ -55,7 +74,7 @@ function createObjectColorShader( shader, objectColors, surfaceColors ) {
 	newShader.extensions = {
 		derivatives: true,
 	};
-	newShader.lights = true;
+	newShader.lights = needsLight;
 	newShader.vertexShader =
 		`
 			attribute float objectid;
@@ -200,7 +219,17 @@ export class CityJSONWorkerParser {
 
 			if ( e.data.geometryData.geometryType == LINES ) {
 
-				const line = new LineSegments( geom, context.material );
+				const lineGeom = createLineSegmentsGeometry( geom );
+
+				const line = new LineSegments2( lineGeom, new LineMaterial( {
+
+					color: 0xffffff,
+					linewidth: 0.001,
+					vertexColors: false,
+					dashed: false
+
+				} ) );
+				line.material.worldUnits = false;
 				scene.add( line );
 
 			}

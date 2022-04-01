@@ -23,7 +23,7 @@ import { BufferGeometryUtils } from 'three/examples/jsm/utils/BufferGeometryUtil
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import * as dat from 'three/examples/jsm/libs/dat.gui.module.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
-import { LineBasicMaterial } from 'three';
+import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
 
 let scene, renderer, camera, controls, stats, raycaster;
 let modelgroup;
@@ -44,7 +44,9 @@ let params = {
 	'highlightColor': '#FFC107',
 	'backgroundColor': '#1c1c1c',
 	'ambientIntensity': 0.7,
-	'directionalIntensity': 1
+	'directionalIntensity': 1,
+	'linePickingThreshold': 0.1,
+	'linewidth': 0.001
 
 };
 
@@ -84,7 +86,7 @@ function init() {
 	controls.dampingFactor = 0.05;
 
 	raycaster = new Raycaster();
-	raycaster.params.Line.threshold = 0.001;
+	raycaster.params.Line.threshold = params.linePickingThreshold;
 
 	renderer.domElement.addEventListener( 'dblclick', onDblClick, false );
 	renderer.domElement.ondragover = ev => ev.preventDefault();
@@ -130,6 +132,19 @@ function init() {
 	const visualOptions = gui.addFolder( 'Visual Options' );
 	visualOptions.add( params, 'showSemantics' );
 	visualOptions.add( params, 'showOnlyLod' ).min( - 1 ).max( 10 ).step( 1 );
+	visualOptions.add( params, 'linewidth' ).min( 0.001 ).max( 0.01 ).step( 0.001 ).onChange( ( v ) => {
+
+		scene.traverse( m => {
+
+			if ( m.material && m.material.linewidth ) {
+
+				m.material.linewidth = v;
+
+			}
+
+		} );
+
+	} );
 	visualOptions.open();
 
 	colorOptions = gui.addFolder( 'Colors' );
@@ -443,11 +458,13 @@ function getActiveResult( results ) {
 
 		for ( let i = 0; i < results.length; i ++ ) {
 
-			const { face, object } = results[ i ];
+			const { face, object, faceIndex } = results[ i ];
 
-			const lodIdx = object.geometry.getAttribute( "lodid" ).getX( face.a );
+			const vertexIdx = face ? face.a : faceIndex * 2;
 
-			if ( lodIdx == params.showOnlyLod ) {
+			const lodIdx = object.geometry.getAttribute( "lodid" ).getX( vertexIdx );
+
+			if ( lodIdx == params.showOnlyLod || lodIdx == - 1 ) {
 
 				return results[ i ];
 
@@ -455,11 +472,9 @@ function getActiveResult( results ) {
 
 		}
 
-	} else {
-
-		return results[ 0 ];
-
 	}
+
+	return results[ 0 ];
 
 }
 
@@ -475,7 +490,7 @@ function onDblClick( e ) {
 
 	modelgroup.traverse( c => {
 
-		if ( c.material ) c.material.uniforms.highlightedObjId.value = - 1;
+		if ( c.material && c.material.uniforms.highlightedObjId ) c.material.uniforms.highlightedObjId.value = - 1;
 
 	} );
 
@@ -484,16 +499,16 @@ function onDblClick( e ) {
 	const results = raycaster.intersectObject( modelgroup, true );
 	if ( results.length ) {
 
-		const { face, object, index } = getActiveResult( results );
+		const { face, object, faceIndex } = getActiveResult( results );
 
 		let vertexIdx;
-		if ( index ) {
+		if ( face ) {
 
-			vertexIdx = index;
+			vertexIdx = face.a;
 
 		} else {
 
-			vertexIdx = face.a;
+			vertexIdx = faceIndex * 2;
 
 		}
 
@@ -553,11 +568,15 @@ function onDblClick( e ) {
 
 			infoContainer.innerHTML = str;
 
-			object.material.uniforms.highlightedObjId.value = idx;
-			object.material.uniforms.highlightedGeomId.value = geomId;
-			object.material.uniforms.highlightedBoundId.value = boundId;
+			if ( object.material.uniforms.highlightedObjId ) {
 
-			object.material.uniforms.selectSurface.value = e.ctrlKey;
+				object.material.uniforms.highlightedObjId.value = idx;
+				object.material.uniforms.highlightedGeomId.value = geomId;
+				object.material.uniforms.highlightedBoundId.value = boundId;
+
+				object.material.uniforms.selectSurface.value = e.ctrlKey;
+
+			}
 
 		}
 
@@ -569,11 +588,13 @@ function render() {
 
 	requestAnimationFrame( render );
 
+	raycaster.params.Line.threshold = params.linePickingThreshold;
+
 	scene.traverse( c => {
 
 		if ( c.material ) {
 
-			if ( c.material instanceof MeshBasicMaterial || c.material instanceof LineBasicMaterial ) {
+			if ( c.material instanceof MeshBasicMaterial || c.material instanceof LineMaterial ) {
 
 				return;
 
