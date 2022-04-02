@@ -1,142 +1,17 @@
 import {
 	BufferAttribute,
 	BufferGeometry,
-	Color,
 	Int32BufferAttribute,
 	Mesh,
 	Points,
-	ShaderLib,
-	ShaderMaterial,
-	UniformsUtils } from 'three';
+	ShaderLib } from 'three';
 import { defaultObjectColors, defaultSemanticsColors } from '../defaults/colors.js';
 import { POINTS, LINES, TRIANGLES } from './geometry/GeometryData';
 import 'three/examples/jsm/lines/LineMaterial';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
-import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2';
-import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry';
-
-function createColorsArray( colors ) {
-
-	const surface_data = [];
-	for ( const surfType in colors ) {
-
-		const color = new Color( colors[ surfType ] );
-
-		surface_data.push( color.convertSRGBToLinear() );
-
-	}
-
-	for ( let i = surface_data.length; i < 110; i ++ ) {
-
-		surface_data.push( new Color( 0xffffff ).convertSRGBToLinear() );
-
-	}
-
-	return surface_data;
-
-}
-
-function createLineSegmentsGeometry( geometry ) {
-
-	const lineGeometry = new LineSegmentsGeometry();
-
-	lineGeometry.setPositions( geometry.attributes.position.array );
-	lineGeometry.setAttribute( 'objectid', geometry.attributes.objectid );
-	lineGeometry.setAttribute( 'type', geometry.attributes.type );
-	lineGeometry.setAttribute( 'surfacetype', geometry.attributes.surfacetype );
-	lineGeometry.setAttribute( 'geometryid', geometry.attributes.geometryid );
-	lineGeometry.setAttribute( 'lodid', geometry.attributes.lodid );
-	lineGeometry.setAttribute( 'boundaryid', geometry.attributes.boundaryid );
-
-	return lineGeometry;
-
-}
-
-// Adjusts the three.js standard shader to include batchid highlight
-function createObjectColorShader( shader, objectColors, surfaceColors, needsLight = true ) {
-
-	const cm_data = createColorsArray( objectColors );
-	const surface_data = createColorsArray( surfaceColors );
-
-	const newShader = { ...shader };
-	newShader.uniforms = {
-		objectColors: { value: cm_data },
-		surfaceColors: { value: surface_data },
-		showSemantics: { value: true },
-		selectSurface: { value: true },
-		showLod: { value: - 1 },
-		highlightedObjId: { value: - 1 },
-		highlightedGeomId: { value: - 1 },
-		highlightedBoundId: { value: - 1 },
-		highlightColor: { value: new Color( 0xFFC107 ).convertSRGBToLinear() },
-		...UniformsUtils.clone( shader.uniforms ),
-	};
-	newShader.extensions = {
-		derivatives: true,
-	};
-	newShader.lights = needsLight;
-	newShader.vertexShader =
-		`
-			attribute float objectid;
-			attribute float geometryid;
-			attribute float boundaryid;
-			attribute float lodid;
-			attribute int type;
-			attribute int surfacetype;
-			varying vec3 diffuse_;
-			uniform vec3 objectColors[ 110 ];
-			uniform vec3 surfaceColors[ 110 ];
-			uniform vec3 highlightColor;
-			uniform float highlightedObjId;
-			uniform float highlightedGeomId;
-			uniform float highlightedBoundId;
-			uniform bool showSemantics;
-			uniform bool selectSurface;
-			uniform float showLod;
-		` +
-		newShader.vertexShader.replace(
-			/#include <uv_vertex>/,
-			`
-			#include <uv_vertex>
-			vec3 color_;
-			
-			if ( showSemantics ) {
-				color_ = surfacetype > -1 ? surfaceColors[surfacetype] : objectColors[type];
-			}
-			else {
-				color_ = objectColors[type];
-			}
-
-			if ( selectSurface ) {
-				diffuse_ = abs( objectid - highlightedObjId ) < 0.5 && abs( geometryid - highlightedGeomId ) < 0.5 && abs( boundaryid - highlightedBoundId ) < 0.5 ? highlightColor : color_;
-			}
-			else {
-				diffuse_ = abs( objectid - highlightedObjId ) < 0.5 ? highlightColor : color_;
-			}
-			`
-		).replace(
-			/#include <fog_vertex>/,
-			`
-			#include <fog_vertex>
-			if ( abs ( lodid - showLod ) > 0.5 && showLod >= 0.0 ) {
-				gl_Position = vec4(0.0, 0.0, 0.0, 1.0);
-			}
-			`
-		);
-	newShader.fragmentShader =
-		`
-			varying vec3 diffuse_;
-		` +
-		newShader.fragmentShader.replace(
-			/vec4 diffuseColor = vec4\( diffuse, opacity \);/,
-			`
-			vec4 diffuseColor = vec4( diffuse_, opacity );
-			`
-		);
-
-	return newShader;
-
-}
+import { CityObjectsMaterial } from '../materials/CityObjectsMaterial.js';
+import { CityObjectsMesh } from '../objects/CityObjectsMesh.js';
+import { CityObjectsLines } from '../objects/CityObjectsLines.js';
 
 export class CityJSONWorkerParser {
 
@@ -158,7 +33,7 @@ export class CityJSONWorkerParser {
 
 	resetMaterial() {
 
-		this.material = new ShaderMaterial( createObjectColorShader( ShaderLib.lambert, this.objectColors, this.surfaceColors ) );
+		this.material = new CityObjectsMaterial( ShaderLib.lambert, this.objectColors, this.surfaceColors );
 
 	}
 
@@ -175,36 +50,10 @@ export class CityJSONWorkerParser {
 		worker.onmessage = function ( e ) {
 
 			const vertices = e.data.v_buffer;
+			const geometryData = e.data.geometryData;
 
-			const geom = new BufferGeometry();
-
-			const vertexArray = new Float32Array( vertices );
-			geom.setAttribute( 'position', new BufferAttribute( vertexArray, 3 ) );
-			const idsArray = new Uint16Array( e.data.geometryData.objectIds );
-			geom.setAttribute( 'objectid', new BufferAttribute( idsArray, 1 ) );
-			const typeArray = new Uint8Array( e.data.geometryData.objectType );
-			geom.setAttribute( 'type', new Int32BufferAttribute( typeArray, 1 ) );
-			const surfaceTypeArray = new Int8Array( e.data.geometryData.semanticSurfaces );
-			geom.setAttribute( 'surfacetype', new Int32BufferAttribute( surfaceTypeArray, 1 ) );
-			const geomIdsArray = new Float32Array( e.data.geometryData.geometryIds );
-			geom.setAttribute( 'geometryid', new BufferAttribute( geomIdsArray, 1 ) );
-			const lodIdsArray = new Int8Array( e.data.geometryData.lodIds );
-			geom.setAttribute( 'lodid', new BufferAttribute( lodIdsArray, 1 ) );
-			const boundaryIdsArray = new Float32Array( e.data.geometryData.boundaryIds );
-			geom.setAttribute( 'boundaryid', new BufferAttribute( boundaryIdsArray, 1 ) );
-
-			geom.attributes.position.needsUpdate = true;
-
-			if ( m !== null ) {
-
-				geom.applyMatrix4( m );
-
-			}
-
-			geom.computeVertexNormals();
-
-			material.uniforms.objectColors.value = createColorsArray( e.data.objectColors );
-			material.uniforms.surfaceColors.value = createColorsArray( e.data.surfaceColors );
+			material.objectColors = e.data.objectColors;
+			material.surfaceColors = e.data.surfaceColors;
 
 			context.lods = e.data.lods;
 			context.objectColors = e.data.objectColors;
@@ -212,25 +61,23 @@ export class CityJSONWorkerParser {
 
 			if ( e.data.geometryData.geometryType == TRIANGLES ) {
 
-				const mesh = new Mesh( geom, material );
+				const mesh = new CityObjectsMesh( vertices, geometryData, m, material );
 				scene.add( mesh );
 
 			}
 
 			if ( e.data.geometryData.geometryType == LINES ) {
 
-				const lineGeom = createLineSegmentsGeometry( geom );
-
-				const line = new LineSegments2( lineGeom, new LineMaterial( {
+				const material = new LineMaterial( {
 
 					color: 0xffffff,
 					linewidth: 0.001,
 					vertexColors: false,
 					dashed: false
 
-				} ) );
-				line.material.worldUnits = false;
-				scene.add( line );
+				} );
+				const lines = new CityObjectsLines( vertices, geometryData, m, material );
+				scene.add( lines );
 
 			}
 

@@ -222,11 +222,11 @@ function init() {
 
 					modelgroup.traverse( c => {
 
-						if ( c.material ) {
+						if ( c.material && c.material.isCityObjectsMaterial ) {
 
-							c.material.uniforms.showSemantics.value = params.showSemantics;
-							c.material.uniforms.showLod.value = params.showOnlyLod;
-							c.material.uniforms.highlightColor.value.setHex( params.highlightColor.replace( '#', '0x' ) );
+							c.material.showSemantics = params.showSemantics;
+							c.material.showLod = params.showOnlyLod;
+							c.material.highlightColor = params.highlightColor;
 
 							for ( const surface in params ) {
 
@@ -499,18 +499,10 @@ function onDblClick( e ) {
 	const results = raycaster.intersectObject( modelgroup, true );
 	if ( results.length ) {
 
-		const { face, object, faceIndex } = getActiveResult( results );
+		const result = getActiveResult( results );
+		const object = result.object;
 
-		let vertexIdx;
-		if ( face ) {
-
-			vertexIdx = face.a;
-
-		} else {
-
-			vertexIdx = faceIndex * 2;
-
-		}
+		const vertexIdx = object.getIntersectionVertex( result );
 
 		const objIds = object.geometry.getAttribute( 'objectid' );
 		const semIds = object.geometry.getAttribute( 'surfacetype' );
