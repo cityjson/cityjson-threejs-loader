@@ -35,9 +35,10 @@ export class CityJSONWorkerParser {
 
 	resetMaterial() {
 
-		this.material = new CityObjectsMaterial( ShaderLib.lambert );
-		this.material.objectColors = this.objectColors;
-		this.material.surfaceColors = this.surfaceColors;
+		this.material = new CityObjectsMaterial( ShaderLib.lambert, {
+			objectColors: this.objectColors,
+			surfaceColors: this.surfaceColors
+		} );
 
 	}
 
@@ -77,11 +78,11 @@ export class CityJSONWorkerParser {
 					color: 0xffffff,
 					linewidth: 0.001,
 					vertexColors: false,
-					dashed: false
+					dashed: false,
+					objectColors: context.objectColors,
+					surfaceColors: context.surfaceColors
 
 				} );
-				material.objectColors = context.objectColors;
-				material.surfaceColors = context.surfaceColors;
 				const lines = new CityObjectsLines( vertices, geometryData, m, material );
 				scene.add( lines );
 

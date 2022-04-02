@@ -383,7 +383,7 @@ export class CityObjectsLineMaterial extends ShaderMaterial {
 
 	get surfaceColors() {
 
-		this.surfaceColorsLookup;
+		return this.surfaceColorsLookup;
 
 	}
 
