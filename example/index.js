@@ -344,11 +344,7 @@ function onMouseMove( e ) {
 		// Snap to closest point
 		const position = object.geometry.getAttribute( 'position' );
 
-		if ( index ) {
-
-			closestPoint = position[ index ];
-
-		} else {
+		if ( face ) {
 
 			const m = object.matrixWorld;
 			const points = [
@@ -369,6 +365,10 @@ function onMouseMove( e ) {
 				}
 
 			}
+
+		} else {
+
+			closestPoint = position[ index ];
 
 		}
 

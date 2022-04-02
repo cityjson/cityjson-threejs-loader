@@ -3,7 +3,7 @@ import { Color, UniformsUtils } from "three";
 
 export class CityObjectsMaterial extends ShaderMaterial {
 
-	constructor( shader, objectColors, surfaceColors ) {
+	constructor( shader, parameters ) {
 
 		const newShader = { ...shader };
 		newShader.uniforms = {
@@ -83,8 +83,10 @@ export class CityObjectsMaterial extends ShaderMaterial {
 
 		super( newShader );
 
-		this.objectColors = objectColors;
-		this.surfaceColors = surfaceColors;
+		this.objectColors = {};
+		this.surfaceColors = {};
+
+		this.setValues( parameters );
 
 		this.isCityObjectsMaterial = true;
 

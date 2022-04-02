@@ -42,6 +42,11 @@
           "boundaries": [0, 1, 2],
           "type": "MultiPoint",
           "lod": 0
+        },
+        {
+          "boundaries": [ [ 0, 1, 2, 3 ] ],
+          "type": "MultiLineString",
+          "lod": 2
         }
       ], 
       "type": "GenericCityObject"

@@ -13,6 +13,7 @@ import { CityObjectsMaterial } from '../materials/CityObjectsMaterial.js';
 import { CityObjectsMesh } from '../objects/CityObjectsMesh.js';
 import { CityObjectsLines } from '../objects/CityObjectsLines.js';
 import { CityObjectsPoints } from '../objects/CityObjectsPoints.js';
+import { CityObjectsLineMaterial } from '../materials/CityObjectsLineMaterial.js';
 
 export class CityJSONWorkerParser {
 
@@ -34,7 +35,9 @@ export class CityJSONWorkerParser {
 
 	resetMaterial() {
 
-		this.material = new CityObjectsMaterial( ShaderLib.lambert, this.objectColors, this.surfaceColors );
+		this.material = new CityObjectsMaterial( ShaderLib.lambert );
+		this.material.objectColors = this.objectColors;
+		this.material.surfaceColors = this.surfaceColors;
 
 	}
 
@@ -69,7 +72,7 @@ export class CityJSONWorkerParser {
 
 			if ( e.data.geometryData.geometryType == LINES ) {
 
-				const material = new LineMaterial( {
+				const material = new CityObjectsLineMaterial( {
 
 					color: 0xffffff,
 					linewidth: 0.001,
