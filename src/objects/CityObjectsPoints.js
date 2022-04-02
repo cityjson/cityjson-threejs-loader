@@ -1,3 +1,4 @@
+import { PointsMaterial } from 'three';
 import { BufferAttribute,
 		 BufferGeometry,
 		 Int32BufferAttribute,
@@ -34,7 +35,9 @@ export class CityObjectsPoints extends Points {
 
 		geom.computeVertexNormals();
 
-		super( geom );
+		const material = new PointsMaterial( { size: 0.01 } );
+
+		super( geom, material );
 
 	}
 

@@ -490,7 +490,7 @@ function onDblClick( e ) {
 
 	modelgroup.traverse( c => {
 
-		if ( c.material && c.material.uniforms.highlightedObjId ) c.material.uniforms.highlightedObjId.value = - 1;
+		if ( c.material && c.material.isCityObjectsMaterial ) c.material.uniforms.highlightedObjId.value = - 1;
 
 	} );
 
@@ -560,7 +560,7 @@ function onDblClick( e ) {
 
 			infoContainer.innerHTML = str;
 
-			if ( object.material.uniforms.highlightedObjId ) {
+			if ( object.material.isCityObjectsMaterial ) {
 
 				object.material.uniforms.highlightedObjId.value = idx;
 				object.material.uniforms.highlightedGeomId.value = geomId;
@@ -584,13 +584,7 @@ function render() {
 
 	scene.traverse( c => {
 
-		if ( c.material ) {
-
-			if ( c.material instanceof MeshBasicMaterial || c.material instanceof LineMaterial ) {
-
-				return;
-
-			}
+		if ( c.material && c.material.isCityObjectsMaterial ) {
 
 			c.material.uniforms.showSemantics.value = params.showSemantics;
 			c.material.uniforms.showLod.value = params.showOnlyLod;

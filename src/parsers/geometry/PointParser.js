@@ -19,7 +19,7 @@ export class PointParser extends BaseParser {
 
 	handles( geometry ) {
 
-		return geometry.type == "MultiPoints";
+		return geometry.type == "MultiPoint";
 
 	}
 
@@ -27,7 +27,7 @@ export class PointParser extends BaseParser {
 
 		const semanticSurfaces = geometry.semantics ? geometry.semantics.surfaces : [];
 
-		if ( geometry.type == "MultiPoints" ) {
+		if ( geometry.type == "MultiPoint" ) {
 
 			const cityObj = this.json.CityObjects[ objectId ];
 

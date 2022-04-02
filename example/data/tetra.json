@@ -37,6 +37,11 @@
           ], 
           "type": "Solid", 
           "lod": 1
+        },
+        {
+          "boundaries": [0, 1, 2],
+          "type": "MultiPoint",
+          "lod": 0
         }
       ], 
       "type": "GenericCityObject"
