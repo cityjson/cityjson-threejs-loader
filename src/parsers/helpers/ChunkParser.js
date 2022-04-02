@@ -1,4 +1,5 @@
 import { LineParser } from '../geometry/LineParser.js';
+import { PointParser } from '../geometry/PointParser.js';
 import { TriangleParser } from '../geometry/TriangleParser.js';
 
 export class ChunkParser {
@@ -22,7 +23,8 @@ export class ChunkParser {
 
 		const geometryParsers = [
 			new TriangleParser( data, Object.keys( data.CityObjects ), this.objectColors ),
-			new LineParser( data, Object.keys( data.CityObjects ), this.objectColors )
+			new LineParser( data, Object.keys( data.CityObjects ), this.objectColors ),
+			new PointParser( data, Object.keys( data.CityObjects ), this.objectColors )
 		];
 
 		for ( const objectId in data.CityObjects ) {

@@ -12,6 +12,7 @@ import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
 import { CityObjectsMaterial } from '../materials/CityObjectsMaterial.js';
 import { CityObjectsMesh } from '../objects/CityObjectsMesh.js';
 import { CityObjectsLines } from '../objects/CityObjectsLines.js';
+import { CityObjectsPoints } from '../objects/CityObjectsPoints.js';
 
 export class CityJSONWorkerParser {
 
@@ -83,7 +84,7 @@ export class CityJSONWorkerParser {
 
 			if ( e.data.geometryData.geometryType == POINTS ) {
 
-				const points = new Points( geom );
+				const points = new CityObjectsPoints( vertices, geometryData, m );
 				scene.add( points );
 
 			}
