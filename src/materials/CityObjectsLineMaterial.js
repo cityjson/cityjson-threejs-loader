@@ -35,7 +35,7 @@ export class CityObjectsLineMaterial extends ShaderMaterial {
 			attribute float lodid;
 			attribute int type;
 			attribute int surfacetype;
-			varying vec3 diffuse_;
+			
 			uniform vec3 objectColors[ 110 ];
 			uniform vec3 surfaceColors[ 110 ];
 			uniform vec3 highlightColor;
@@ -45,6 +45,8 @@ export class CityObjectsLineMaterial extends ShaderMaterial {
 			uniform bool showSemantics;
 			uniform bool selectSurface;
 			uniform float showLod;
+
+			varying vec3 diffuse_;
 		` +
 		newShader.vertexShader.replace(
 			/#include <fog_vertex>/,
@@ -68,7 +70,7 @@ export class CityObjectsLineMaterial extends ShaderMaterial {
 			}
 
 			if ( abs ( lodid - showLod ) > 0.5 && showLod >= 0.0 ) {
-				gl_Position = vec4(0.0, 0.0, 0.0, 1.0);
+				gl_Position = vec4(100.0, 100.0, 100.0, 1.0);
 			}
 			`
 		);

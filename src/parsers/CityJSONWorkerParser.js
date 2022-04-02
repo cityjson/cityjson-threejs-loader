@@ -80,6 +80,8 @@ export class CityJSONWorkerParser {
 					dashed: false
 
 				} );
+				material.objectColors = context.objectColors;
+				material.surfaceColors = context.surfaceColors;
 				const lines = new CityObjectsLines( vertices, geometryData, m, material );
 				scene.add( lines );
 
