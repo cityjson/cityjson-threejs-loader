@@ -87,6 +87,7 @@ function init() {
 
 	raycaster = new Raycaster();
 	raycaster.params.Line.threshold = params.linePickingThreshold;
+	raycaster.params.Points.threshold = params.linePickingThreshold;
 
 	renderer.domElement.addEventListener( 'dblclick', onDblClick, false );
 	renderer.domElement.ondragover = ev => ev.preventDefault();
@@ -490,7 +491,11 @@ function onDblClick( e ) {
 
 	modelgroup.traverse( c => {
 
-		if ( c.material && c.material.isCityObjectsMaterial ) c.material.uniforms.highlightedObjId.value = - 1;
+		if ( c.material && c.material.isCityObjectsMaterial ) {
+
+			c.material.highlightedObject = undefined;
+
+		}
 
 	} );
 
@@ -502,27 +507,17 @@ function onDblClick( e ) {
 		const result = getActiveResult( results );
 		const object = result.object;
 
-		const vertexIdx = object.getIntersectionVertex( result );
+		const intersectionInfo = object.resolveIntersectionInfo( result, citymodel );
 
-		const objIds = object.geometry.getAttribute( 'objectid' );
-		const semIds = object.geometry.getAttribute( 'surfacetype' );
+		if ( intersectionInfo ) {
 
-		if ( objIds ) {
-
-			const idx = objIds.getX( vertexIdx );
-			const objectId = Object.keys( citymodel.CityObjects )[ idx ];
-
-			const geomId = object.geometry.getAttribute( 'geometryid' ).getX( vertexIdx );
-			const boundId = object.geometry.getAttribute( 'boundaryid' ).getX( vertexIdx );
-			const lodId = object.geometry.getAttribute( 'lodid' ).getX( vertexIdx );
-
-			const data = Object.assign( {}, citymodel.CityObjects[ objectId ] );
+			const data = Object.assign( {}, citymodel.CityObjects[ intersectionInfo.objectId ] );
 			delete data.geometry;
 
-			const semId = semIds.getX( vertexIdx );
+			const semId = intersectionInfo.surfaceTypeIndex;
 
 			let str = `<b>${ data.type }${ semId >= 0 ? ' - ' + Object.keys( parser.surfaceColors )[ semId ] : '' }</b>`;
-			str += `<br/>Geometry: ${ geomId } / Surface: ${ boundId } / LoD: ${ parser.lods[ lodId ] }`;
+			str += `<br/>Geometry: ${ intersectionInfo.geometryIndex } / Surface: ${ intersectionInfo.boundaryIndex } / LoD: ${ parser.lods[ intersectionInfo.lodIndex ] }`;
 			if ( data.attributes ) {
 
 				Object.keys( data.attributes ).map( k => {
@@ -562,9 +557,7 @@ function onDblClick( e ) {
 
 			if ( object.material.isCityObjectsMaterial ) {
 
-				object.material.uniforms.highlightedObjId.value = idx;
-				object.material.uniforms.highlightedGeomId.value = geomId;
-				object.material.uniforms.highlightedBoundId.value = boundId;
+				object.material.highlightedObject = intersectionInfo;
 
 				object.material.selectSurface = e.ctrlKey;
 
@@ -588,7 +581,7 @@ function render() {
 
 			c.material.showSemantics = params.showSemantics;
 			c.material.showLod = params.showOnlyLod;
-			c.material.uniforms.highlightColor.value.setHex( params.highlightColor.replace( '#', '0x' ) );
+			c.material.highlightColor = params.highlightColor;
 
 		}
 

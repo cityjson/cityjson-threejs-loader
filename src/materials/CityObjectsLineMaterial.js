@@ -490,4 +490,34 @@ export class CityObjectsLineMaterial extends ShaderMaterial {
 
 	}
 
+	get highlightedObject() {
+
+		return {
+
+			objectIndex: this.uniforms.highlightedObjId.value,
+			geometryIndex: this.uniforms.highlightedGeomId.value,
+			boundaryIndex: this.uniforms.highlightedBoundId.value
+
+		};
+
+	}
+
+	set highlightedObject( objectInfo ) {
+
+		if ( objectInfo ) {
+
+			this.uniforms.highlightedObjId.value = objectInfo.objectIndex;
+			this.uniforms.highlightedGeomId.value = objectInfo.geometryIndex;
+			this.uniforms.highlightedBoundId.value = objectInfo.boundaryIndex;
+
+		} else {
+
+			this.uniforms.highlightedObjId.value = - 1;
+			this.uniforms.highlightedGeomId.value = - 1;
+			this.uniforms.highlightedBoundId.value = - 1;
+
+		}
+
+	}
+
 }
