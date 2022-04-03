@@ -559,7 +559,7 @@ function onDblClick( e ) {
 
 				object.material.highlightedObject = intersectionInfo;
 
-				object.material.selectSurface = e.ctrlKey;
+				object.material.selectSurface = e.shiftKey;
 
 			}
 
