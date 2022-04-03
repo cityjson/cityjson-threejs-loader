@@ -9,8 +9,6 @@ export class CityObjectsMaterial extends ShaderMaterial {
 		newShader.uniforms = {
 			objectColors: { value: [] },
 			surfaceColors: { value: [] },
-			showSemantics: { value: true },
-			selectSurface: { value: true },
 			showLod: { value: - 1 },
 			highlightedObjId: { value: - 1 },
 			highlightedGeomId: { value: - 1 },
@@ -24,22 +22,28 @@ export class CityObjectsMaterial extends ShaderMaterial {
 		newShader.lights = true;
 		newShader.vertexShader =
 		`
+			uniform vec3 objectColors[ 110 ];
+			uniform vec3 highlightColor;
+			uniform float highlightedObjId;
+			uniform float highlightedGeomId;
+			uniform float highlightedBoundId;
+			uniform float showLod;
+
+			#ifdef SHOW_SEMANTICS
+
+				uniform vec3 surfaceColors[ 110 ];
+
+			#endif
+
 			attribute float objectid;
 			attribute float geometryid;
 			attribute float boundaryid;
 			attribute float lodid;
 			attribute int type;
 			attribute int surfacetype;
+
 			varying vec3 diffuse_;
-			uniform vec3 objectColors[ 110 ];
-			uniform vec3 surfaceColors[ 110 ];
-			uniform vec3 highlightColor;
-			uniform float highlightedObjId;
-			uniform float highlightedGeomId;
-			uniform float highlightedBoundId;
-			uniform bool showSemantics;
-			uniform bool selectSurface;
-			uniform float showLod;
+			varying float discard_;
 		` +
 		newShader.vertexShader.replace(
 			/#include <uv_vertex>/,
@@ -47,37 +51,53 @@ export class CityObjectsMaterial extends ShaderMaterial {
 			#include <uv_vertex>
 			vec3 color_;
 			
-			if ( showSemantics ) {
-				color_ = surfacetype > -1 ? surfaceColors[surfacetype] : objectColors[type];
-			}
-			else {
-				color_ = objectColors[type];
-			}
+			#ifdef SHOW_SEMANTICS
 
-			if ( selectSurface ) {
+				color_ = surfacetype > -1 ? surfaceColors[surfacetype] : objectColors[type];
+			
+			#else
+
+				color_ = objectColors[type];
+			
+			#endif
+
+			#ifdef SELECT_SURFACE
+
 				diffuse_ = abs( objectid - highlightedObjId ) < 0.5 && abs( geometryid - highlightedGeomId ) < 0.5 && abs( boundaryid - highlightedBoundId ) < 0.5 ? highlightColor : color_;
-			}
-			else {
+
+			#else
+
 				diffuse_ = abs( objectid - highlightedObjId ) < 0.5 ? highlightColor : color_;
-			}
+			
+			#endif
 			`
 		).replace(
 			/#include <fog_vertex>/,
 			`
 			#include <fog_vertex>
-			if ( abs ( lodid - showLod ) > 0.5 && showLod >= 0.0 ) {
-				gl_Position = vec4(0.0, 0.0, 0.0, 1.0);
+			
+			#ifdef SHOW_LOD
+
+			if ( abs ( lodid - showLod ) > 0.5 ) {
+				discard_ = 1.0;
 			}
+
+			#endif
 			`
 		);
 		newShader.fragmentShader =
 		`
 			varying vec3 diffuse_;
+			varying float discard_;
 		` +
 		newShader.fragmentShader.replace(
 			/vec4 diffuseColor = vec4\( diffuse, opacity \);/,
 			`
 			vec4 diffuseColor = vec4( diffuse_, opacity );
+
+			if ( discard_ > 0.0 ) {
+				discard;
+			}
 			`
 		);
 
@@ -85,6 +105,7 @@ export class CityObjectsMaterial extends ShaderMaterial {
 
 		this.objectColors = {};
 		this.surfaceColors = {};
+		this.showSemantics = true;
 
 		this.setValues( parameters );
 
@@ -143,21 +164,83 @@ export class CityObjectsMaterial extends ShaderMaterial {
 
 	}
 
+	get showSemantics() {
+
+		return Boolean( 'SHOW_SEMANTICS' in this.defines );
+
+	}
+
 	set showSemantics( value ) {
 
-		this.uniforms.showSemantics.value = value;
+		if ( Boolean( value ) !== Boolean( 'SHOW_SEMANTICS' in this.defines ) ) {
+
+			this.needsUpdate = true;
+
+		}
+
+		if ( value === true ) {
+
+			this.defines.SHOW_SEMANTICS = '';
+
+		} else {
+
+			delete this.defines.SHOW_SEMANTICS;
+
+		}
+
+	}
+
+	get selectSurface() {
+
+		return Boolean( 'SELECT_SURFACE' in this.defines );
 
 	}
 
 	set selectSurface( value ) {
 
-		this.uniforms.selectSurface.value = value;
+		if ( Boolean( value ) !== Boolean( 'SELECT_SURFACE' in this.defines ) ) {
+
+			this.needsUpdate = true;
+
+		}
+
+		if ( value === true ) {
+
+			this.defines.SELECT_SURFACE = '';
+
+		} else {
+
+			delete this.defines.SELECT_SURFACE;
+
+		}
 
 	}
 
-	set showLod( lod ) {
+	get showLod() {
 
-		this.uniforms.showLod.value = lod;
+		return this.uniforms.showLod.value;
+
+	}
+
+	set showLod( value ) {
+
+		if ( Boolean( value > - 1 ) !== Boolean( 'SHOW_LOD' in this.defines ) ) {
+
+			this.needsUpdate = true;
+
+		}
+
+		if ( value > - 1 ) {
+
+			this.defines.SHOW_LOD = '';
+
+		} else {
+
+			delete this.defines.SHOW_LOD;
+
+		}
+
+		this.uniforms.showLod.value = value;
 
 	}
 

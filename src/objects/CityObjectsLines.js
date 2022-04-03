@@ -1,7 +1,22 @@
+import { InstancedBufferAttribute } from 'three';
 import { BufferAttribute,
 	Int32BufferAttribute } from 'three';
 import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2';
 import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry';
+
+function removeDuplicates( array ) {
+
+	let newArray = [ array.length / 2 ];
+
+	for ( let i = 0; i < array.length; i += 2 ) {
+
+		newArray[ i / 2 ] = array[ i ];
+
+	}
+
+	return newArray;
+
+}
 
 export class CityObjectsLines extends LineSegments2 {
 
@@ -11,18 +26,19 @@ export class CityObjectsLines extends LineSegments2 {
 
 		geom.setPositions( new Float32Array( vertices ) );
 
-		const idsArray = new Uint16Array( geometryData.objectIds );
-		geom.setAttribute( 'objectid', new BufferAttribute( idsArray, 1 ) );
-		const typeArray = new Uint8Array( geometryData.objectType );
-		geom.setAttribute( 'type', new Int32BufferAttribute( typeArray, 1 ) );
-		const surfaceTypeArray = new Int8Array( geometryData.semanticSurfaces );
-		geom.setAttribute( 'surfacetype', new Int32BufferAttribute( surfaceTypeArray, 1 ) );
-		const geomIdsArray = new Float32Array( geometryData.geometryIds );
-		geom.setAttribute( 'geometryid', new BufferAttribute( geomIdsArray, 1 ) );
-		const lodIdsArray = new Int8Array( geometryData.lodIds );
-		geom.setAttribute( 'lodid', new BufferAttribute( lodIdsArray, 1 ) );
-		const boundaryIdsArray = new Float32Array( geometryData.boundaryIds );
-		geom.setAttribute( 'boundaryid', new BufferAttribute( boundaryIdsArray, 1 ) );
+		const idsArray = new Float32Array( removeDuplicates( geometryData.objectIds ) );
+		geom.setAttribute( 'objectid', new InstancedBufferAttribute( idsArray, 1 ) );
+
+		const typeArray = new Int32Array( removeDuplicates( geometryData.objectType ) );
+		geom.setAttribute( 'type', new InstancedBufferAttribute( typeArray, 1 ) );
+		const surfaceTypeArray = new Int32Array( removeDuplicates( geometryData.semanticSurfaces ) );
+		geom.setAttribute( 'surfacetype', new InstancedBufferAttribute( surfaceTypeArray, 1 ) );
+		const geomIdsArray = new Float32Array( removeDuplicates( geometryData.geometryIds ) );
+		geom.setAttribute( 'geometryid', new InstancedBufferAttribute( geomIdsArray, 1 ) );
+		const lodIdsArray = new Uint8Array( removeDuplicates( geometryData.lodIds ) );
+		geom.setAttribute( 'lodid', new InstancedBufferAttribute( lodIdsArray, 1 ) );
+		const boundaryIdsArray = new Float32Array( removeDuplicates( geometryData.boundaryIds ) );
+		geom.setAttribute( 'boundaryid', new InstancedBufferAttribute( boundaryIdsArray, 1 ) );
 
 		// geom.attributes.position.needsUpdate = true;
 
@@ -38,7 +54,7 @@ export class CityObjectsLines extends LineSegments2 {
 
 	getIntersectionVertex( intersection ) {
 
-		return intersection.faceIndex * 2;
+		return intersection.faceIndex;
 
 	}
 

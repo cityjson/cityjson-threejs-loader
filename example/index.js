@@ -566,7 +566,7 @@ function onDblClick( e ) {
 				object.material.uniforms.highlightedGeomId.value = geomId;
 				object.material.uniforms.highlightedBoundId.value = boundId;
 
-				object.material.uniforms.selectSurface.value = e.ctrlKey;
+				object.material.selectSurface = e.ctrlKey;
 
 			}
 
@@ -586,8 +586,8 @@ function render() {
 
 		if ( c.material && c.material.isCityObjectsMaterial ) {
 
-			c.material.uniforms.showSemantics.value = params.showSemantics;
-			c.material.uniforms.showLod.value = params.showOnlyLod;
+			c.material.showSemantics = params.showSemantics;
+			c.material.showLod = params.showOnlyLod;
 			c.material.uniforms.highlightColor.value.setHex( params.highlightColor.replace( '#', '0x' ) );
 
 		}

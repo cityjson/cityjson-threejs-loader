@@ -14,8 +14,6 @@ export class CityObjectsLineMaterial extends ShaderMaterial {
 		newShader.uniforms = {
 			objectColors: { value: [] },
 			surfaceColors: { value: [] },
-			showSemantics: { value: true },
-			selectSurface: { value: true },
 			showLod: { value: - 1 },
 			highlightedObjId: { value: - 1 },
 			highlightedGeomId: { value: - 1 },
@@ -29,24 +27,28 @@ export class CityObjectsLineMaterial extends ShaderMaterial {
 		newShader.lights = false;
 		newShader.vertexShader =
 		`
-			attribute float objectid;
-			attribute float geometryid;
-			attribute float boundaryid;
-			attribute float lodid;
-			attribute int type;
-			attribute int surfacetype;
-			
-			uniform vec3 objectColors[ 110 ];
-			uniform vec3 surfaceColors[ 110 ];
-			uniform vec3 highlightColor;
-			uniform float highlightedObjId;
-			uniform float highlightedGeomId;
-			uniform float highlightedBoundId;
-			uniform bool showSemantics;
-			uniform bool selectSurface;
-			uniform float showLod;
+		uniform vec3 objectColors[ 110 ];
+		uniform vec3 highlightColor;
+		uniform float highlightedObjId;
+		uniform float highlightedGeomId;
+		uniform float highlightedBoundId;
+		uniform float showLod;
 
-			varying vec3 diffuse_;
+		#ifdef SHOW_SEMANTICS
+
+			uniform vec3 surfaceColors[ 110 ];
+
+		#endif
+
+		attribute float objectid;
+		attribute float geometryid;
+		attribute float boundaryid;
+		attribute float lodid;
+		attribute int type;
+		attribute int surfacetype;
+
+		varying vec3 diffuse_;
+		varying float discard_;
 		` +
 		newShader.vertexShader.replace(
 			/#include <fog_vertex>/,
@@ -55,33 +57,48 @@ export class CityObjectsLineMaterial extends ShaderMaterial {
 
 			vec3 color_;
 			
-			if ( showSemantics ) {
+			#ifdef SHOW_SEMANTICS
+
 				color_ = surfacetype > -1 ? surfaceColors[surfacetype] : objectColors[type];
-			}
-			else {
+			
+			#else
+
 				color_ = objectColors[type];
-			}
+			
+			#endif
 
-			if ( selectSurface ) {
+			#ifdef SELECT_SURFACE
+
 				diffuse_ = abs( objectid - highlightedObjId ) < 0.5 && abs( geometryid - highlightedGeomId ) < 0.5 && abs( boundaryid - highlightedBoundId ) < 0.5 ? highlightColor : color_;
-			}
-			else {
+
+			#else
+
 				diffuse_ = abs( objectid - highlightedObjId ) < 0.5 ? highlightColor : color_;
+			
+			#endif
+
+			#ifdef SHOW_LOD
+
+			if ( abs ( lodid - showLod ) > 0.5 ) {
+				discard_ = 1.0;
 			}
 
-			if ( abs ( lodid - showLod ) > 0.5 && showLod >= 0.0 ) {
-				gl_Position = vec4(100.0, 100.0, 100.0, 1.0);
-			}
+			#endif
 			`
 		);
 		newShader.fragmentShader =
 		`
 			varying vec3 diffuse_;
+			varying float discard_;
 		` +
 		newShader.fragmentShader.replace(
 			/vec4 diffuseColor = vec4\( diffuse, alpha \);/,
 			`
 			vec4 diffuseColor = vec4( diffuse_, alpha );
+
+			if ( discard_ > 0.0 ) {
+				discard;
+			}
 			`
 		);
 
@@ -387,21 +404,83 @@ export class CityObjectsLineMaterial extends ShaderMaterial {
 
 	}
 
+	get showSemantics() {
+
+		return Boolean( 'SHOW_SEMANTICS' in this.defines );
+
+	}
+
 	set showSemantics( value ) {
 
-		this.uniforms.showSemantics.value = value;
+		if ( Boolean( value ) !== Boolean( 'SHOW_SEMANTICS' in this.defines ) ) {
+
+			this.needsUpdate = true;
+
+		}
+
+		if ( value === true ) {
+
+			this.defines.SHOW_SEMANTICS = '';
+
+		} else {
+
+			delete this.defines.SHOW_SEMANTICS;
+
+		}
+
+	}
+
+	get selectSurface() {
+
+		return Boolean( 'SELECT_SURFACE' in this.defines );
 
 	}
 
 	set selectSurface( value ) {
 
-		this.uniforms.selectSurface.value = value;
+		if ( Boolean( value ) !== Boolean( 'SELECT_SURFACE' in this.defines ) ) {
+
+			this.needsUpdate = true;
+
+		}
+
+		if ( value === true ) {
+
+			this.defines.SELECT_SURFACE = '';
+
+		} else {
+
+			delete this.defines.SELECT_SURFACE;
+
+		}
 
 	}
 
-	set showLod( lod ) {
+	get showLod() {
 
-		this.uniforms.showLod.value = lod;
+		return this.uniforms.showLod.value;
+
+	}
+
+	set showLod( value ) {
+
+		if ( Boolean( value > - 1 ) !== Boolean( 'SHOW_LOD' in this.defines ) ) {
+
+			this.needsUpdate = true;
+
+		}
+
+		if ( value > - 1 ) {
+
+			this.defines.SHOW_LOD = '';
+
+		} else {
+
+			delete this.defines.SHOW_LOD;
+
+		}
+
+		this.uniforms.showLod.value = value;
 
 	}
 
