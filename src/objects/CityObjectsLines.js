@@ -49,6 +49,7 @@ export class CityObjectsLines extends LineSegments2 {
 		super( geom, material );
 
 		this.isCityObject = true;
+		this.isCityObjectLine = true;
 
 	}
 

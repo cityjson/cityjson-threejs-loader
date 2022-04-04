@@ -14,6 +14,7 @@ import { CityObjectsMesh } from '../objects/CityObjectsMesh.js';
 import { CityObjectsLines } from '../objects/CityObjectsLines.js';
 import { CityObjectsPoints } from '../objects/CityObjectsPoints.js';
 import { CityObjectsLineMaterial } from '../materials/CityObjectsLineMaterial.js';
+import { CityObjectsPointsMaterial } from '../materials/CityObjectsPointsMaterial.js';
 
 export class CityJSONWorkerParser {
 
@@ -90,7 +91,8 @@ export class CityJSONWorkerParser {
 
 			if ( e.data.geometryData.geometryType == POINTS ) {
 
-				const points = new CityObjectsPoints( vertices, geometryData, m );
+				const material = new CityObjectsPointsMaterial();
+				const points = new CityObjectsPoints( vertices, geometryData, m, material );
 				scene.add( points );
 
 			}

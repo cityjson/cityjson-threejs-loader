@@ -37,6 +37,7 @@ export class CityObjectsMesh extends Mesh {
 		super( geom, material );
 
 		this.isCityObject = true;
+		this.isCityObjectMesh = true;
 
 	}
 

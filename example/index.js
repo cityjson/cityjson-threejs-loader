@@ -345,16 +345,16 @@ function onMouseMove( e ) {
 	const results = raycaster.intersectObject( modelgroup, true );
 	if ( results.length ) {
 
-		const { face, point, object, faceIndex } = results[ 0 ];
+		const { face, point, object, faceIndex, index } = results[ 0 ];
 
 		let closestPoint = null;
 
 		// Snap to closest point
 		const position = object.geometry.getAttribute( 'position' );
+		const m = object.matrixWorld;
 
-		if ( face ) {
+		if ( object.isCityObjectMesh ) {
 
-			const m = object.matrixWorld;
 			const points = [
 				new Vector3( position.getX( face.a ), position.getY( face.a ), position.getZ( face.a ) ).applyMatrix4( m ),
 				new Vector3( position.getX( face.b ), position.getY( face.b ), position.getZ( face.b ) ).applyMatrix4( m ),
@@ -374,10 +374,14 @@ function onMouseMove( e ) {
 
 			}
 
-		} else {
+		} else if ( object.isCityObjectLine ) {
 
 			const instanceStart = object.geometry.getAttribute( 'instanceStart' );
-			closestPoint = new Vector3( instanceStart.getX( faceIndex ), instanceStart.getY( faceIndex ), instanceStart.getZ( faceIndex ) );
+			closestPoint = new Vector3( instanceStart.getX( faceIndex ), instanceStart.getY( faceIndex ), instanceStart.getZ( faceIndex ) ).applyMatrix4( m );
+
+		} else {
+
+			closestPoint = new Vector3( position.getX( index ), position.getY( index ), position.getZ( index ) ).applyMatrix4( m );
 
 		}
 

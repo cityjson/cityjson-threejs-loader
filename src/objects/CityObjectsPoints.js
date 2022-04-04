@@ -6,7 +6,7 @@ import { BufferAttribute,
 
 export class CityObjectsPoints extends Points {
 
-	constructor( vertices, geometryData, matrix ) {
+	constructor( vertices, geometryData, matrix, material ) {
 
 		const geom = new BufferGeometry();
 
@@ -35,15 +35,39 @@ export class CityObjectsPoints extends Points {
 
 		geom.computeVertexNormals();
 
-		const material = new PointsMaterial( { size: 0.01 } );
-
 		super( geom, material );
+
+		this.isCityObject = true;
+		this.isCityObjectPoints = true;
 
 	}
 
 	getIntersectionVertex( intersection ) {
 
 		return intersection.index;
+
+	}
+
+	resolveIntersectionInfo( intersection, citymodel ) {
+
+		const intersectionInfo = {};
+
+		const vertexIdx = this.getIntersectionVertex( intersection );
+
+		const idx = this.geometry.getAttribute( 'objectid' ).getX( vertexIdx );
+
+		intersectionInfo.vertexIndex = vertexIdx;
+		intersectionInfo.objectIndex = idx;
+
+		intersectionInfo.objectId = Object.keys( citymodel.CityObjects )[ idx ];
+		intersectionInfo.geometryIndex = this.geometry.getAttribute( 'geometryid' ).getX( vertexIdx );
+		intersectionInfo.boundaryIndex = this.geometry.getAttribute( 'boundaryid' ).getX( vertexIdx );
+
+		intersectionInfo.objectTypeIndex = this.geometry.getAttribute( 'type' ).getX( vertexIdx );
+		intersectionInfo.surfaceTypeIndex = this.geometry.getAttribute( 'surfacetype' ).getX( vertexIdx );
+		intersectionInfo.lodIndex = this.geometry.getAttribute( 'lodid' ).getX( vertexIdx );
+
+		return intersectionInfo;
 
 	}
 
