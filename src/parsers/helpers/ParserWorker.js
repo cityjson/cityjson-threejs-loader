@@ -28,20 +28,26 @@ onmessage = function ( e ) {
 
 	}
 
-	parser.onchunkload = ( v, geometryData, lods, objectColors, surfaceColors, finished ) => {
+	parser.onchunkload = ( v, geometryData, lods, objectColors, surfaceColors ) => {
 
 		const vertexArray = new Float32Array( v );
 		const vertexBuffer = vertexArray.buffer;
 
 		const msg = {
+			type: "chunkLoaded",
 			v_buffer: vertexBuffer,
 			geometryData,
 			lods,
 			objectColors,
-			surfaceColors,
-			finished
+			surfaceColors
 		};
 		postMessage( msg, [ vertexBuffer ] );
+
+	};
+
+	parser.onComplete = () => {
+
+		this.postMessage( { type: "done" } );
 
 	};
 

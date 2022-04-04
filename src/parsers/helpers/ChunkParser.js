@@ -14,6 +14,7 @@ export class ChunkParser {
 		this.surfaceColors = {};
 
 		this.onchunkload = null;
+		this.onComplete = null;
 
 	}
 
@@ -51,7 +52,7 @@ export class ChunkParser {
 
 				for ( const geometryParser of geometryParsers ) {
 
-					this.returnObjects( geometryParser, data, false );
+					this.returnObjects( geometryParser, data );
 
 					geometryParser.clean();
 
@@ -67,7 +68,7 @@ export class ChunkParser {
 
 			// TODO: fix the "finished" flag here - probably better be a
 			// different callback
-			this.returnObjects( geometryParser, data, true );
+			this.returnObjects( geometryParser, data );
 
 			geometryParser.clean();
 
@@ -78,9 +79,15 @@ export class ChunkParser {
 		this.objectColors = geometryParsers[ 0 ].objectColors;
 		this.surfaceColors = geometryParsers[ 0 ].surfaceColors;
 
+		if ( this.onComplete ) {
+
+			this.onComplete();
+
+		}
+
 	}
 
-	returnObjects( parser, data, finished ) {
+	returnObjects( parser, data ) {
 
 		if ( parser.geomData.count() > 0 ) {
 
@@ -88,8 +95,7 @@ export class ChunkParser {
 							  parser.geomData.toObject(),
 							  parser.lods,
 							  parser.objectColors,
-							  parser.surfaceColors,
-							  finished );
+							  parser.surfaceColors );
 
 		}
 

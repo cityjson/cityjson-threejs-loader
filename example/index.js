@@ -186,112 +186,8 @@ function init() {
 
 	parser = new CityJSONWorkerParser();
 	parser.chunkSize = 2000;
-	parser.onChunkLoad = () => {
-
-		let objCount = 0;
-		let memCount = 0;
-		let vCount = 0;
-
-		modelgroup.traverse( c => {
-
-			if ( c.geometry ) {
-
-				objCount ++;
-				memCount += BufferGeometryUtils.estimateBytesUsed( c.geometry );
-				const attr = c.geometry.getAttribute( "type" );
-				vCount += attr.count;
-
-			}
-
-			statsContainer.innerHTML = `${ objCount } meshes (${ ( memCount / 1024 / 1024 ).toFixed( 2 ) } MB) - ${ vCount } vertices`;
-
-			if ( parser.loading ) {
-
-				statsContainer.innerHTML += " - Parsing...";
-
-			}
-
-		} );
-
-		for ( const surface in parser.surfaceColors ) {
-
-			const exists = Object.keys( params ).indexOf( surface ) > - 1;
-
-			params[ surface ] = '#' + parser.surfaceColors[ surface ].toString( 16 ).padStart( 6, '0' );
-
-			if ( ! exists ) {
-
-				semanticOptions.addColor( params, surface ).onChange( () => {
-
-					modelgroup.traverse( c => {
-
-						if ( c.material && c.material.isCityObjectsMaterial ) {
-
-							c.material.showSemantics = params.showSemantics;
-							c.material.showLod = params.showOnlyLod;
-							c.material.highlightColor = params.highlightColor;
-
-							for ( const surface in params ) {
-
-								const idx = Object.keys( parser.surfaceColors ).indexOf( surface );
-								if ( idx > - 1 ) {
-
-									const col = new Color();
-									col.setHex( params[ surface ].replace( '#', '0x' ) );
-									c.material.uniforms.surfaceColors.value[ idx ] = col;
-
-								}
-
-							}
-
-						}
-
-					} );
-
-				} );
-
-			}
-
-		}
-
-		for ( const objtype in parser.objectColors ) {
-
-			const exists = Object.keys( params ).indexOf( objtype ) > - 1;
-
-			params[ objtype ] = '#' + parser.objectColors[ objtype ].toString( 16 ).padStart( 6, '0' );
-
-			if ( ! exists ) {
-
-				objectOptions.addColor( params, objtype ).onChange( () => {
-
-					modelgroup.traverse( c => {
-
-						if ( c.material ) {
-
-							for ( const objtype in params ) {
-
-								const idx = Object.keys( parser.objectColors ).indexOf( objtype );
-								if ( idx > - 1 ) {
-
-									const col = new Color();
-									col.setHex( params[ objtype ].replace( '#', '0x' ) );
-									c.material.uniforms.objectColors.value[ idx ] = col;
-
-								}
-
-							}
-
-						}
-
-					} );
-
-				} );
-
-			}
-
-		}
-
-	};
+	parser.onChunkLoad = chunkUpdate;
+	parser.onComplete = chunkUpdate;
 
 	loader = new CityJSONLoader( parser );
 
@@ -323,6 +219,113 @@ function init() {
 			modelgroup.add( loader.scene );
 
 		} );
+
+}
+
+function chunkUpdate() {
+
+	let objCount = 0;
+	let memCount = 0;
+	let vCount = 0;
+
+	modelgroup.traverse( c => {
+
+		if ( c.geometry ) {
+
+			objCount ++;
+			memCount += BufferGeometryUtils.estimateBytesUsed( c.geometry );
+			const attr = c.geometry.getAttribute( "type" );
+			vCount += attr.count;
+
+		}
+
+		statsContainer.innerHTML = `${ objCount } meshes (${ ( memCount / 1024 / 1024 ).toFixed( 2 ) } MB) - ${ vCount } vertices`;
+
+		if ( parser.loading ) {
+
+			statsContainer.innerHTML += " - Parsing...";
+
+		}
+
+	} );
+
+	for ( const surface in parser.surfaceColors ) {
+
+		const exists = Object.keys( params ).indexOf( surface ) > - 1;
+
+		params[ surface ] = '#' + parser.surfaceColors[ surface ].toString( 16 ).padStart( 6, '0' );
+
+		if ( ! exists ) {
+
+			semanticOptions.addColor( params, surface ).onChange( () => {
+
+				modelgroup.traverse( c => {
+
+					if ( c.material && c.material.isCityObjectsMaterial ) {
+
+						c.material.showSemantics = params.showSemantics;
+						c.material.showLod = params.showOnlyLod;
+						c.material.highlightColor = params.highlightColor;
+
+						for ( const surface in params ) {
+
+							const idx = Object.keys( parser.surfaceColors ).indexOf( surface );
+							if ( idx > - 1 ) {
+
+								const col = new Color();
+								col.setHex( params[ surface ].replace( '#', '0x' ) );
+								c.material.uniforms.surfaceColors.value[ idx ] = col;
+
+							}
+
+						}
+
+					}
+
+				} );
+
+			} );
+
+		}
+
+	}
+
+	for ( const objtype in parser.objectColors ) {
+
+		const exists = Object.keys( params ).indexOf( objtype ) > - 1;
+
+		params[ objtype ] = '#' + parser.objectColors[ objtype ].toString( 16 ).padStart( 6, '0' );
+
+		if ( ! exists ) {
+
+			objectOptions.addColor( params, objtype ).onChange( () => {
+
+				modelgroup.traverse( c => {
+
+					if ( c.material ) {
+
+						for ( const objtype in params ) {
+
+							const idx = Object.keys( parser.objectColors ).indexOf( objtype );
+							if ( idx > - 1 ) {
+
+								const col = new Color();
+								col.setHex( params[ objtype ].replace( '#', '0x' ) );
+								c.material.uniforms.objectColors.value[ idx ] = col;
+
+							}
+
+						}
+
+					}
+
+				} );
+
+			} );
+
+		}
+
+	}
 
 }
 
