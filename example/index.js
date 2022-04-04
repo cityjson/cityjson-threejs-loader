@@ -5,6 +5,8 @@ import {
 import {
 	AmbientLight,
 	Box3,
+	BufferAttribute,
+	BufferGeometry,
 	Color,
 	DirectionalLight,
 	Group,
@@ -12,6 +14,8 @@ import {
 	Mesh,
 	MeshBasicMaterial,
 	PerspectiveCamera,
+	Points,
+	PointsMaterial,
 	Raycaster,
 	Scene,
 	SphereBufferGeometry,
@@ -95,8 +99,10 @@ function init() {
 	renderer.domElement.ondrop = onDrop;
 	renderer.domElement.addEventListener( 'mousemove', onMouseMove, false );
 
-	const mat = new MeshBasicMaterial( { color: 0xe91e64 } );
-	marker = new Mesh( new SphereBufferGeometry( 0.1 ), mat );
+	const mat = new PointsMaterial( { color: 0xe91e64, size: 10, sizeAttenuation: false } );
+	const pointGeom = new BufferGeometry();
+	pointGeom.setAttribute( "position", new BufferAttribute( new Float32Array( [ 0.0, 0.0, 0.0 ] ), 3 ) );
+	marker = new Points( pointGeom, mat );
 	scene.add( marker );
 	marker.visible = false;
 
@@ -344,7 +350,7 @@ function onMouseMove( e ) {
 	const results = raycaster.intersectObject( modelgroup, true );
 	if ( results.length ) {
 
-		const { face, point, object, index } = results[ 0 ];
+		const { face, point, object, faceIndex } = results[ 0 ];
 
 		let closestPoint = null;
 
@@ -375,7 +381,8 @@ function onMouseMove( e ) {
 
 		} else {
 
-			closestPoint = position[ index ];
+			const instanceStart = object.geometry.getAttribute( 'instanceStart' );
+			closestPoint = new Vector3( instanceStart.getX( faceIndex ), instanceStart.getY( faceIndex ), instanceStart.getZ( faceIndex ) );
 
 		}
 
