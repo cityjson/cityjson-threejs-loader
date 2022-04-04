@@ -613,6 +613,8 @@ function render() {
 
 function fitCameraToSelection( camera, controls, box, fitOffset = 1.2 ) {
 
+	// From https://discourse.threejs.org/t/camera-zoom-to-fit-object/936/24
+
 	// const box.makeEmpty();
 	// for ( const object of selection ) {
 
