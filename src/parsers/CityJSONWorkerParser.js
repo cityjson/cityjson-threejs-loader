@@ -1,14 +1,7 @@
-import {
-	BufferAttribute,
-	BufferGeometry,
-	Int32BufferAttribute,
-	Mesh,
-	Points,
-	ShaderLib } from 'three';
+import { ShaderLib } from 'three';
 import { defaultObjectColors, defaultSemanticsColors } from '../defaults/colors.js';
 import { POINTS, LINES, TRIANGLES } from './geometry/GeometryData';
 import 'three/examples/jsm/lines/LineMaterial';
-import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
 import { CityObjectsMaterial } from '../materials/CityObjectsMaterial.js';
 import { CityObjectsMesh } from '../objects/CityObjectsMesh.js';
 import { CityObjectsLines } from '../objects/CityObjectsLines.js';

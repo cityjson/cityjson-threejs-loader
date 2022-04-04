@@ -1,4 +1,3 @@
-import { PointsMaterial } from 'three';
 import { BufferAttribute,
 		 BufferGeometry,
 		 Int32BufferAttribute,
