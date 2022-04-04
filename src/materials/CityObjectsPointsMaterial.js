@@ -109,8 +109,6 @@ export class CityObjectsPointsMaterial extends ShaderMaterial {
 
 		this.isCityObjectsMaterial = true;
 
-		this.uniforms.size.value = 10.0;
-
 		this.setValues( parameters );
 
 	}
@@ -151,6 +149,18 @@ export class CityObjectsPointsMaterial extends ShaderMaterial {
 
 	}
 
+	get size() {
+
+		return this.uniforms.size.value;
+
+	}
+
+	set size( value ) {
+
+		this.uniforms.size.value = value;
+
+	}
+
 	set surfaceColors( colors ) {
 
 		this.surfaceColorsLookup = colors;
@@ -163,6 +173,32 @@ export class CityObjectsPointsMaterial extends ShaderMaterial {
 	get surfaceColors() {
 
 		return this.surfaceColorsLookup;
+
+	}
+
+	get sizeAttenuation() {
+
+		return Boolean( 'USE_SIZEATTENUATION' in this.defines );
+
+	}
+
+	set sizeAttenuation( value ) {
+
+		if ( Boolean( value ) !== Boolean( 'USE_SIZEATTENUATION' in this.defines ) ) {
+
+			this.needsUpdate = true;
+
+		}
+
+		if ( value === true ) {
+
+			this.defines.USE_SIZEATTENUATION = '';
+
+		} else {
+
+			delete this.defines.USE_SIZEATTENUATION;
+
+		}
 
 	}
 

@@ -91,7 +91,7 @@ export class CityJSONWorkerParser {
 
 			if ( e.data.geometryData.geometryType == POINTS ) {
 
-				const material = new CityObjectsPointsMaterial();
+				const material = new CityObjectsPointsMaterial( { size: 10 } );
 				const points = new CityObjectsPoints( vertices, geometryData, m, material );
 				scene.add( points );
 
