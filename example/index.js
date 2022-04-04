@@ -4,21 +4,17 @@ import {
 } from '../src/index';
 import {
 	AmbientLight,
-	Box3,
 	BufferAttribute,
 	BufferGeometry,
 	Color,
 	DirectionalLight,
 	Group,
 	Matrix4,
-	Mesh,
-	MeshBasicMaterial,
 	PerspectiveCamera,
 	Points,
 	PointsMaterial,
 	Raycaster,
 	Scene,
-	SphereBufferGeometry,
 	sRGBEncoding,
 	Vector2,
 	Vector3,
@@ -28,7 +24,6 @@ import { BufferGeometryUtils } from 'three/examples/jsm/utils/BufferGeometryUtil
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import * as dat from 'three/examples/jsm/libs/dat.gui.module.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
-import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
 
 let scene, renderer, camera, controls, stats, raycaster;
 let modelgroup;
