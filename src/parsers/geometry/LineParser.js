@@ -43,7 +43,7 @@ export class LineParser extends BaseParser {
 
 				if ( linestrings[ i ].length > 1 ) {
 
-					const semantics = geometry.semantics ? geometry.semantics.values[ i ] : [];
+					const semantics = geometry.semantics ? geometry.semantics.values : [];
 					const surfaceType = this.getSurfaceTypeIdx( i, semantics, semanticSurfaces );
 
 					const linestring = linestrings[ i ];
