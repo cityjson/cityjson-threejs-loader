@@ -1,3 +1,4 @@
+import { Vector3 } from 'three';
 import {
 	BufferAttribute,
 	BufferGeometry,
@@ -12,6 +13,7 @@ export class CityJSONLoader {
 		this.texturesPath = '';
 		this.scene = new Group();
 		this.matrix = null;
+		this.boundingBox = null;
 		this.parser = parser || new CityObjectParser();
 
 	}
@@ -67,18 +69,27 @@ export class CityJSONLoader {
 
 	}
 
-	computeMatrix( data ) {
+	/**
+	 * Computes a matrix that transforms the dataset close to the origin.
+	 *
+	 * @param {Object} data The CityJSON data
+	 */
+	computeMatrix( data, scale = false ) {
 
 		const normGeom = new BufferGeometry();
 
 		const vertices = new Float32Array( data.vertices.map( v => [ v[ 0 ], v[ 1 ], 0 ] ).flat() );
 		normGeom.setAttribute( 'position', new BufferAttribute( vertices, 3 ) );
 
-		normGeom.computeBoundingSphere();
-		const centre = normGeom.boundingSphere.center;
-		const radius = normGeom.boundingSphere.radius;
+		normGeom.computeBoundingBox();
+		this.boundingBox = normGeom.boundingBox;
+		const centre = new Vector3();
 
-		const s = radius === 0 ? 1 : 1.0 / radius;
+		normGeom.boundingBox.getCenter( centre );
+		// const radius = normGeom.boundingSphere.radius;
+
+		// const s = scale ? radius === 0 ? 1 : 1.0 / radius : 1;
+		const s = 1;
 
 		const matrix = new Matrix4();
 		matrix.set(

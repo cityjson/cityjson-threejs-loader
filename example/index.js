@@ -4,6 +4,7 @@ import {
 } from '../src/index';
 import {
 	AmbientLight,
+	Box3,
 	Color,
 	DirectionalLight,
 	Group,
@@ -95,7 +96,7 @@ function init() {
 	renderer.domElement.addEventListener( 'mousemove', onMouseMove, false );
 
 	const mat = new MeshBasicMaterial( { color: 0xe91e64 } );
-	marker = new Mesh( new SphereBufferGeometry( 0.001 ), mat );
+	marker = new Mesh( new SphereBufferGeometry( 0.1 ), mat );
 	scene.add( marker );
 	marker.visible = false;
 
@@ -311,6 +312,11 @@ function init() {
 
 			loader.load( data );
 
+			const bbox = loader.boundingBox.clone();
+			bbox.applyMatrix4( loader.matrix );
+
+			fitCameraToSelection( camera, controls, bbox );
+
 			statsContainer.innerHTML = "Parsing...";
 
 			modelgroup.add( loader.scene );
@@ -441,6 +447,11 @@ function onDrop( e ) {
 				parser.resetMaterial();
 
 				loader.load( cm );
+
+				const bbox = loader.boundingBox.clone();
+				bbox.applyMatrix4( loader.matrix );
+
+				fitCameraToSelection( camera, controls, bbox );
 
 				modelgroup.add( loader.scene );
 
@@ -590,5 +601,42 @@ function render() {
 	controls.update();
 	renderer.render( scene, camera );
 	stats.update();
+
+}
+
+function fitCameraToSelection( camera, controls, box, fitOffset = 1.2 ) {
+
+	// const box.makeEmpty();
+	// for ( const object of selection ) {
+
+	//   box.expandByObject( object );
+
+	// }
+	const size = new Vector3();
+	const center = new Vector3();
+
+	box.getSize( size );
+	box.getCenter( center );
+
+	const maxSize = Math.max( size.x, size.y, size.z );
+	const fitHeightDistance = maxSize / ( 2 * Math.atan( Math.PI * camera.fov / 360 ) );
+	const fitWidthDistance = fitHeightDistance / camera.aspect;
+	const distance = fitOffset * Math.max( fitHeightDistance, fitWidthDistance );
+
+	const direction = controls.target.clone()
+	  .sub( camera.position )
+	  .normalize()
+	  .multiplyScalar( distance );
+
+	controls.maxDistance = distance * 10;
+	controls.target.copy( center );
+
+	camera.near = distance / 100;
+	camera.far = distance * 100;
+	camera.updateProjectionMatrix();
+
+	camera.position.copy( controls.target ).sub( direction );
+
+	controls.update();
 
 }
