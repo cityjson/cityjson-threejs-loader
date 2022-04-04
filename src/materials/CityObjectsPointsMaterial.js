@@ -104,8 +104,8 @@ export class CityObjectsPointsMaterial extends ShaderMaterial {
 
 		super( newShader );
 
-		this.objectColors = this.createColorsArray( {} );
-		this.surfaceColors = this.createColorsArray( {} );
+		this.objectColors = {};
+		this.surfaceColors = {};
 
 		this.isCityObjectsMaterial = true;
 
