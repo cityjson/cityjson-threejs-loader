@@ -9,7 +9,7 @@ import { GeometryData } from "../parsers/geometry/GeometryData";
  * It also contains functions to retrieve info of the city model based on an
  * intersection.
  */
-export class CityObjectsMesh extends Mesh {
+export class CityObjectsInstancedMesh extends Mesh {
 
     /**
      * Creates a CityObjectMesh from `GeometryData`
