@@ -78,7 +78,7 @@ export class CityJSONLoader {
 
 		const normGeom = new BufferGeometry();
 
-		const vertices = new Float32Array( data.vertices.map( v => [ v[ 0 ], v[ 1 ], 0 ] ).flat() );
+		const vertices = new Float32Array( data.vertices.map( v => [ v[ 0 ], v[ 1 ], v[ 2 ] ] ).flat() );
 		normGeom.setAttribute( 'position', new BufferAttribute( vertices, 3 ) );
 
 		normGeom.computeBoundingBox();
@@ -86,6 +86,7 @@ export class CityJSONLoader {
 		const centre = new Vector3();
 
 		normGeom.boundingBox.getCenter( centre );
+		centre.setZ( 0 );
 		// const radius = normGeom.boundingSphere.radius;
 
 		// const s = scale ? radius === 0 ? 1 : 1.0 / radius : 1;
