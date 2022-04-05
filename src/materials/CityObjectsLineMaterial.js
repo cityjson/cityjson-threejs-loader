@@ -1,5 +1,5 @@
-import { Color,
-		 ShaderLib,
+import { ShaderLib,
+		 UniformsLib,
 		 UniformsUtils } from "three";
 import 'three/examples/jsm/lines/LineMaterial';
 import { CityObjectsBaseMaterial } from "./CityObjectsBaseMaterial";
@@ -12,13 +12,7 @@ export class CityObjectsLineMaterial extends CityObjectsBaseMaterial {
 
 		const newShader = { ...shader };
 		newShader.uniforms = {
-			objectColors: { value: [] },
-			surfaceColors: { value: [] },
-			showLod: { value: - 1 },
-			highlightedObjId: { value: - 1 },
-			highlightedGeomId: { value: - 1 },
-			highlightedBoundId: { value: - 1 },
-			highlightColor: { value: new Color( 0xFFC107 ).convertSRGBToLinear() },
+			...UniformsLib.cityobject,
 			...UniformsUtils.clone( shader.uniforms ),
 		};
 		newShader.extensions = {

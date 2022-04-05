@@ -1,4 +1,4 @@
-import { Color, UniformsUtils } from "three";
+import { UniformsLib, UniformsUtils } from "three";
 import { CityObjectsBaseMaterial } from "./CityObjectsBaseMaterial";
 
 export class CityObjectsMaterial extends CityObjectsBaseMaterial {
@@ -7,13 +7,7 @@ export class CityObjectsMaterial extends CityObjectsBaseMaterial {
 
 		const newShader = { ...shader };
 		newShader.uniforms = {
-			objectColors: { value: [] },
-			surfaceColors: { value: [] },
-			showLod: { value: - 1 },
-			highlightedObjId: { value: - 1 },
-			highlightedGeomId: { value: - 1 },
-			highlightedBoundId: { value: - 1 },
-			highlightColor: { value: new Color( 0xFFC107 ).convertSRGBToLinear() },
+			...UniformsLib.cityobject,
 			...UniformsUtils.clone( shader.uniforms ),
 		};
 		newShader.extensions = {

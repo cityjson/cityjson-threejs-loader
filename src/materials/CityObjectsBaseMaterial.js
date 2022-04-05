@@ -1,5 +1,16 @@
-import { ShaderMaterial } from "three";
-import { Color } from "three";
+import { Color, ShaderMaterial, UniformsLib } from "three";
+
+UniformsLib.cityobject = {
+
+	objectColors: { value: [] },
+	surfaceColors: { value: [] },
+	showLod: { value: - 1 },
+	highlightedObjId: { value: - 1 },
+	highlightedGeomId: { value: - 1 },
+	highlightedBoundId: { value: - 1 },
+	highlightColor: { value: new Color( 0xFFC107 ).convertSRGBToLinear() }
+
+};
 
 export class CityObjectsBaseMaterial extends ShaderMaterial {
 
