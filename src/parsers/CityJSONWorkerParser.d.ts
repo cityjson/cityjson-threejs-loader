@@ -35,6 +35,11 @@ export class CityJSONWorkerParser {
      * Callback for when a chunk is finished loading
      */
     onChunkLoad : () => void;
+
+    /**
+     * Callback for when the parsing of all chunks is finished
+     */
+    onComplete: () => void;
     
     /**
      * Parses a CityJSON file (`data`) and adds it to the `scene`.
