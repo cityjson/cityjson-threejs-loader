@@ -1,6 +1,5 @@
 import { Color,
 		 ShaderLib,
-		 ShaderMaterial,
 		 UniformsUtils } from "three";
 import 'three/examples/jsm/lines/LineMaterial';
 import { CityObjectsBaseMaterial } from "./CityObjectsBaseMaterial";
