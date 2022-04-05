@@ -148,9 +148,27 @@ export class CityObjectsBaseMaterial extends ShaderMaterial {
 
 	}
 
+	get highlightColor() {
+
+		return this.uniforms.highlightColor;
+
+	}
+
 	set highlightColor( color ) {
 
-		this.uniforms.highlightColor.value.setHex( color.replace( '#', '0x' ) );
+		if ( color instanceof String ) {
+
+			this.uniforms.highlightColor.value.setHex( color.replace( '#', '0x' ) );
+
+		} else if ( color instanceof Number ) {
+
+			this.uniforms.highlightColor.setHex( color );
+
+		} else if ( color instanceof Color ) {
+
+			this.uniforms.highlightColor = color;
+
+		}
 
 	}
 
@@ -174,9 +192,9 @@ export class CityObjectsBaseMaterial extends ShaderMaterial {
 
 		if ( objectInfo ) {
 
-			this.uniforms.highlightedObjId.value = objectInfo.objectIndex;
-			this.uniforms.highlightedGeomId.value = objectInfo.geometryIndex;
-			this.uniforms.highlightedBoundId.value = objectInfo.boundaryIndex;
+			this.uniforms.highlightedObjId.value = objectInfo.objectIndex === undefined ? - 1 : objectInfo.objectIndex;
+			this.uniforms.highlightedGeomId.value = objectInfo.geometryIndex === undefined ? - 1 : objectInfo.geometryIndex;
+			this.uniforms.highlightedBoundId.value = objectInfo.boundaryIndex === undefined ? - 1 : objectInfo.boundaryIndex;
 
 		} else {
 
