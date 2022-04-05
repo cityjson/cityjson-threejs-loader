@@ -109,6 +109,8 @@ export class CityObjectsMaterial extends ShaderMaterial {
 
 		this.setValues( parameters );
 
+		this.instancing = false;
+
 		this.isCityObjectsMaterial = true;
 
 	}

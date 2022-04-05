@@ -8,9 +8,19 @@ import { BaseParser } from './BaseParser.js';
 
 export class TriangleParser extends BaseParser {
 
-	constructor( json, objectIds, objectColors ) {
+	constructor( json, objectIds, objectColors, vertices ) {
 
 		super( json, objectIds, objectColors );
+
+		if ( vertices ) {
+
+			this.vertices = vertices;
+
+		} else {
+
+			this.vertices = this.json.vertices;
+
+		}
 
 		this.geomData = new GeometryData( TRIANGLES );
 
@@ -24,6 +34,14 @@ export class TriangleParser extends BaseParser {
 
 	parseGeometry( geometry, objectId, geomIdx ) {
 
+		const cityObj = this.json.CityObjects[ objectId ];
+
+		const idIdx = cityObj ? this.getObjectIdx( objectId ) : - 1;
+
+		const objType = cityObj ? this.getObjectTypeIdx( cityObj.type ) : - 1;
+
+		const lodIdx = this.getLodIndex( geometry.lod );
+
 		const geomType = geometry.type;
 
 		const semanticSurfaces = geometry.semantics ? geometry.semantics.surfaces : [];
@@ -36,7 +54,7 @@ export class TriangleParser extends BaseParser {
 
 				const semantics = geometry.semantics ? geometry.semantics.values[ i ] : [];
 
-				this.parseShell( shells[ i ], objectId, geomIdx, semantics, semanticSurfaces );
+				this.parseShell( shells[ i ], idIdx, objType, geomIdx, lodIdx, semantics, semanticSurfaces );
 
 			}
 
@@ -45,7 +63,7 @@ export class TriangleParser extends BaseParser {
 			const surfaces = geometry.boundaries;
 
 			const semantics = geometry.semantics ? geometry.semantics.values : [];
-			this.parseShell( surfaces, objectId, geomIdx, semantics, semanticSurfaces );
+			this.parseShell( surfaces, idIdx, objType, geomIdx, lodIdx, semantics, semanticSurfaces );
 
 		} else if ( geomType == "MultiSolid" || geomType == "CompositeSolid" ) {
 
@@ -57,7 +75,7 @@ export class TriangleParser extends BaseParser {
 
 					const semantics = geometry.semantics ? geometry.semantics.values[ i ][ j ] : [];
 
-					this.parseShell( solids[ i ][ j ], objectId, geomIdx, semantics, semanticSurfaces );
+					this.parseShell( solids[ i ][ j ], idIdx, objType, geomIdx, lodIdx, semantics, semanticSurfaces );
 
 				}
 
@@ -67,15 +85,7 @@ export class TriangleParser extends BaseParser {
 
 	}
 
-	parseShell( boundaries, objectId, geomIdx, semantics = [], surfaces = [] ) {
-
-		const cityObj = this.json.CityObjects[ objectId ];
-
-		const idIdx = this.getObjectIdx( objectId );
-
-		const objType = this.getObjectTypeIdx( cityObj.type );
-
-		const lodIdx = this.getLodIndex( cityObj.geometry[ geomIdx ].lod );
+	parseShell( boundaries, idIdx, objType, geomIdx, lodIdx, semantics = [], surfaces = [] ) {
 
 		// Contains the boundary but with the right verticeId
 		for ( let i = 0; i < boundaries.length; i ++ ) {
@@ -121,9 +131,9 @@ export class TriangleParser extends BaseParser {
 				for ( let k = 0; k < boundary.length; k ++ ) {
 
 					pList.push( {
-						x: this.json.vertices[ boundary[ k ] ][ 0 ],
-						y: this.json.vertices[ boundary[ k ] ][ 1 ],
-						z: this.json.vertices[ boundary[ k ] ][ 2 ]
+						x: this.vertices[ boundary[ k ] ][ 0 ],
+						y: this.vertices[ boundary[ k ] ][ 1 ],
+						z: this.vertices[ boundary[ k ] ][ 2 ]
 					} );
 
 				}
