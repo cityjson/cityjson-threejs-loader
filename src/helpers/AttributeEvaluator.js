@@ -89,7 +89,7 @@ export class AttributeEvaluator {
 
 			const colors = {};
 
-			for ( const value of [ ...uniqueValues ] ) {
+			for ( const value of [ ...uniqueValues ].sort() ) {
 
 				colors[ value ] = '';
 
