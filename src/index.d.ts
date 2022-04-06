@@ -11,6 +11,8 @@ import { CityObjectsMaterial } from './materials/CityObjectsMaterial';
 import { CityObjectsLineMaterial } from './materials/CityObjectsLineMaterial';
 import { CityObjectsPointsMaterial } from './materials/CityObjectsPointsMaterial';
 
+import { AttributeEvaluator } from './helpers/AttributeEvaluator';
+
 export {
     CityJSONLoader,
     CityJSONWorkerParser,
@@ -23,5 +25,7 @@ export {
 
     CityObjectsMaterial,
     CityObjectsLineMaterial,
-    CityObjectsPointsMaterial
+    CityObjectsPointsMaterial,
+
+    AttributeEvaluator
 };
