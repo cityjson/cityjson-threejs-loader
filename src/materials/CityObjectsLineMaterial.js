@@ -39,9 +39,13 @@ export class CityObjectsLineMaterial extends CityObjectsBaseMaterial {
 			`
 			vec4 diffuseColor = vec4( diffuse_, alpha );
 
-			if ( discard_ > 0.0 ) {
-				discard;
-			}
+			#ifdef SHOW_LOD
+
+				if ( discard_ > 0.0 ) {
+					discard;
+				}
+			
+			#endif
 			`
 		);
 
