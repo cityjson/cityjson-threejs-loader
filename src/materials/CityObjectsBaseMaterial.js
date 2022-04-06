@@ -16,25 +16,39 @@ ShaderChunk.cityobjectinclude_vertex = `
         uniform vec3 objectColors[ 110 ];
         uniform vec3 highlightColor;
         uniform float highlightedObjId;
-        uniform float highlightedGeomId;
-        uniform float highlightedBoundId;
-        uniform float showLod;
+        
+        attribute float objectid;
+        attribute int type;
+        
+        varying vec3 diffuse_;
 
         #ifdef SHOW_SEMANTICS
 
             uniform vec3 surfaceColors[ 110 ];
 
+            attribute int surfacetype;
+
         #endif
 
-        attribute float objectid;
-        attribute float geometryid;
-        attribute float boundaryid;
-        attribute float lodid;
-        attribute int type;
-        attribute int surfacetype;
+        #ifdef SELECT_SURFACE
 
-        varying vec3 diffuse_;
-        varying float discard_;
+            uniform float highlightedGeomId;
+            uniform float highlightedBoundId;
+
+            attribute float geometryid;
+            attribute float boundaryid;
+
+        #endif
+
+        #ifdef SHOW_LOD
+
+            uniform float showLod;
+
+            attribute float lodid;
+
+            varying float discard_;
+    
+        #endif
     `;
 
 ShaderChunk.cityobjectdiffuse_vertex = `
