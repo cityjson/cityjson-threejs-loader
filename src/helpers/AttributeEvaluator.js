@@ -58,7 +58,7 @@ export class AttributeEvaluator {
 
 			for ( const objId in this.citymodel.CityObjects ) {
 
-				allValues.push( this.getAttributeValue( objId, this.checkParents, this.checkChildren ) );
+				allValues.push( String( this.getAttributeValue( objId, this.checkParents, this.checkChildren ) ) );
 
 			}
 
@@ -82,11 +82,24 @@ export class AttributeEvaluator {
 
 			}
 
-			this.uniqueValues = [ ...uniqueValues ];
+			// This is a weird hack, but it's because sorting of keys is different
+			// than sorting the values in any logical way. So we create a fake
+			// object and just take its keys with the order that JS decides to
+			// sort them.
+
+			const colors = {};
+
+			for ( const value of [ ...uniqueValues ] ) {
+
+				colors[ value ] = '';
+
+			}
+
+			this.uniqueValues = Object.keys( colors );
 
 		}
 
-		return this.uniqueValues.sort();
+		return this.uniqueValues;
 
 	}
 
