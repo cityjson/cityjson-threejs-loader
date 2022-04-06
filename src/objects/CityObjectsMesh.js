@@ -41,12 +41,12 @@ export class CityObjectsMesh extends Mesh {
 
 	}
 
-	addAttributeByProperty( attributeEvaluator, updateColors = true ) {
+	addAttributeByProperty( attributeEvaluator ) {
 
 		const allValues = attributeEvaluator.getAllValues();
 		const uniqueValues = attributeEvaluator.getUniqueValues();
 
-		if ( uniqueValues.length < 20 ) {
+		if ( uniqueValues.length < 110 ) {
 
 			const objectLookup = [];
 			for ( const value of allValues ) {
@@ -71,12 +71,6 @@ export class CityObjectsMesh extends Mesh {
 			}
 
 			this.geometry.setAttribute( 'attributevalue', new Int32BufferAttribute( new Int32Array( finalArray ), 1 ) );
-
-			if ( updateColors && ( ! this.material.attributeColors || Object.keys( this.material.attributeColors ).length != uniqueValues.length ) ) {
-
-				this.material.attributeColors = attributeEvaluator.createColors();
-
-			}
 
 		}
 
