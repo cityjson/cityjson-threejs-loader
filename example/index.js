@@ -24,6 +24,8 @@ import { BufferGeometryUtils } from 'three/examples/jsm/utils/BufferGeometryUtil
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import * as dat from 'three/examples/jsm/libs/dat.gui.module.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
+import { CityObjectsMesh } from '../src/objects/CityObjectsMesh';
+import { AttributeEvaluator } from '../src/helpers/AttributeEvaluator';
 
 let scene, renderer, camera, controls, stats, raycaster;
 let modelgroup;
@@ -36,6 +38,7 @@ let colorOptions;
 let semanticOptions;
 let objectOptions;
 let marker;
+let conditionalOptions;
 
 let params = {
 
@@ -46,7 +49,11 @@ let params = {
 	'ambientIntensity': 0.7,
 	'directionalIntensity': 1,
 	'linePickingThreshold': 0.1,
-	'linewidth': 0.001
+	'linewidth': 0.001,
+	'conditional': {
+		'show': false,
+		'attribute': 'None'
+	}
 
 };
 
@@ -177,6 +184,9 @@ function init() {
 
 	} );
 
+	conditionalOptions = gui.addFolder( 'Conditional' );
+	conditionalOptions.add( params.conditional, "show" );
+	conditionalOptions.add( params.conditional, "attribute", [ "None" ] );
 
 	gui.open();
 
@@ -187,7 +197,7 @@ function init() {
 	parser = new CityJSONWorkerParser();
 	parser.chunkSize = 2000;
 	parser.onChunkLoad = chunkUpdate;
-	parser.onComplete = chunkUpdate;
+	parser.onComplete = onComplete;
 
 	loader = new CityJSONLoader( parser );
 
@@ -329,6 +339,123 @@ function chunkUpdate() {
 
 }
 
+function colorsFromString( colors ) {
+
+	const result = {};
+
+	for ( const color in colors ) {
+
+		result[ color ] = parseInt( colors[ color ].replace( '#', '' ), 16 );
+
+	}
+
+	return result;
+
+}
+
+function colorsToString( colors ) {
+
+	const result = {};
+
+	for ( const color in colors ) {
+
+		result[ color ] = '#' + colors[ color ].toString( 16 ).padStart( 6, '0' );
+
+	}
+
+	return result;
+
+}
+
+function onComplete() {
+
+	chunkUpdate();
+
+	const controllers = conditionalOptions.__controllers.map( i => i );
+
+	for ( const controller of controllers ) {
+
+		conditionalOptions.remove( controller );
+
+	}
+
+	const attributes = new Set( Object.keys( citymodel.CityObjects ).map( objId => {
+
+		const cityobject = citymodel.CityObjects[ objId ];
+
+		if ( cityobject.attributes ) {
+
+			return Object.keys( cityobject.attributes );
+
+		}
+
+		return [];
+
+	} ).flat() );
+
+	const atts = [ ...attributes ].filter( a => {
+
+		const evaluator = new AttributeEvaluator( citymodel, a, false );
+
+		return evaluator.getUniqueValues().length > 1 && evaluator.getUniqueValues().length < 20;
+
+	} );
+
+	conditionalOptions.add( params.conditional, "show" );
+	conditionalOptions.add( params.conditional, "attribute", [ ...atts ] ).onChange( attribute => {
+
+		const controllers = conditionalOptions.__controllers.map( i => i );
+
+		for ( const controller of controllers ) {
+
+			if ( controller.property != "show" && controller.property != "attribute" ) {
+
+				conditionalOptions.remove( controller );
+
+			}
+
+		}
+
+		const evaluator = new AttributeEvaluator( citymodel, attribute, false );
+		const colors = evaluator.createColors();
+
+		scene.traverse( c => {
+
+			if ( c instanceof CityObjectsMesh ) {
+
+				c.addAttributeByProperty( evaluator, false );
+				c.material.attributeColors = colors;
+
+			}
+
+		} );
+
+		params.conditional.colors = colorsToString( colors );
+
+		for ( const color in colors ) {
+
+			conditionalOptions.addColor( params.conditional.colors, color ).onChange( () => {
+
+				const newColors = colorsFromString( params.conditional.colors );
+
+				scene.traverse( c => {
+
+					if ( c instanceof CityObjectsMesh ) {
+
+						c.material.attributeColors = newColors;
+
+					}
+
+				} );
+
+			} );
+
+		}
+
+	} );
+
+}
+
 function onMouseMove( e ) {
 
 	if ( ! e.ctrlKey ) {
@@ -421,6 +548,8 @@ function onMouseMove( e ) {
 }
 
 function onDrop( e ) {
+
+	params.conditional.show = false;
 
 	e.preventDefault();
 
@@ -559,8 +688,6 @@ function onDblClick( e ) {
 
 					if ( parentObject.attributes ) {
 
-						console.log( parentObject.attributes );
-
 						Object.keys( parentObject.attributes ).map( k => {
 
 							str += `<br/>${ k }: ${ parentObject.attributes[ k ] }`;
@@ -602,6 +729,12 @@ function render() {
 			c.material.showSemantics = params.showSemantics;
 			c.material.showLod = params.showOnlyLod;
 			c.material.highlightColor = params.highlightColor;
+
+		}
+
+		if ( c instanceof CityObjectsMesh ) {
+
+			c.material.conditionalFormatting = params.conditional.show;
 
 		}
 

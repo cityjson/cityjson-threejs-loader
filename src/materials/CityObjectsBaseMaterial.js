@@ -4,6 +4,7 @@ UniformsLib.cityobject = {
 
 	objectColors: { value: [] },
 	surfaceColors: { value: [] },
+	attributeColors: { value: [] },
 	showLod: { value: - 1 },
 	highlightedObjId: { value: - 1 },
 	highlightedGeomId: { value: - 1 },
@@ -27,6 +28,14 @@ ShaderChunk.cityobjectinclude_vertex = `
             uniform vec3 surfaceColors[ 110 ];
 
             attribute int surfacetype;
+
+        #endif
+
+		#ifdef COLOR_ATTRIBUTE
+
+            uniform vec3 attributeColors[ 110 ];
+
+            attribute int attributevalue;
 
         #endif
 
@@ -62,6 +71,12 @@ ShaderChunk.cityobjectdiffuse_vertex = `
 
         #endif
 
+		#ifdef COLOR_ATTRIBUTE
+
+            diffuse_ = attributevalue > -1 ? attributeColors[attributevalue] : vec3( 0.0, 0.0, 0.0 );
+
+        #endif
+
         #ifdef SELECT_SURFACE
 
             diffuse_ = abs( objectid - highlightedObjId ) < 0.5 && abs( geometryid - highlightedGeomId ) < 0.5 && abs( boundaryid - highlightedBoundId ) < 0.5 ? highlightColor : diffuse_;
@@ -91,6 +106,7 @@ export class CityObjectsBaseMaterial extends ShaderMaterial {
 
 		this.objectColors = {};
 		this.surfaceColors = {};
+		this.attributeColors = {};
 		this.showSemantics = true;
 
 		this.instancing = false;
@@ -117,6 +133,46 @@ export class CityObjectsBaseMaterial extends ShaderMaterial {
 		}
 
 		return data;
+
+	}
+
+	set attributeColors( colors ) {
+
+		this.attributeColorsLookup = colors;
+
+		this.uniforms.attributeColors.value = this.createColorsArray( colors );
+
+	}
+
+	get attributeColors() {
+
+		return this.attributeColorsLookup;
+
+	}
+
+	get conditionalFormatting() {
+
+		return Boolean( 'COLOR_ATTRIBUTE' in this.defines );
+
+	}
+
+	set conditionalFormatting( value ) {
+
+		if ( Boolean( value ) !== Boolean( 'COLOR_ATTRIBUTE' in this.defines ) ) {
+
+			this.needsUpdate = true;
+
+		}
+
+		if ( value === true ) {
+
+			this.defines.COLOR_ATTRIBUTE = '';
+
+		} else {
+
+			delete this.defines.COLOR_ATTRIBUTE;
+
+		}
 
 	}
 

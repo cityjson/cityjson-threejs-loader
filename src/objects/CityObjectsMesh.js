@@ -41,6 +41,47 @@ export class CityObjectsMesh extends Mesh {
 
 	}
 
+	addAttributeByProperty( attributeEvaluator, updateColors = true ) {
+
+		const allValues = attributeEvaluator.getAllValues();
+		const uniqueValues = attributeEvaluator.getUniqueValues();
+
+		if ( uniqueValues.length < 20 ) {
+
+			const objectLookup = [];
+			for ( const value of allValues ) {
+
+				objectLookup.push( uniqueValues.indexOf( value ) );
+
+			}
+
+			const objectIds = this.geometry.attributes.objectid.array;
+
+			const finalArray = objectIds.map( i => {
+
+				return objectLookup[ i ];
+
+			} );
+
+			if ( finalArray.length !== objectIds.length ) {
+
+				console.warn( "Wrong size of attributes array." );
+				return;
+
+			}
+
+			this.geometry.setAttribute( 'attributevalue', new Int32BufferAttribute( new Int32Array( finalArray ), 1 ) );
+
+			if ( updateColors && ( ! this.material.attributeColors || Object.keys( this.material.attributeColors ).length != uniqueValues.length ) ) {
+
+				this.material.attributeColors = attributeEvaluator.createColors();
+
+			}
+
+		}
+
+	}
+
 	getIntersectionVertex( intersection ) {
 
 		return intersection.face.a;
