@@ -36,7 +36,7 @@ export class GeometryData {
      * 
      * @param vertexList The vertex list of coordinates to look up.
      */
-    getVertices( vertexList: Number[][] ) : Number[][];
+    getVertices( vertexList: Number[][] ) : Number[];
 
     /**
      * Returns the data in an object format (for serialization).

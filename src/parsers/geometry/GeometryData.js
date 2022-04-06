@@ -67,4 +67,53 @@ export class GeometryData {
 
 	}
 
+	setObjectId( objectId ) {
+
+		for ( let i = 0; i < this.objectIds.length; i ++ ) {
+
+			this.objectIds[ i ] = objectId;
+
+		}
+
+	}
+
+
+	setObjectType( objectType ) {
+
+		for ( let i = 0; i < this.objectTypes.length; i ++ ) {
+
+			this.objectTypes[ i ] = objectType;
+
+		}
+
+	}
+
+	setGeometryIdx( geometryIdx ) {
+
+		for ( let i = 0; i < this.geometryIds.length; i ++ ) {
+
+			this.geometryIds[ i ] = geometryIdx;
+
+		}
+
+	}
+
+	merge( otherGeomData ) {
+
+		if ( otherGeomData.geometryType != this.geometryType ) {
+
+			console.warn( "Merging different types of geometry data!" );
+
+		}
+
+		this.vertexIds.concat( this.otherGeomData.vertexId );
+		this.objectIds.concat( this.otherGeomData.objectId );
+		this.objectTypes.concat( this.otherGeomData.objectType );
+		this.semanticSurfaces.concat( this.otherGeomData.surfaceType );
+		this.geometryIds.concat( this.otherGeomData.geometryIdx );
+		this.boundaryIds.concat( this.otherGeomData.boundaryIdx );
+		this.lodIds.concat( this.otherGeomData.lodIdx );
+
+	}
+
 }

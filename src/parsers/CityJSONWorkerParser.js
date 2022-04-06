@@ -1,6 +1,6 @@
 import { Matrix4, ShaderLib } from 'three';
 import { defaultObjectColors, defaultSemanticsColors } from '../defaults/colors.js';
-import { POINTS, LINES, TRIANGLES } from './geometry/GeometryData';
+import { POINTS, LINES, TRIANGLES, GeometryData } from './geometry/GeometryData';
 import 'three/examples/jsm/lines/LineMaterial';
 import { CityObjectsMaterial } from '../materials/CityObjectsMaterial.js';
 import { CityObjectsMesh } from '../objects/CityObjectsMesh.js';
@@ -34,10 +34,40 @@ export class CityJSONWorkerParser {
 
 	resetMaterial() {
 
-		this.material = new CityObjectsMaterial( ShaderLib.lambert, {
+		this.meshMaterial = new CityObjectsMaterial( ShaderLib.lambert, {
 			objectColors: this.objectColors,
 			surfaceColors: this.surfaceColors
 		} );
+
+		this.lineMaterial = new CityObjectsLineMaterial( {
+
+			color: 0xffffff,
+			linewidth: 0.001,
+			vertexColors: false,
+			dashed: false,
+			objectColors: this.objectColors,
+			surfaceColors: this.surfaceColors
+
+		} );
+
+		this.pointsMaterial = new CityObjectsPointsMaterial( {
+			size: 10,
+			objectColors: this.objectColors,
+			surfaceColors: this.surfaceColors
+		} );
+
+	}
+
+	setMaterialsColors( objectColors, surfaceColors ) {
+
+		this.meshMaterial.objectColors = objectColors;
+		this.meshMaterial.surfaceColors = surfaceColors;
+
+		this.lineMaterial.objectColors = objectColors;
+		this.lineMaterial.surfaceColors = surfaceColors;
+
+		this.pointsMaterial.objectColors = objectColors;
+		this.pointsMaterial.surfaceColors = surfaceColors;
 
 	}
 
@@ -51,7 +81,6 @@ export class CityJSONWorkerParser {
 		const m = this.matrix;
 		const onChunkLoad = this.onChunkLoad;
 		const onComplete = this.onComplete;
-		const material = this.material;
 		const context = this;
 
 		worker.onmessage = function ( e ) {
@@ -61,8 +90,7 @@ export class CityJSONWorkerParser {
 				const vertices = e.data.v_buffer;
 				const geometryData = e.data.geometryData;
 
-				material.objectColors = e.data.objectColors;
-				material.surfaceColors = e.data.surfaceColors;
+				context.setMaterialsColors( e.data.objectColors, e.data.surfaceColors );
 
 				context.lods = e.data.lods;
 				context.objectColors = e.data.objectColors;
@@ -70,36 +98,22 @@ export class CityJSONWorkerParser {
 
 				if ( e.data.geometryData.geometryType == TRIANGLES ) {
 
-					const mesh = new CityObjectsMesh( vertices, geometryData, m, material );
+					const mesh = new CityObjectsMesh( vertices, geometryData, m, context.meshMaterial );
 					scene.add( mesh );
 
 				}
 
 				if ( e.data.geometryData.geometryType == LINES ) {
 
-					const material = new CityObjectsLineMaterial( {
-
-						color: 0xffffff,
-						linewidth: 0.001,
-						vertexColors: false,
-						dashed: false,
-						objectColors: context.objectColors,
-						surfaceColors: context.surfaceColors
-
-					} );
-					const lines = new CityObjectsLines( vertices, geometryData, m, material );
+					const lines = new CityObjectsLines( vertices, geometryData, m, context.lineMaterial );
 					scene.add( lines );
 
 				}
 
 				if ( e.data.geometryData.geometryType == POINTS ) {
 
-					const material = new CityObjectsPointsMaterial( {
-						size: 10,
-						objectColors: context.objectColors,
-						surfaceColors: context.surfaceColors
-					} );
-					const points = new CityObjectsPoints( vertices, geometryData, m, material );
+
+					const points = new CityObjectsPoints( vertices, geometryData, m, context.pointsMaterial );
 					scene.add( points );
 
 				}
@@ -205,13 +219,37 @@ export class CityJSONWorkerParser {
 
 				if ( templatesGeomData[ i ].geometryType == TRIANGLES ) {
 
-					const instancedMaterial = new CityObjectsMaterial( ShaderLib.lambert );
-					instancedMaterial.objectColors = this.objectColors;
-					instancedMaterial.surfaceColors = this.surfaceColors;
-
 					const mesh = new CityObjectsInstancedMesh( templatesGeomData[ i ].getVertices( vertices ), templatesGeomData[ i ], instances[ i ], m, material );
 					scene.add( mesh );
 
+
+				} else if ( templatesGeomData[ i ].geometryType == LINES ) {
+
+					for ( let j = 0; j < instances[ i ].matrices.length; j ++ ) {
+
+						templatesGeomData[ i ].setObjectId( instances[ i ].objectIds[ j ] );
+						templatesGeomData[ i ].setObjectType( instances[ i ].objectType[ j ] );
+						templatesGeomData[ i ].setGeometryIdx( instances[ i ].geometryIds[ j ] );
+
+						const line = new CityObjectsLines( templatesGeomData[ i ].getVertices( vertices ), templatesGeomData[ i ], m, this.lineMaterial );
+						line.applyMatrix4( instances[ i ].matrices[ j ] );
+						scene.add( line );
+
+					}
+
+				} else if ( templatesGeomData[ i ].geometryType == POINTS ) {
+
+					for ( let j = 0; j < instances[ i ].matrices.length; j ++ ) {
+
+						templatesGeomData[ i ].setObjectId( instances[ i ].objectIds[ j ] );
+						templatesGeomData[ i ].setObjectType( instances[ i ].objectType[ j ] );
+						templatesGeomData[ i ].setGeometryIdx( instances[ i ].geometryIds[ j ] );
+
+						const line = new CityObjectsPoints( templatesGeomData[ i ].getVertices( vertices ), templatesGeomData[ i ], m, this.pointsMaterial );
+						line.applyMatrix4( instances[ i ].matrices[ j ] );
+						scene.add( line );
+
+					}
 
 				}
 
