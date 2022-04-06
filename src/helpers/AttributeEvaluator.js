@@ -1,17 +1,20 @@
 export class AttributeEvaluator {
 
-	constructor( citymodel, attributeName, includeNulls = false ) {
+	constructor( citymodel, attributeName, includeNulls = false, checkParents = true, checkChildren = true ) {
 
 		this.citymodel = citymodel;
 		this.attributeName = attributeName;
+
 		this.includeNulls = includeNulls;
+		this.checkParents = checkParents;
+		this.checkChildren = checkChildren;
 
 		this.allValues = [];
 		this.uniqueValues = [];
 
 	}
 
-	getAttributeValue( objectId, checkParent = true ) {
+	getAttributeValue( objectId, checkParent = true, checkChildren = true ) {
 
 		const cityobject = this.citymodel.CityObjects[ objectId ];
 
@@ -25,7 +28,19 @@ export class AttributeEvaluator {
 
 			for ( const parentId of cityobject.parents ) {
 
-				return this.getAttributeValue( parentId, true );
+				return this.getAttributeValue( parentId, true, false );
+
+			}
+
+		}
+
+		if ( checkChildren && cityobject.children || cityobject.members ) {
+
+			const children = cityobject.children ? cityobject.children : cityobject.members;
+
+			for ( const childId of children ) {
+
+				return this.getAttributeValue( childId, false, true );
 
 			}
 
@@ -43,7 +58,7 @@ export class AttributeEvaluator {
 
 			for ( const objId in this.citymodel.CityObjects ) {
 
-				allValues.push( this.getAttributeValue( objId, true ) );
+				allValues.push( this.getAttributeValue( objId, this.checkParents, this.checkChildren ) );
 
 			}
 
@@ -71,7 +86,7 @@ export class AttributeEvaluator {
 
 		}
 
-		return this.uniqueValues;
+		return this.uniqueValues.sort();
 
 	}
 
