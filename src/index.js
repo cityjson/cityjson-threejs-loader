@@ -7,6 +7,10 @@ import { CityObjectsInstancedMesh } from './objects/CityObjectsInstancedMesh.js'
 import { CityObjectsLines } from './objects/CityObjectsLines.js';
 import { CityObjectsPoints } from './objects/CityObjectsPoints.js';
 
+import { CityObjectsMaterial } from './materials/CityObjectsMaterial.js';
+import { CityObjectsLineMaterial } from './materials/CityObjectsLineMaterial.js';
+import { CityObjectsPointsMaterial } from './materials/CityObjectsPointsMaterial.js';
+
 export {
 	CityJSONLoader,
 	CityJSONWorkerParser,
@@ -15,5 +19,9 @@ export {
 	CityObjectsInstancedMesh,
 	CityObjectsMesh,
 	CityObjectsLines,
-	CityObjectsPoints
+	CityObjectsPoints,
+
+	CityObjectsMaterial,
+	CityObjectsLineMaterial,
+	CityObjectsPointsMaterial
 };
