@@ -43,4 +43,25 @@ export class GeometryData {
      */
     toObject() : Object;
 
+    /**
+     * Sets all objectIds to a specific value.
+     * 
+     * @param objectId The objectId to set for all vertices
+     */
+    setObjectId( objectId : Number ) : void
+
+    /**
+     * Sets all objectTypes to a specific value.
+     * 
+     * @param objectType The objectType to set for all vertices
+     */
+     setObjectType( objectType : Number ) : void
+
+     /**
+     * Sets all geometry indexes to a specific value.
+     * 
+     * @param geometryIdx The geometryId to set for all vertices
+     */
+    setGeometryIdx( geometryIdx : Number ) : void
+
 }
