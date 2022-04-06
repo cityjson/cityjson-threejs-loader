@@ -22,7 +22,8 @@ export class CityObjectsMaterial extends CityObjectsBaseMaterial {
 			#include <fog_vertex>
 			`
 			+ ShaderChunk.cityobjectdiffuse_vertex
-			+ ShaderChunk.cityobjectshowlod_vertex );
+			+ ShaderChunk.cityobjectshowlod_vertex
+		);
 		newShader.fragmentShader =
 		`
 			varying vec3 diffuse_;

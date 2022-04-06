@@ -1,6 +1,6 @@
 import { Matrix4, ShaderLib } from 'three';
 import { defaultObjectColors, defaultSemanticsColors } from '../defaults/colors.js';
-import { POINTS, LINES, TRIANGLES, GeometryData } from './geometry/GeometryData';
+import { POINTS, LINES, TRIANGLES } from './geometry/GeometryData';
 import 'three/examples/jsm/lines/LineMaterial';
 import { CityObjectsMaterial } from '../materials/CityObjectsMaterial.js';
 import { CityObjectsMesh } from '../objects/CityObjectsMesh.js';
@@ -219,7 +219,7 @@ export class CityJSONWorkerParser {
 
 				if ( templatesGeomData[ i ].geometryType == TRIANGLES ) {
 
-					const mesh = new CityObjectsInstancedMesh( templatesGeomData[ i ].getVertices( vertices ), templatesGeomData[ i ], instances[ i ], m, material );
+					const mesh = new CityObjectsInstancedMesh( templatesGeomData[ i ].getVertices( vertices ), templatesGeomData[ i ], instances[ i ], m, this.meshMaterial );
 					scene.add( mesh );
 
 
