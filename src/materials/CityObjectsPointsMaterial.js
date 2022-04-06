@@ -1,4 +1,5 @@
-import { ShaderLib,
+import { ShaderChunk,
+		 ShaderLib,
 		 UniformsLib,
 		 UniformsUtils } from "three";
 import 'three/examples/jsm/lines/LineMaterial';
@@ -20,65 +21,14 @@ export class CityObjectsPointsMaterial extends CityObjectsBaseMaterial {
 		};
 		newShader.lights = false;
 		newShader.vertexShader =
-		`
-		uniform vec3 objectColors[ 110 ];
-		uniform vec3 highlightColor;
-		uniform float highlightedObjId;
-		uniform float highlightedGeomId;
-		uniform float highlightedBoundId;
-		uniform float showLod;
-
-		#ifdef SHOW_SEMANTICS
-
-			uniform vec3 surfaceColors[ 110 ];
-
-		#endif
-
-		attribute float objectid;
-		attribute float geometryid;
-		attribute float boundaryid;
-		attribute float lodid;
-		attribute int type;
-		attribute int surfacetype;
-
-		varying vec3 diffuse_;
-		varying float discard_;
-		` +
+		ShaderChunk.cityobjectinclude_vertex +
 		newShader.vertexShader.replace(
 			/#include <fog_vertex>/,
 			`
 			#include <fog_vertex>
-
-			vec3 color_;
-			
-			#ifdef SHOW_SEMANTICS
-
-				color_ = surfacetype > -1 ? surfaceColors[surfacetype] : objectColors[type];
-			
-			#else
-
-				color_ = objectColors[type];
-			
-			#endif
-
-			#ifdef SELECT_SURFACE
-
-				diffuse_ = abs( objectid - highlightedObjId ) < 0.5 && abs( geometryid - highlightedGeomId ) < 0.5 && abs( boundaryid - highlightedBoundId ) < 0.5 ? highlightColor : color_;
-
-			#else
-
-				diffuse_ = abs( objectid - highlightedObjId ) < 0.5 ? highlightColor : color_;
-			
-			#endif
-
-			#ifdef SHOW_LOD
-
-			if ( abs ( lodid - showLod ) > 0.5 ) {
-				discard_ = 1.0;
-			}
-
-			#endif
 			`
+			+ ShaderChunk.cityobjectdiffuse_vertex
+			+ ShaderChunk.cityobjectshowlod_vertex
 		);
 		newShader.fragmentShader =
 		`

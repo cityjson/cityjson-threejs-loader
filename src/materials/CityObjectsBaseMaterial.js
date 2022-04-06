@@ -1,4 +1,4 @@
-import { Color, ShaderMaterial, UniformsLib } from "three";
+import { Color, ShaderChunk, ShaderMaterial, UniformsLib } from "three";
 
 UniformsLib.cityobject = {
 
@@ -11,6 +11,63 @@ UniformsLib.cityobject = {
 	highlightColor: { value: new Color( 0xFFC107 ).convertSRGBToLinear() }
 
 };
+
+ShaderChunk.cityobjectinclude_vertex = `
+        uniform vec3 objectColors[ 110 ];
+        uniform vec3 highlightColor;
+        uniform float highlightedObjId;
+        uniform float highlightedGeomId;
+        uniform float highlightedBoundId;
+        uniform float showLod;
+
+        #ifdef SHOW_SEMANTICS
+
+            uniform vec3 surfaceColors[ 110 ];
+
+        #endif
+
+        attribute float objectid;
+        attribute float geometryid;
+        attribute float boundaryid;
+        attribute float lodid;
+        attribute int type;
+        attribute int surfacetype;
+
+        varying vec3 diffuse_;
+        varying float discard_;
+    `;
+
+ShaderChunk.cityobjectdiffuse_vertex = `
+        #ifdef SHOW_SEMANTICS
+
+            diffuse_ = surfacetype > -1 ? surfaceColors[surfacetype] : objectColors[type];
+
+        #else
+
+            diffuse_ = objectColors[type];
+
+        #endif
+
+        #ifdef SELECT_SURFACE
+
+            diffuse_ = abs( objectid - highlightedObjId ) < 0.5 && abs( geometryid - highlightedGeomId ) < 0.5 && abs( boundaryid - highlightedBoundId ) < 0.5 ? highlightColor : diffuse_;
+
+        #else
+
+            diffuse_ = abs( objectid - highlightedObjId ) < 0.5 ? highlightColor : diffuse_;
+
+        #endif
+    `;
+
+ShaderChunk.cityobjectshowlod_vertex = `
+        #ifdef SHOW_LOD
+
+            if ( abs ( lodid - showLod ) > 0.5 ) {
+                discard_ = 1.0;
+            }
+
+        #endif
+    `;
 
 export class CityObjectsBaseMaterial extends ShaderMaterial {
 
