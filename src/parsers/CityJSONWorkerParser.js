@@ -82,6 +82,7 @@ export class CityJSONWorkerParser {
 		const onChunkLoad = this.onChunkLoad;
 		const onComplete = this.onComplete;
 		const context = this;
+		const citymodel = data;
 
 		worker.onmessage = function ( e ) {
 
@@ -98,14 +99,14 @@ export class CityJSONWorkerParser {
 
 				if ( e.data.geometryData.geometryType == TRIANGLES ) {
 
-					const mesh = new CityObjectsMesh( vertices, geometryData, m, context.meshMaterial );
+					const mesh = new CityObjectsMesh( citymodel, vertices, geometryData, m, context.meshMaterial );
 					scene.add( mesh );
 
 				}
 
 				if ( e.data.geometryData.geometryType == LINES ) {
 
-					const lines = new CityObjectsLines( vertices, geometryData, m, context.lineMaterial );
+					const lines = new CityObjectsLines( citymodel, vertices, geometryData, m, context.lineMaterial );
 					scene.add( lines );
 
 				}
@@ -113,7 +114,7 @@ export class CityJSONWorkerParser {
 				if ( e.data.geometryData.geometryType == POINTS ) {
 
 
-					const points = new CityObjectsPoints( vertices, geometryData, m, context.pointsMaterial );
+					const points = new CityObjectsPoints( citymodel, vertices, geometryData, m, context.pointsMaterial );
 					scene.add( points );
 
 				}
@@ -219,7 +220,7 @@ export class CityJSONWorkerParser {
 
 				if ( templatesGeomData[ i ].geometryType == TRIANGLES ) {
 
-					const mesh = new CityObjectsInstancedMesh( templatesGeomData[ i ].getVertices( vertices ), templatesGeomData[ i ], instances[ i ], m, this.meshMaterial );
+					const mesh = new CityObjectsInstancedMesh( citymodel, templatesGeomData[ i ].getVertices( vertices ), templatesGeomData[ i ], instances[ i ], m, this.meshMaterial );
 					scene.add( mesh );
 
 

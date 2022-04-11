@@ -6,7 +6,7 @@ import { BufferAttribute,
 
 export class CityObjectsInstancedMesh extends InstancedMesh {
 
-	constructor( vertices, geometryData, instanceData, matrix, material ) {
+	constructor( citymodel, vertices, geometryData, instanceData, matrix, material ) {
 
 		const geom = new InstancedBufferGeometry();
 
@@ -43,6 +43,8 @@ export class CityObjectsInstancedMesh extends InstancedMesh {
 
 		}
 
+		this.citymodel = citymodel;
+
 		this.isCityObject = true;
 		this.isCityObjectMesh = true;
 
@@ -54,7 +56,7 @@ export class CityObjectsInstancedMesh extends InstancedMesh {
 
 	}
 
-	resolveIntersectionInfo( intersection, citymodel ) {
+	resolveIntersectionInfo( intersection ) {
 
 		const intersectionInfo = {};
 
@@ -65,7 +67,7 @@ export class CityObjectsInstancedMesh extends InstancedMesh {
 
 		intersectionInfo.vertexIndex = vertexIdx;
 		intersectionInfo.objectIndex = idx;
-		intersectionInfo.objectId = Object.keys( citymodel.CityObjects )[ idx ];
+		intersectionInfo.objectId = Object.keys( this.citymodel.CityObjects )[ idx ];
 		intersectionInfo.geometryIndex = this.geometry.getAttribute( 'geometryid' ).getX( instanceId );
 		intersectionInfo.boundaryIndex = this.geometry.getAttribute( 'boundaryid' ).getX( vertexIdx );
 

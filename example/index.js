@@ -656,11 +656,11 @@ function onDblClick( e ) {
 		const result = getActiveResult( results );
 		const object = result.object;
 
-		const intersectionInfo = object.resolveIntersectionInfo( result, citymodel );
+		const intersectionInfo = object.resolveIntersectionInfo( result );
 
 		if ( intersectionInfo ) {
 
-			const data = Object.assign( {}, citymodel.CityObjects[ intersectionInfo.objectId ] );
+			const data = Object.assign( {}, object.citymodel.CityObjects[ intersectionInfo.objectId ] );
 			delete data.geometry;
 
 			const semId = intersectionInfo.surfaceTypeIndex;
