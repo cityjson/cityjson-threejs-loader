@@ -322,7 +322,7 @@ export class CityObjectsBaseMaterial extends ShaderMaterial {
 
 		}
 
-		if ( value === "undefined" ) {
+		if ( value === "undefined" || value === undefined || value == null ) {
 
 			delete this.defines.MATERIAL_THEME;
 
