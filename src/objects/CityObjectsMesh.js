@@ -48,6 +48,14 @@ export class CityObjectsMesh extends Mesh {
 		this.isCityObject = true;
 		this.isCityObjectMesh = true;
 
+		this.supportsConditionalFormatting = true;
+
+	}
+
+	setArrayAsAttribute( array ) {
+
+		this.geometry.setAttribute( 'attributevalue', new Int32BufferAttribute( new Int32Array( array ), 1 ) );
+
 	}
 
 	addAttributeByProperty( attributeEvaluator ) {
@@ -79,7 +87,7 @@ export class CityObjectsMesh extends Mesh {
 
 			}
 
-			this.geometry.setAttribute( 'attributevalue', new Int32BufferAttribute( new Int32Array( finalArray ), 1 ) );
+			this.setArrayAsAttribute( finalArray );
 
 		}
 

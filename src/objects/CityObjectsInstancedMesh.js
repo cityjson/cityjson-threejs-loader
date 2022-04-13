@@ -48,6 +48,49 @@ export class CityObjectsInstancedMesh extends InstancedMesh {
 		this.isCityObject = true;
 		this.isCityObjectMesh = true;
 
+		this.supportsConditionalFormatting = true;
+
+	}
+
+	setArrayAsAttribute( array ) {
+
+		this.geometry.setAttribute( 'attributevalue', new InstancedBufferAttribute( new Int32Array( array ), 1 ) );
+
+	}
+
+	addAttributeByProperty( attributeEvaluator ) {
+
+		const allValues = attributeEvaluator.getAllValues();
+		const uniqueValues = attributeEvaluator.getUniqueValues();
+
+		if ( uniqueValues.length < 110 ) {
+
+			const objectLookup = [];
+			for ( const value of allValues ) {
+
+				objectLookup.push( uniqueValues.indexOf( value ) );
+
+			}
+
+			const objectIds = this.geometry.attributes.objectid.array;
+
+			const finalArray = objectIds.map( i => {
+
+				return objectLookup[ i ];
+
+			} );
+
+			if ( finalArray.length !== objectIds.length ) {
+
+				console.warn( "Wrong size of attributes array." );
+				return;
+
+			}
+
+			this.setArrayAsAttribute( finalArray );
+
+		}
+
 	}
 
 	getIntersectionVertex( intersection ) {

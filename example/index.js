@@ -25,7 +25,6 @@ import { BufferGeometryUtils } from 'three/examples/jsm/utils/BufferGeometryUtil
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import * as dat from 'three/examples/jsm/libs/dat.gui.module.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
-import { CityObjectsMesh } from '../src/objects/CityObjectsMesh';
 import { AttributeEvaluator } from '../src/helpers/AttributeEvaluator';
 
 let scene, renderer, camera, controls, stats, raycaster;
@@ -439,7 +438,7 @@ function onComplete() {
 
 		scene.traverse( c => {
 
-			if ( c instanceof CityObjectsMesh ) {
+			if ( c.supportsConditionalFormatting ) {
 
 				c.addAttributeByProperty( evaluator, false );
 				c.material.attributeColors = colors;
@@ -458,7 +457,7 @@ function onComplete() {
 
 				scene.traverse( c => {
 
-					if ( c instanceof CityObjectsMesh ) {
+					if ( c.supportsConditionalFormatting ) {
 
 						c.material.attributeColors = newColors;
 
@@ -803,7 +802,7 @@ function render() {
 
 		}
 
-		if ( c instanceof CityObjectsMesh ) {
+		if ( c.supportsConditionalFormatting ) {
 
 			c.material.conditionalFormatting = params.conditional.show;
 
