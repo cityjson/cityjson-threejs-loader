@@ -40,7 +40,7 @@ export class TriangleParser extends BaseParser {
 
 		const geometryType = geometry.type;
 
-		if ( geometryType == "MultiSurface" || geometryType == "CompositeSuface" ) {
+		if ( geometryType == "MultiSurface" || geometryType == "CompositeSurface" ) {
 
 			return geometry;
 
@@ -114,7 +114,12 @@ export class TriangleParser extends BaseParser {
 		// easily parsable.
 		const flatGeometry = this.flattenGeometry( geometry );
 
-		this.parseShell( flatGeometry, idIdx, objType, geomIdx, lodIdx );
+		if ( flatGeometry ) {
+
+			this.parseShell( flatGeometry, idIdx, objType, geomIdx, lodIdx );
+
+		}
+
 
 	}
 
@@ -123,6 +128,7 @@ export class TriangleParser extends BaseParser {
 		const boundaries = geometry.boundaries;
 		const semantics = geometry.semantics ? geometry.semantics.values : [];
 		const surfaces = geometry.semantics ? geometry.semantics.surfaces : [];
+		const material = geometry.material ? geometry.material : {};
 
 		// Contains the boundary but with the right verticeId
 		for ( let i = 0; i < boundaries.length; i ++ ) {
@@ -131,6 +137,7 @@ export class TriangleParser extends BaseParser {
 			let holes = [];
 
 			const surfaceType = this.getSurfaceTypeIdx( i, semantics, surfaces );
+			const materialValue = this.getSurfaceMaterials( i, material );
 
 			for ( let j = 0; j < boundaries[ i ].length; j ++ ) {
 
@@ -156,7 +163,8 @@ export class TriangleParser extends BaseParser {
 											 surfaceType,
 											 geomIdx,
 											 i,
-											 lodIdx );
+											 lodIdx,
+											 materialValue );
 
 				}
 
@@ -204,7 +212,8 @@ export class TriangleParser extends BaseParser {
 												 surfaceType,
 												 geomIdx,
 												 i,
-												 lodIdx );
+												 lodIdx,
+												 materialValue );
 
 					}
 

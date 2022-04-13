@@ -1,3 +1,4 @@
+import { Vector3 } from "three";
 import { Color, ShaderChunk, ShaderMaterial, UniformsLib } from "three";
 
 UniformsLib.cityobject = {
@@ -5,6 +6,7 @@ UniformsLib.cityobject = {
 	objectColors: { value: [] },
 	surfaceColors: { value: [] },
 	attributeColors: { value: [] },
+	cityMaterials: { value: [] },
 	showLod: { value: - 1 },
 	highlightedObjId: { value: - 1 },
 	highlightedGeomId: { value: - 1 },
@@ -58,6 +60,21 @@ ShaderChunk.cityobjectinclude_vertex = `
             varying float discard_;
     
         #endif
+
+		#ifdef MATERIAL_THEME
+
+			struct CityMaterial
+			{
+				vec3 diffuseColor;
+				vec3 emissiveColor;
+				vec3 specularColor;
+			};
+
+			uniform CityMaterial cityMaterials[ 110 ];
+
+			attribute int MATERIAL_THEME;
+
+		#endif
     `;
 
 ShaderChunk.cityobjectdiffuse_vertex = `
@@ -76,6 +93,16 @@ ShaderChunk.cityobjectdiffuse_vertex = `
             diffuse_ = attributevalue > -1 ? attributeColors[attributevalue] : vec3( 0.0, 0.0, 0.0 );
 
         #endif
+
+		#ifdef MATERIAL_THEME
+
+			if ( MATERIAL_THEME > - 1 ) {
+
+				diffuse_ = cityMaterials[ MATERIAL_THEME ].diffuseColor;
+
+			}
+
+		#endif
 
         #ifdef SELECT_SURFACE
 
@@ -107,6 +134,7 @@ export class CityObjectsBaseMaterial extends ShaderMaterial {
 		this.objectColors = {};
 		this.surfaceColors = {};
 		this.attributeColors = {};
+		this.materials = [];
 		this.showSemantics = true;
 
 		this.instancing = false;
@@ -283,6 +311,55 @@ export class CityObjectsBaseMaterial extends ShaderMaterial {
 		}
 
 		this.uniforms.showLod.value = value;
+
+	}
+
+	set materialTheme( value ) {
+
+		if ( value !== this.defines.MATERIAL_THEME ) {
+
+			this.needsUpdate = true;
+
+		}
+
+		if ( value === "undefined" ) {
+
+			delete this.defines.MATERIAL_THEME;
+
+		} else {
+
+			this.defines.MATERIAL_THEME = `mat${value}`;
+
+		}
+
+	}
+
+	set materials( materials ) {
+
+		const data = [];
+		for ( let i = 0; i < materials.length; i ++ ) {
+
+			const mat = Object.assign( {
+				diffuseColor: new Color( 0xffffff ).convertLinearToSRGB(),
+				emissiveColor: new Color( 0xffffff ).convertLinearToSRGB(),
+				specularColor: new Color( 0xffffff ).convertLinearToSRGB(),
+			}, materials[ i ] );
+
+			data.push( mat );
+
+		}
+
+		for ( let i = data.length; i < 110; i ++ ) {
+
+			data.push( {
+				diffuseColor: new Color( 0xffffff ).convertLinearToSRGB(),
+				emissiveColor: new Color( 0xffffff ).convertLinearToSRGB(),
+				specularColor: new Color( 0xffffff ).convertLinearToSRGB(),
+			} );
+
+		}
+
+		this.uniforms.cityMaterials.value = data;
 
 	}
 

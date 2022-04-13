@@ -8,6 +8,7 @@ import {
 	BufferGeometry,
 	Color,
 	DirectionalLight,
+	DoubleSide,
 	Group,
 	Matrix4,
 	PerspectiveCamera,
@@ -39,6 +40,7 @@ let semanticOptions;
 let objectOptions;
 let marker;
 let conditionalOptions;
+let appearanceOptions;
 
 let params = {
 
@@ -53,6 +55,10 @@ let params = {
 	'conditional': {
 		'show': false,
 		'attribute': 'None'
+	},
+	'material': {
+		'show': false,
+		'theme': 'None'
 	}
 
 };
@@ -187,6 +193,8 @@ function init() {
 	conditionalOptions = gui.addFolder( 'Conditional' );
 	conditionalOptions.add( params.conditional, "show" );
 	conditionalOptions.add( params.conditional, "attribute", [ "None" ] );
+
+	appearanceOptions = gui.addFolder( 'Appearance' );
 
 	gui.open();
 
@@ -371,6 +379,16 @@ function onComplete() {
 
 	chunkUpdate();
 
+	scene.traverse( c => {
+
+		if ( c.material ) {
+
+			c.material.side = DoubleSide;
+
+		}
+
+	} );
+
 	const controllers = conditionalOptions.__controllers.map( i => i );
 
 	for ( const controller of controllers ) {
@@ -451,6 +469,59 @@ function onComplete() {
 			} );
 
 		}
+
+	} );
+
+	const apControllers = appearanceOptions.__controllers.map( i => i );
+
+	for ( const controller of apControllers ) {
+
+		appearanceOptions.remove( controller );
+
+	}
+
+	const themes = Object.entries( citymodel.CityObjects ).map( cityobject => {
+
+		const [ , obj ] = cityobject;
+
+		if ( obj.geometry ) {
+
+			return obj.geometry.map( geom => {
+
+				if ( geom.material ) {
+
+					return Object.keys( geom.material );
+
+				} else {
+
+					return [];
+
+				}
+
+			} );
+
+		} else {
+
+			return [];
+
+		}
+
+
+	} ).flat( 2 );
+
+	const themeOptions = Object.assign( { "None": undefined }, themes.reduce( ( a, v ) => ( { ...a, [ v ]: v } ), {} ) );
+
+	appearanceOptions.add( params.material, 'theme', themeOptions ).onChange( value => {
+
+		scene.traverse( c => {
+
+			if ( c.material ) {
+
+				c.material.materialTheme = value;
+
+			}
+
+		} );
 
 	} );
 

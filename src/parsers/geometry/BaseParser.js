@@ -64,6 +64,32 @@ export class BaseParser {
 
 	}
 
+	getSurfaceMaterials( idx, material ) {
+
+		const pairs = Object.entries( material ).map( mat => {
+
+			const [ theme, obj ] = mat;
+
+			if ( obj.values ) {
+
+				return [ theme, obj.values[ idx ] ];
+
+			} else if ( obj.value !== undefined ) {
+
+				return [ theme, obj.value ];
+
+			} else {
+
+				return [ theme, - 1 ];
+
+			}
+
+		} );
+
+		return Object.fromEntries( pairs );
+
+	}
+
 	getLodIndex( lod ) {
 
 		if ( lod === undefined ) {

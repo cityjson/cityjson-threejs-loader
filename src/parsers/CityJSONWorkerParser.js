@@ -129,6 +129,12 @@ export class CityJSONWorkerParser {
 
 				context.loading = false;
 
+				if ( data.appearance && data.appearance.materials ) {
+
+					context.meshMaterial.materials = data.appearance.materials;
+
+				}
+
 				if ( onComplete ) {
 
 					onComplete();

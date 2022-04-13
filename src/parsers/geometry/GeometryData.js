@@ -16,10 +16,31 @@ export class GeometryData {
 		this.geometryIds = [];
 		this.boundaryIds = [];
 		this.lodIds = [];
+		this.materials = {};
 
 	}
 
-	addVertex( vertexId, objectId, objectType, surfaceType, geometryIdx, boundaryIdx, lodIdx ) {
+	appendMaterial( theme, v ) {
+
+		if ( ! ( theme in this.materials ) ) {
+
+			this.materials[ theme ] = [];
+
+		}
+
+		const themeArray = this.materials[ theme ];
+
+		for ( let i = themeArray.length; i < this.count() - 1; i ++ ) {
+
+			themeArray.push( - 1 );
+
+		}
+
+		this.materials[ theme ].push( v );
+
+	}
+
+	addVertex( vertexId, objectId, objectType, surfaceType, geometryIdx, boundaryIdx, lodIdx, material ) {
 
 		this.vertexIds.push( vertexId );
 		this.objectIds.push( objectId );
@@ -28,6 +49,36 @@ export class GeometryData {
 		this.geometryIds.push( geometryIdx );
 		this.boundaryIds.push( boundaryIdx );
 		this.lodIds.push( lodIdx );
+
+		if ( material ) {
+
+			const context = this;
+
+			Object.entries( material ).forEach( entry => {
+
+				const [ theme, value ] = entry;
+
+				context.appendMaterial( theme, value );
+
+			} );
+
+		}
+
+	}
+
+	completeMaterials() {
+
+		for ( const theme in this.materials ) {
+
+			const themeArray = this.materials[ theme ];
+
+			for ( let i = themeArray.length; i < this.count() - 1; i ++ ) {
+
+				themeArray.push( - 1 );
+
+			}
+
+		}
 
 	}
 
@@ -55,6 +106,8 @@ export class GeometryData {
 
 	toObject() {
 
+		this.completeMaterials();
+
 		return {
 			geometryType: this.geometryType,
 			objectIds: this.objectIds,
@@ -62,7 +115,8 @@ export class GeometryData {
 			semanticSurfaces: this.semanticSurfaces,
 			geometryIds: this.geometryIds,
 			boundaryIds: this.boundaryIds,
-			lodIds: this.lodIds
+			lodIds: this.lodIds,
+			materials: this.materials
 		};
 
 	}
