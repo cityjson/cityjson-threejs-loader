@@ -31,6 +31,16 @@ export class CityObjectsMesh extends Mesh {
 
 		}
 
+		for ( const texture in geometryData.textures ) {
+
+			const textureArray = new Int8Array( geometryData.textures[ texture ].index );
+			geom.setAttribute( `tex${texture}`, new Int32BufferAttribute( textureArray, 1 ) );
+
+			const textureUVs = new Float32Array( geometryData.textures[ texture ].uvs.flat( 1 ) );
+			geom.setAttribute( `tex${texture}uv`, new BufferAttribute( textureUVs, 2 ) );
+
+		}
+
 		geom.attributes.position.needsUpdate = true;
 
 		if ( matrix ) {

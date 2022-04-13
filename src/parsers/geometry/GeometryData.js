@@ -17,6 +17,7 @@ export class GeometryData {
 		this.boundaryIds = [];
 		this.lodIds = [];
 		this.materials = {};
+		this.textures = {};
 
 	}
 
@@ -40,7 +41,32 @@ export class GeometryData {
 
 	}
 
-	addVertex( vertexId, objectId, objectType, surfaceType, geometryIdx, boundaryIdx, lodIdx, material ) {
+	appendTexture( theme, values ) {
+
+		if ( ! ( theme in this.textures ) ) {
+
+			this.textures[ theme ] = {
+				index: [],
+				uvs: []
+			};
+
+		}
+
+		const themeObject = this.textures[ theme ];
+
+		for ( let i = themeObject.index.length; i < this.count() - 1; i ++ ) {
+
+			themeObject.index.push( - 1 );
+			themeObject.uvs.push( [ 0, 0 ] );
+
+		}
+
+		themeObject.index.push( values.index );
+		themeObject.uvs.push( values.uvs );
+
+	}
+
+	addVertex( vertexId, objectId, objectType, surfaceType, geometryIdx, boundaryIdx, lodIdx, material, texture ) {
 
 		this.vertexIds.push( vertexId );
 		this.objectIds.push( objectId );
@@ -64,6 +90,20 @@ export class GeometryData {
 
 		}
 
+		if ( texture ) {
+
+			const context = this;
+
+			Object.entries( texture ).forEach( entry => {
+
+				const [ theme, value ] = entry;
+
+				context.appendTexture( theme, value );
+
+			} );
+
+		}
+
 	}
 
 	completeMaterials() {
@@ -72,9 +112,26 @@ export class GeometryData {
 
 			const themeArray = this.materials[ theme ];
 
-			for ( let i = themeArray.length; i < this.count() - 1; i ++ ) {
+			for ( let i = themeArray.length; i < this.count(); i ++ ) {
 
 				themeArray.push( - 1 );
+
+			}
+
+		}
+
+	}
+
+	completeTextures() {
+
+		for ( const theme in this.textures ) {
+
+			const themeObject = this.textures[ theme ];
+
+			for ( let i = themeObject.index.length; i < this.count(); i ++ ) {
+
+				themeObject.index.push( - 1 );
+				themeObject.uvs.push( [ 0, 0 ] );
 
 			}
 
@@ -107,6 +164,7 @@ export class GeometryData {
 	toObject() {
 
 		this.completeMaterials();
+		this.completeTextures();
 
 		return {
 			geometryType: this.geometryType,
@@ -116,7 +174,8 @@ export class GeometryData {
 			geometryIds: this.geometryIds,
 			boundaryIds: this.boundaryIds,
 			lodIds: this.lodIds,
-			materials: this.materials
+			materials: this.materials,
+			textures: this.textures
 		};
 
 	}

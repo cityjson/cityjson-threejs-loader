@@ -64,7 +64,17 @@ export class TriangleParser extends BaseParser {
 
 				for ( const theme in geometry.material ) {
 
-					newGeometry.material[ theme ] = geometry.material[ theme ].flat( 1 );
+					newGeometry.material[ theme ].values = geometry.material[ theme ].values.flat( 1 );
+
+				}
+
+			}
+
+			if ( geometry.texture ) {
+
+				for ( const theme in geometry.texture ) {
+
+					newGeometry.texture[ theme ].values = geometry.texture[ theme ].values.flat( 1 );
 
 				}
 
@@ -90,7 +100,17 @@ export class TriangleParser extends BaseParser {
 
 				for ( const theme in geometry.material ) {
 
-					newGeometry.material[ theme ] = geometry.material[ theme ].flat( 2 );
+					newGeometry.material[ theme ].values = geometry.material[ theme ].values.flat( 2 );
+
+				}
+
+			}
+
+			if ( geometry.texture ) {
+
+				for ( const theme in geometry.texture ) {
+
+					newGeometry.texture[ theme ].values = geometry.texture[ theme ].values.flat( 2 );
 
 				}
 
@@ -129,6 +149,7 @@ export class TriangleParser extends BaseParser {
 		const semantics = geometry.semantics ? geometry.semantics.values : [];
 		const surfaces = geometry.semantics ? geometry.semantics.surfaces : [];
 		const material = geometry.material ? geometry.material : {};
+		const texture = geometry.texture ? geometry.texture : {};
 
 		// Contains the boundary but with the right verticeId
 		for ( let i = 0; i < boundaries.length; i ++ ) {
@@ -164,7 +185,8 @@ export class TriangleParser extends BaseParser {
 											 geomIdx,
 											 i,
 											 lodIdx,
-											 materialValue );
+											 materialValue,
+											 this.getTextureData( i, n, holes, texture ) );
 
 				}
 
@@ -213,7 +235,8 @@ export class TriangleParser extends BaseParser {
 												 geomIdx,
 												 i,
 												 lodIdx,
-												 materialValue );
+												 materialValue,
+												 this.getTextureData( i, tr[ k + n ], holes, texture ) );
 
 					}
 

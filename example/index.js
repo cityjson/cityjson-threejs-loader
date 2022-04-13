@@ -55,9 +55,9 @@ let params = {
 		'show': false,
 		'attribute': 'None'
 	},
-	'material': {
-		'show': false,
-		'theme': 'None'
+	'appearance': {
+		'materialTheme': 'None',
+		'textureTheme': 'None'
 	}
 
 };
@@ -384,6 +384,12 @@ function onComplete() {
 
 			c.material.side = DoubleSide;
 
+			if ( citymodel.appearance && citymodel.appearance.textures && c.material.isCityObjectsMaterial ) {
+
+				c.material.setTextures( citymodel.appearance.textures );
+
+			}
+
 		}
 
 	} );
@@ -510,13 +516,58 @@ function onComplete() {
 
 	const themeOptions = Object.assign( { "None": undefined }, themes.reduce( ( a, v ) => ( { ...a, [ v ]: v } ), {} ) );
 
-	appearanceOptions.add( params.material, 'theme', themeOptions ).onChange( value => {
+	appearanceOptions.add( params.appearance, 'materialTheme', themeOptions ).onChange( value => {
 
 		scene.traverse( c => {
 
 			if ( c.supportsMaterials ) {
 
 				c.material.materialTheme = value;
+
+			}
+
+		} );
+
+	} );
+
+	const texThemes = Object.entries( citymodel.CityObjects ).map( cityobject => {
+
+		const [ , obj ] = cityobject;
+
+		if ( obj.geometry ) {
+
+			return obj.geometry.map( geom => {
+
+				if ( geom.texture ) {
+
+					return Object.keys( geom.texture );
+
+				} else {
+
+					return [];
+
+				}
+
+			} );
+
+		} else {
+
+			return [];
+
+		}
+
+
+	} ).flat( 2 );
+
+	const texThemeOptions = Object.assign( { "None": undefined }, texThemes.reduce( ( a, v ) => ( { ...a, [ v ]: v } ), {} ) );
+
+	appearanceOptions.add( params.appearance, 'textureTheme', texThemeOptions ).onChange( value => {
+
+		scene.traverse( c => {
+
+			if ( c.supportsMaterials ) {
+
+				c.material.textureTheme = value;
 
 			}
 
@@ -548,6 +599,7 @@ function onMouseMove( e ) {
 		const { face, point, object, faceIndex, index } = results[ 0 ];
 
 		let closestPoint = null;
+		let data = {};
 
 		// Snap to closest point
 		const position = object.geometry.getAttribute( 'position' );
@@ -562,13 +614,39 @@ function onMouseMove( e ) {
 			];
 			let dist = point.distanceTo( points[ 0 ] );
 			closestPoint = points[ 0 ];
+			let closest_i = 0;
 			for ( let i = 0; i < 3; i ++ ) {
 
 				const newDist = point.distanceTo( points[ i ] );
 				if ( newDist < dist ) {
 
 					closestPoint = points[ i ];
+					closest_i = i;
 					dist = newDist;
+
+				}
+
+			}
+
+			if ( closestPoint ) {
+
+				for ( const attribute in object.geometry.attributes ) {
+
+					const attr = object.geometry.attributes[ attribute ];
+
+					if ( attr.itemSize == 1 ) {
+
+						data[ attribute ] = attr.getX( face.a + closest_i );
+
+					} else if ( attr.itemSize == 2 ) {
+
+						data[ attribute ] = [ attr.getX( face.a + closest_i ), attr.getY( face.a + closest_i ) ];
+
+					} else {
+
+						data[ attribute ] = [ attr.getX( face.a + closest_i ), attr.getY( face.a + closest_i ), attr.getZ( face.a + closest_i ) ];
+
+					}
 
 				}
 
@@ -609,7 +687,7 @@ function onMouseMove( e ) {
 
 		closestPoint.applyMatrix4( mm );
 
-		let str = `${ Math.round( closestPoint.x * 1000 ) / 1000 }, ${ Math.round( closestPoint.y * 1000 ) / 1000 }, ${ Math.round( closestPoint.z * 1000 ) / 1000 }`;
+		let str = `${ Math.round( closestPoint.x * 1000 ) / 1000 }, ${ Math.round( closestPoint.y * 1000 ) / 1000 }, ${ Math.round( closestPoint.z * 1000 ) / 1000 }\n<pre>` + JSON.stringify( data, null, 2 ) + "</pre>";
 
 		infoContainer.innerHTML = str;
 

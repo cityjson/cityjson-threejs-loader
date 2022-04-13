@@ -1,3 +1,5 @@
+import { TextureLoader } from "three";
+import { Texture } from "three";
 import { Vector3 } from "three";
 import { Color, ShaderChunk, ShaderMaterial, UniformsLib } from "three";
 
@@ -7,6 +9,7 @@ UniformsLib.cityobject = {
 	surfaceColors: { value: [] },
 	attributeColors: { value: [] },
 	cityMaterials: { value: [] },
+	cityTextures: { value: [] },
 	showLod: { value: - 1 },
 	highlightedObjId: { value: - 1 },
 	highlightedGeomId: { value: - 1 },
@@ -75,6 +78,16 @@ ShaderChunk.cityobjectinclude_vertex = `
 			attribute int MATERIAL_THEME;
 
 		#endif
+
+		#ifdef TEXTURE_THEME
+
+			attribute int TEXTURE_THEME;
+			attribute vec2 TEXTURE_THEME_UV;
+
+			flat out int vTexIndex;
+			varying vec2 vTexUV;
+
+		#endif
     `;
 
 ShaderChunk.cityobjectdiffuse_vertex = `
@@ -99,6 +112,19 @@ ShaderChunk.cityobjectdiffuse_vertex = `
 			if ( MATERIAL_THEME > - 1 ) {
 
 				diffuse_ = cityMaterials[ MATERIAL_THEME ].diffuseColor;
+
+			}
+
+		#endif
+
+		#ifdef TEXTURE_THEME
+
+			vTexIndex = TEXTURE_THEME;
+			vTexUV = TEXTURE_THEME_UV;
+
+			if ( vTexIndex > - 1 && vTexIndex < 32 ) {
+
+				diffuse_ = vec3( 1.0, 1.0, 1.0 );
 
 			}
 
@@ -334,6 +360,29 @@ export class CityObjectsBaseMaterial extends ShaderMaterial {
 
 	}
 
+	set textureTheme( value ) {
+
+		if ( value !== this.defines.TEXTURE_THEME ) {
+
+			this.needsUpdate = true;
+
+		}
+
+		if ( value === "undefined" || value === undefined || value == null ) {
+
+			delete this.defines.TEXTURE_THEME;
+			delete this.defines.TEXTURE_THEME_UV;
+
+		} else {
+
+			this.defines.TEXTURE_THEME = `tex${value}`;
+			this.defines.TEXTURE_THEME_UV = `tex${value}uv`;
+			this.defines.TEXTURE_NUM = 110;
+
+		}
+
+	}
+
 	set materials( materials ) {
 
 		const data = [];
@@ -416,6 +465,34 @@ export class CityObjectsBaseMaterial extends ShaderMaterial {
 			this.uniforms.highlightedObjId.value = - 1;
 			this.uniforms.highlightedGeomId.value = - 1;
 			this.uniforms.highlightedBoundId.value = - 1;
+
+		}
+
+	}
+
+	setCityTexture( i, url ) {
+
+		const context = this;
+
+		new TextureLoader().load( url, ( tex => {
+
+			context.uniforms.cityTextures.value[ i ] = tex;
+
+		} ) );
+
+	}
+
+	setTextures( textures ) {
+
+		this.uniforms.cityTextures.value = Array( 32 );
+
+		for ( const [ i, texture ] of textures.entries() ) {
+
+			if ( i < 32 ) {
+
+				this.setCityTexture( i, texture.image );
+
+			}
 
 		}
 
