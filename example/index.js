@@ -514,7 +514,7 @@ function onComplete() {
 
 		scene.traverse( c => {
 
-			if ( c.material ) {
+			if ( c.supportsMaterials ) {
 
 				c.material.materialTheme = value;
 

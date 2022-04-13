@@ -49,6 +49,7 @@ export class CityObjectsMesh extends Mesh {
 		this.isCityObjectMesh = true;
 
 		this.supportsConditionalFormatting = true;
+		this.supportsMaterials = true;
 
 	}
 

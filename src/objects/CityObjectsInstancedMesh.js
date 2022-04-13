@@ -25,6 +25,13 @@ export class CityObjectsInstancedMesh extends InstancedMesh {
 		const boundaryIdsArray = new Float32Array( geometryData.boundaryIds );
 		geom.setAttribute( 'boundaryid', new BufferAttribute( boundaryIdsArray, 1 ) );
 
+		for ( const material in geometryData.materials ) {
+
+			const materialArray = new Uint8Array( geometryData.materials[ material ] );
+			geom.setAttribute( `mat${material}`, new Int32BufferAttribute( materialArray, 1 ) );
+
+		}
+
 		geom.attributes.position.needsUpdate = true;
 
 		if ( matrix ) {
@@ -49,6 +56,7 @@ export class CityObjectsInstancedMesh extends InstancedMesh {
 		this.isCityObjectMesh = true;
 
 		this.supportsConditionalFormatting = true;
+		this.supportsMaterials = true;
 
 	}
 
