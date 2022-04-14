@@ -1,4 +1,4 @@
-import { TextureLoader } from "three";
+import { RepeatWrapping, TextureLoader } from "three";
 import { Texture } from "three";
 import { Vector3 } from "three";
 import { Color, ShaderChunk, ShaderMaterial, UniformsLib } from "three";
@@ -475,6 +475,9 @@ export class CityObjectsBaseMaterial extends ShaderMaterial {
 		const context = this;
 
 		new TextureLoader().load( url, ( tex => {
+
+			tex.wrapS = RepeatWrapping;
+			tex.wrapT = RepeatWrapping;
 
 			context.uniforms.cityTextures.value[ i ] = tex;
 
