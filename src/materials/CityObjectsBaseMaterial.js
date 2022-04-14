@@ -342,7 +342,9 @@ export class CityObjectsBaseMaterial extends ShaderMaterial {
 
 	set materialTheme( value ) {
 
-		if ( value !== this.defines.MATERIAL_THEME ) {
+		const themeName = value.replace( /[^a-z0-9]/gi, '' );
+
+		if ( themeName !== this.defines.MATERIAL_THEME ) {
 
 			this.needsUpdate = true;
 
@@ -354,7 +356,7 @@ export class CityObjectsBaseMaterial extends ShaderMaterial {
 
 		} else {
 
-			this.defines.MATERIAL_THEME = `mat${value}`;
+			this.defines.MATERIAL_THEME = `mat${themeName}`;
 
 		}
 
@@ -362,7 +364,9 @@ export class CityObjectsBaseMaterial extends ShaderMaterial {
 
 	set textureTheme( value ) {
 
-		if ( value !== this.defines.TEXTURE_THEME ) {
+		const themeName = value.replace( /[^a-z0-9]/gi, '' );
+
+		if ( themeName !== this.defines.TEXTURE_THEME ) {
 
 			this.needsUpdate = true;
 
@@ -375,8 +379,8 @@ export class CityObjectsBaseMaterial extends ShaderMaterial {
 
 		} else {
 
-			this.defines.TEXTURE_THEME = `tex${value}`;
-			this.defines.TEXTURE_THEME_UV = `tex${value}uv`;
+			this.defines.TEXTURE_THEME = `tex${themeName}`;
+			this.defines.TEXTURE_THEME_UV = `tex${themeName}uv`;
 			this.defines.TEXTURE_NUM = 110;
 
 		}

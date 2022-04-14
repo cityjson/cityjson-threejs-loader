@@ -26,18 +26,22 @@ export class CityObjectsMesh extends Mesh {
 
 		for ( const material in geometryData.materials ) {
 
+			const themeName = material.replace( /[^a-z0-9]/gi, '' );
+
 			const materialArray = new Uint8Array( geometryData.materials[ material ] );
-			geom.setAttribute( `mat${material}`, new Int32BufferAttribute( materialArray, 1 ) );
+			geom.setAttribute( `mat${themeName}`, new Int32BufferAttribute( materialArray, 1 ) );
 
 		}
 
 		for ( const texture in geometryData.textures ) {
 
-			const textureArray = new Int8Array( geometryData.textures[ texture ].index );
-			geom.setAttribute( `tex${texture}`, new Int32BufferAttribute( textureArray, 1 ) );
+			const themeName = texture.replace( /[^a-z0-9]/gi, '' );
+
+			const textureArray = new Int16Array( geometryData.textures[ texture ].index );
+			geom.setAttribute( `tex${themeName}`, new Int32BufferAttribute( textureArray, 1 ) );
 
 			const textureUVs = new Float32Array( geometryData.textures[ texture ].uvs.flat( 1 ) );
-			geom.setAttribute( `tex${texture}uv`, new BufferAttribute( textureUVs, 2 ) );
+			geom.setAttribute( `tex${themeName}uv`, new BufferAttribute( textureUVs, 2 ) );
 
 		}
 
