@@ -420,7 +420,7 @@ export class CityObjectsBaseMaterial extends ShaderMaterial {
 
 	set highlightColor( color ) {
 
-		if ( color instanceof String ) {
+		if ( typeof color === 'string' || color instanceof String ) {
 
 			this.uniforms.highlightColor.value.setHex( color.replace( '#', '0x' ) );
 
