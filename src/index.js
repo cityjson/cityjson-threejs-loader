@@ -12,6 +12,7 @@ import { CityObjectsLineMaterial } from './materials/CityObjectsLineMaterial.js'
 import { CityObjectsPointsMaterial } from './materials/CityObjectsPointsMaterial.js';
 
 import { AttributeEvaluator } from './helpers/AttributeEvaluator.js';
+import { TextureManager } from './helpers/TextureManager.js';
 
 export {
 	CityJSONLoader,
@@ -27,5 +28,6 @@ export {
 	CityObjectsLineMaterial,
 	CityObjectsPointsMaterial,
 
-	AttributeEvaluator
+	AttributeEvaluator,
+	TextureManager
 };
