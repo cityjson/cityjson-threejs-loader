@@ -20,10 +20,10 @@ export class TextureManager {
 		}
 
 		this.textures = [];
-
 		this.materials = [];
 
 		this.needsUpdate = false;
+		this.onChange = null;
 
 		this.loadFromUrl();
 
@@ -57,6 +57,16 @@ export class TextureManager {
 
 			}
 
+			for ( const mat of this.materials ) {
+
+				if ( mat !== baseMaterial ) {
+
+					mat.dispose();
+
+				}
+
+			}
+
 			this.materials = materials;
 
 			this.needsUpdate = false;
@@ -80,6 +90,11 @@ export class TextureManager {
 			context.textures[ i ] = tex;
 
 			this.needsUpdate = true;
+			if ( this.onChange ) {
+
+				this.onChange();
+
+			}
 
 		} ) );
 
@@ -121,7 +136,13 @@ export class TextureManager {
 						tex.needsUpdate = true;
 
 						context.textures[ i ] = tex;
+
 						this.needsUpdate = true;
+						if ( this.onChange ) {
+
+							this.onChange();
+
+						}
 
 					};
 

@@ -381,6 +381,17 @@ function onComplete() {
 	chunkUpdate();
 
 	textureManager = new TextureManager( citymodel );
+	textureManager.onChange = _ => scene.traverse( c => {
+
+		if ( c.supportsMaterials ) {
+
+			c.setTextureTheme( params.appearance.textureTheme, textureManager );
+
+			// c.material.textureTheme = value;
+
+		}
+
+	} );
 
 	const controllers = conditionalOptions.__controllers.map( i => i );
 
