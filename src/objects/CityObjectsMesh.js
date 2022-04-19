@@ -141,6 +141,13 @@ export class CityObjectsMesh extends Mesh {
 
 	setTextureTheme( theme ) {
 
+		if ( theme === "undefined" ) {
+
+			this.unsetTextures();
+			return;
+
+		}
+
 		const themeName = theme.replace( /[^a-z0-9]/gi, '' );
 
 		const attributeName = `tex${themeName}`;
@@ -189,9 +196,19 @@ export class CityObjectsMesh extends Mesh {
 
 			}
 
+			const i = indices.length - 1;
+
+			this.geometry.addGroup( indices[ i ], this.geometry.attributes.type.array.length - indices[ i ], values[ i ] > - 1 ? values[ i ] : materials.length - 1 );
+
 			this.material = materials;
 
 		}
+
+	}
+
+	unsetTextures() {
+
+		this.material = this.material[ this.material.length - 1 ];
 
 	}
 
