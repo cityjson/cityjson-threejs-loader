@@ -1,9 +1,7 @@
-import { ShaderLib } from 'three';
 import { BufferAttribute,
 		 BufferGeometry,
 		 Int32BufferAttribute,
 		 Mesh } from 'three';
-import { CityObjectsMaterial } from '../materials/CityObjectsMaterial';
 
 export class CityObjectsMesh extends Mesh {
 
