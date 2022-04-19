@@ -130,4 +130,29 @@ export class CityObjectsInstancedMesh extends InstancedMesh {
 
 	}
 
+	setTextureTheme( theme ) {
+
+		const attributeName = `tex${theme}`;
+
+		if ( attributeName in this.geometry.attributes ) {
+
+			const textureIds = this.geometry.attributes[ attributeName ].array;
+
+			const { indices } = textureIds.reduce( ( p, c, i ) => {
+
+				if ( p.last !== c ) {
+
+					p.indices.push( i );
+					p.last = c;
+
+		  }
+
+		  return p;
+
+			}, { last: - 1, indices: [] } );
+
+		}
+
+	}
+
 }

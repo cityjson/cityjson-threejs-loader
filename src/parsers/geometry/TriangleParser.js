@@ -56,8 +56,6 @@ export class TriangleParser extends BaseParser {
 
 				newGeometry.semantics.values = geometry.semantics.values.flat( 1 );
 
-				console.log( newGeometry.semantics );
-
 			}
 
 			if ( geometry.material ) {

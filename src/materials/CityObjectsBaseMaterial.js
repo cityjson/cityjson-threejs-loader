@@ -9,7 +9,7 @@ UniformsLib.cityobject = {
 	surfaceColors: { value: [] },
 	attributeColors: { value: [] },
 	cityMaterials: { value: [] },
-	cityTextures: { value: [] },
+	cityTexture: { type: 't' },
 	showLod: { value: - 1 },
 	highlightedObjId: { value: - 1 },
 	highlightedGeomId: { value: - 1 },
@@ -122,7 +122,7 @@ ShaderChunk.cityobjectdiffuse_vertex = `
 			vTexIndex = TEXTURE_THEME;
 			vTexUV = TEXTURE_THEME_UV;
 
-			if ( vTexIndex > - 1 && vTexIndex < 32 ) {
+			if ( vTexIndex > - 1 ) {
 
 				diffuse_ = vec3( 1.0, 1.0, 1.0 );
 
@@ -162,6 +162,8 @@ export class CityObjectsBaseMaterial extends ShaderMaterial {
 		this.attributeColors = {};
 		this.materials = [];
 		this.showSemantics = true;
+
+		this.textures = [];
 
 		this.instancing = false;
 
@@ -381,7 +383,6 @@ export class CityObjectsBaseMaterial extends ShaderMaterial {
 
 			this.defines.TEXTURE_THEME = `tex${themeName}`;
 			this.defines.TEXTURE_THEME_UV = `tex${themeName}uv`;
-			this.defines.TEXTURE_NUM = 110;
 
 		}
 
@@ -483,7 +484,7 @@ export class CityObjectsBaseMaterial extends ShaderMaterial {
 			tex.wrapS = RepeatWrapping;
 			tex.wrapT = RepeatWrapping;
 
-			context.uniforms.cityTextures.value[ i ] = tex;
+			context.textures[ i ] = tex;
 
 		} ) );
 
@@ -491,15 +492,11 @@ export class CityObjectsBaseMaterial extends ShaderMaterial {
 
 	setTextures( textures ) {
 
-		this.uniforms.cityTextures.value = Array( 32 );
+		this.textures = [];
 
 		for ( const [ i, texture ] of textures.entries() ) {
 
-			if ( i < 32 ) {
-
-				this.setCityTexture( i, texture.image );
-
-			}
+			this.setCityTexture( i, texture.image );
 
 		}
 

@@ -1,7 +1,10 @@
+import { MultiMaterial } from 'three';
+import { ShaderLib } from 'three';
 import { BufferAttribute,
 		 BufferGeometry,
 		 Int32BufferAttribute,
 		 Mesh } from 'three';
+import { CityObjectsMaterial } from '../materials/CityObjectsMaterial';
 
 export class CityObjectsMesh extends Mesh {
 
@@ -133,6 +136,62 @@ export class CityObjectsMesh extends Mesh {
 		intersectionInfo.lodIndex = this.geometry.getAttribute( 'lodid' ).getX( vertexIdx );
 
 		return intersectionInfo;
+
+	}
+
+	setTextureTheme( theme ) {
+
+		const themeName = theme.replace( /[^a-z0-9]/gi, '' );
+
+		const attributeName = `tex${themeName}`;
+
+		if ( attributeName in this.geometry.attributes ) {
+
+			const textureIds = this.geometry.attributes[ attributeName ].array;
+
+			// Create a lookup of textures
+			const { values, indices } = textureIds.reduce( ( p, c, i ) => {
+
+				if ( p.last !== c ) {
+
+					p.values.push( c );
+					p.indices.push( i );
+					p.last = c;
+
+		  		}
+
+		  		return p;
+
+			}, { last: - 1, values: [], indices: [] } );
+
+			const materials = [];
+
+			for ( let i = 0; i < this.material.textures.length; i ++ ) {
+
+				const mat = new CityObjectsMaterial( ShaderLib.lambert, {
+					objectColors: this.material.objectColors,
+					surfaceColors: this.material.surfaceColors
+				} );
+
+				mat.uniforms.cityTexture.value = this.material.textures[ i ];
+				mat.textureTheme = theme;
+
+				materials.push( mat );
+
+			}
+
+			materials.push( this.material );
+
+			// TODO: We need to add the last element here
+			for ( let i = 0; i < indices.length - 1; i ++ ) {
+
+				this.geometry.addGroup( indices[ i ], indices[ i + 1 ] - indices[ i ], values[ i ] > - 1 ? values[ i ] : materials.length - 1 );
+
+			}
+
+			this.material = materials;
+
+		}
 
 	}
 

@@ -567,7 +567,9 @@ function onComplete() {
 
 			if ( c.supportsMaterials ) {
 
-				c.material.textureTheme = value;
+				c.setTextureTheme( value );
+
+				// c.material.textureTheme = value;
 
 			}
 
