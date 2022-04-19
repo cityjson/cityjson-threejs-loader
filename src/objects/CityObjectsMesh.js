@@ -1,4 +1,3 @@
-import { MultiMaterial } from 'three';
 import { ShaderLib } from 'three';
 import { BufferAttribute,
 		 BufferGeometry,

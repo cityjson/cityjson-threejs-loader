@@ -1,6 +1,4 @@
 import { RepeatWrapping, TextureLoader } from "three";
-import { Texture } from "three";
-import { Vector3 } from "three";
 import { Color, ShaderChunk, ShaderMaterial, UniformsLib } from "three";
 
 UniformsLib.cityobject = {
