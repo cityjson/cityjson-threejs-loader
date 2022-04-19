@@ -138,7 +138,7 @@ export class CityObjectsMesh extends Mesh {
 
 	}
 
-	setTextureTheme( theme ) {
+	setTextureTheme( theme, textureManager ) {
 
 		if ( theme === "undefined" ) {
 
@@ -170,23 +170,13 @@ export class CityObjectsMesh extends Mesh {
 
 			}, { last: - 1, values: [], indices: [] } );
 
-			const materials = [];
+			const materials = textureManager.getMaterials( this.material );
 
-			for ( let i = 0; i < this.material.textures.length; i ++ ) {
+			for ( const mat of materials ) {
 
-				const mat = new CityObjectsMaterial( ShaderLib.lambert, {
-					objectColors: this.material.objectColors,
-					surfaceColors: this.material.surfaceColors
-				} );
-
-				mat.uniforms.cityTexture.value = this.material.textures[ i ];
 				mat.textureTheme = theme;
 
-				materials.push( mat );
-
 			}
-
-			materials.push( this.material );
 
 			// TODO: We need to add the last element here
 			for ( let i = 0; i < indices.length - 1; i ++ ) {
@@ -207,7 +197,13 @@ export class CityObjectsMesh extends Mesh {
 
 	unsetTextures() {
 
-		this.material = this.material[ this.material.length - 1 ];
+		if ( Array.isArray( this.material ) ) {
+
+			this.material = this.material[ this.material.length - 1 ];
+
+		}
+
+		this.material.textureTheme = "undefined";
 
 	}
 

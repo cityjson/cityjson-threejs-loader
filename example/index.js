@@ -26,6 +26,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import * as dat from 'three/examples/jsm/libs/dat.gui.module.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 import { AttributeEvaluator } from '../src/helpers/AttributeEvaluator';
+import { TextureManager } from '../src/helpers/TextureManager';
 
 let scene, renderer, camera, controls, stats, raycaster;
 let modelgroup;
@@ -40,6 +41,7 @@ let objectOptions;
 let marker;
 let conditionalOptions;
 let appearanceOptions;
+let textureManager;
 
 let params = {
 
@@ -378,21 +380,7 @@ function onComplete() {
 
 	chunkUpdate();
 
-	scene.traverse( c => {
-
-		if ( c.material ) {
-
-			c.material.side = DoubleSide;
-
-			if ( citymodel.appearance && citymodel.appearance.textures && c.material.isCityObjectsMaterial ) {
-
-				c.material.setTextures( citymodel.appearance.textures );
-
-			}
-
-		}
-
-	} );
+	textureManager = new TextureManager( citymodel );
 
 	const controllers = conditionalOptions.__controllers.map( i => i );
 
@@ -567,7 +555,7 @@ function onComplete() {
 
 			if ( c.supportsMaterials ) {
 
-				c.setTextureTheme( value );
+				c.setTextureTheme( value, textureManager );
 
 				// c.material.textureTheme = value;
 
@@ -703,7 +691,9 @@ function onDrop( e ) {
 
 	e.preventDefault();
 
-	if ( ! e.ctrlKey ) {
+	const hasJSON = Object.values( e.dataTransfer.files ).some( file => file.name.split( '.' ).pop().toLowerCase() === 'json' );
+
+	if ( ! e.ctrlKey && hasJSON ) {
 
 		while ( loader.scene.children.length > 0 ) {
 
@@ -715,13 +705,15 @@ function onDrop( e ) {
 
 	}
 
-	for ( const item of e.dataTransfer.items ) {
+	for ( const file of e.dataTransfer.files ) {
 
-		if ( item.kind === 'file' ) {
+		const filename = file.name;
+		const extension = filename.split( '.' ).pop().toLowerCase();
+
+		if ( extension === 'json' ) {
 
 			statsContainer.innerHTML = "Oh, a file! Let me parse this...";
 
-			const file = item.getAsFile();
 			const reader = new FileReader();
 			reader.readAsText( file, "UTF-8" );
 			reader.onload = evt => {
@@ -744,6 +736,10 @@ function onDrop( e ) {
 				modelgroup.add( loader.scene );
 
 			};
+
+		} else {
+
+			textureManager.setTextureFromFile( file );
 
 		}
 

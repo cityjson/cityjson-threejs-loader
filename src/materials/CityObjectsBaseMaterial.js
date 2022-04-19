@@ -1,4 +1,3 @@
-import { RepeatWrapping, TextureLoader } from "three";
 import { Color, ShaderChunk, ShaderMaterial, UniformsLib } from "three";
 
 UniformsLib.cityobject = {
@@ -468,33 +467,6 @@ export class CityObjectsBaseMaterial extends ShaderMaterial {
 			this.uniforms.highlightedObjId.value = - 1;
 			this.uniforms.highlightedGeomId.value = - 1;
 			this.uniforms.highlightedBoundId.value = - 1;
-
-		}
-
-	}
-
-	setCityTexture( i, url ) {
-
-		const context = this;
-
-		new TextureLoader().load( url, ( tex => {
-
-			tex.wrapS = RepeatWrapping;
-			tex.wrapT = RepeatWrapping;
-
-			context.textures[ i ] = tex;
-
-		} ) );
-
-	}
-
-	setTextures( textures ) {
-
-		this.textures = [];
-
-		for ( const [ i, texture ] of textures.entries() ) {
-
-			this.setCityTexture( i, texture.image );
 
 		}
 
