@@ -790,9 +790,19 @@ function onDblClick( e ) {
 
 	modelgroup.traverse( c => {
 
-		if ( c.material && c.material.isCityObjectsMaterial ) {
+		if ( c.material ) {
 
-			c.material.highlightedObject = undefined;
+			const mats = Array.isArray( c.material ) ? c.material : [ c.material ];
+
+			for ( const mat of mats ) {
+
+				if ( mat.isCityObjectsMaterial ) {
+
+					mat.highlightedObject = undefined;
+
+				}
+
+			}
 
 		}
 
@@ -852,11 +862,20 @@ function onDblClick( e ) {
 
 			infoContainer.innerHTML = str;
 
-			if ( object.material.isCityObjectsMaterial ) {
+			if ( object.material ) {
 
-				object.material.highlightedObject = intersectionInfo;
+				const mats = Array.isArray( object.material ) ? object.material : [ object.material ];
 
-				object.material.selectSurface = e.shiftKey;
+				for ( const mat of mats ) {
+
+					if ( mat.isCityObjectsMaterial ) {
+
+						mat.highlightedObject = intersectionInfo;
+						mat.selectSurface = e.shiftKey;
+
+					}
+
+				}
 
 			}
 
@@ -874,17 +893,27 @@ function render() {
 
 	scene.traverse( c => {
 
-		if ( c.material && c.material.isCityObjectsMaterial ) {
+		if ( c.material ) {
 
-			c.material.showSemantics = params.showSemantics;
-			c.material.showLod = params.showOnlyLod;
-			c.material.highlightColor = params.highlightColor;
+			const mats = Array.isArray( c.material ) ? c.material : [ c.material ];
 
-		}
+			for ( const mat of mats ) {
 
-		if ( c.supportsConditionalFormatting ) {
+				if ( mat.isCityObjectsMaterial ) {
 
-			c.material.conditionalFormatting = params.conditional.show;
+					mat.showSemantics = params.showSemantics;
+					mat.showLod = params.showOnlyLod;
+					mat.highlightColor = params.highlightColor;
+
+				}
+
+				if ( c.supportsConditionalFormatting ) {
+
+					mat.conditionalFormatting = params.conditional.show;
+
+				}
+
+			}
 
 		}
 
