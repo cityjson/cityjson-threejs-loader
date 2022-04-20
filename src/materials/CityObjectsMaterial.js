@@ -37,6 +37,12 @@ export class CityObjectsMaterial extends CityObjectsBaseMaterial {
 				varying vec2 vTexUV;
 
 			#endif
+
+			#ifdef MATERIAL_THEME
+
+				varying vec3 emissive_;
+			
+			#endif
 		` +
 		newShader.fragmentShader.replace(
 			/vec4 diffuseColor = vec4\( diffuse, opacity \);/,
@@ -63,6 +69,19 @@ export class CityObjectsMaterial extends CityObjectsBaseMaterial {
 					discard;
 				}
 			
+			#endif
+			`
+		).replace(
+			/vec3 totalEmissiveRadiance = emissive;/,
+			`
+			#ifdef MATERIAL_THEME
+
+				vec3 totalEmissiveRadiance = emissive_;
+
+			#else
+
+				vec3 totalEmissiveRadiance = emissive;
+
 			#endif
 			`
 		);
