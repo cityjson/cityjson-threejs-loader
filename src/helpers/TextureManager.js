@@ -29,6 +29,18 @@ export class TextureManager {
 
 	}
 
+	get totalTextures() {
+
+		return this.cityTextures.length;
+
+	}
+
+	get resolvedTextures() {
+
+		return this.textures.filter( t => t ).length;
+
+	}
+
 	getMaterials( baseMaterial ) {
 
 		if ( this.materials.length === 0 || this.needsUpdate ) {
