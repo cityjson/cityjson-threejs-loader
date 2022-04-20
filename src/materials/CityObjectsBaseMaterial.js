@@ -16,7 +16,7 @@ UniformsLib.cityobject = {
 };
 
 ShaderChunk.cityobjectinclude_vertex = `
-        uniform vec3 objectColors[ 110 ];
+        uniform vec3 objectColors[ OBJCOLOR_COUNT ];
         uniform vec3 highlightColor;
         uniform float highlightedObjId;
         
@@ -27,7 +27,7 @@ ShaderChunk.cityobjectinclude_vertex = `
 
         #ifdef SHOW_SEMANTICS
 
-            uniform vec3 surfaceColors[ 110 ];
+            uniform vec3 surfaceColors[ SEMANTIC_COUNT ];
 
             attribute int surfacetype;
 
@@ -35,7 +35,7 @@ ShaderChunk.cityobjectinclude_vertex = `
 
 		#ifdef COLOR_ATTRIBUTE
 
-            uniform vec3 attributeColors[ 110 ];
+            uniform vec3 attributeColors[ ATTRIBUTE_COUNT ];
 
             attribute int attributevalue;
 
@@ -70,7 +70,7 @@ ShaderChunk.cityobjectinclude_vertex = `
 				vec3 specularColor;
 			};
 
-			uniform CityMaterial cityMaterials[ 110 ];
+			uniform CityMaterial cityMaterials[ MATERIAL_COUNT ];
 
 			attribute int MATERIAL_THEME;
 
@@ -166,6 +166,11 @@ export class CityObjectsBaseMaterial extends ShaderMaterial {
 
 		this.isCityObjectsMaterial = true;
 
+		this.defines.OBJCOLOR_COUNT = 0;
+		this.defines.SEMANTIC_COUNT = 0;
+		this.defines.ATTRIBUTE_COUNT = 0;
+		this.defines.MATERIAL_COUNT = 0;
+
 	}
 
 	createColorsArray( colors ) {
@@ -179,11 +184,11 @@ export class CityObjectsBaseMaterial extends ShaderMaterial {
 
 		}
 
-		for ( let i = data.length; i < 110; i ++ ) {
+		// for ( let i = data.length; i < 110; i ++ ) {
 
-			data.push( new Color( 0xffffff ).convertSRGBToLinear() );
+		// 	data.push( new Color( 0xffffff ).convertSRGBToLinear() );
 
-		}
+		// }
 
 		return data;
 
@@ -194,6 +199,7 @@ export class CityObjectsBaseMaterial extends ShaderMaterial {
 		this.attributeColorsLookup = colors;
 
 		this.uniforms.attributeColors.value = this.createColorsArray( colors );
+		this.defines.ATTRIBUTE_COUNT = Object.keys( colors ).length;
 
 	}
 
@@ -235,6 +241,7 @@ export class CityObjectsBaseMaterial extends ShaderMaterial {
 
 		// Maybe here we check if the key order has changed
 		this.uniforms.objectColors.value = this.createColorsArray( colors );
+		this.defines.OBJCOLOR_COUNT = Object.keys( colors ).length;
 
 	}
 
@@ -250,6 +257,9 @@ export class CityObjectsBaseMaterial extends ShaderMaterial {
 
 		// Maybe here we check if the key order has changed
 		this.uniforms.surfaceColors.value = this.createColorsArray( colors );
+		this.defines.SEMANTIC_COUNT = Object.keys( colors ).length;
+
+		this.needsUpdate = true;
 
 	}
 
@@ -400,15 +410,17 @@ export class CityObjectsBaseMaterial extends ShaderMaterial {
 
 		}
 
-		for ( let i = data.length; i < 110; i ++ ) {
+		this.defines.MATERIAL_COUNT = data.length;
 
-			data.push( {
-				diffuseColor: new Color( 0xffffff ).convertLinearToSRGB(),
-				emissiveColor: new Color( 0xffffff ).convertLinearToSRGB(),
-				specularColor: new Color( 0xffffff ).convertLinearToSRGB(),
-			} );
+		// for ( let i = data.length; i < 110; i ++ ) {
 
-		}
+		// 	data.push( {
+		// 		diffuseColor: new Color( 0xffffff ).convertLinearToSRGB(),
+		// 		emissiveColor: new Color( 0xffffff ).convertLinearToSRGB(),
+		// 		specularColor: new Color( 0xffffff ).convertLinearToSRGB(),
+		// 	} );
+
+		// }
 
 		this.uniforms.cityMaterials.value = data;
 
