@@ -168,7 +168,9 @@ export class CityObjectsMesh extends Mesh {
 
 			}, { last: - 1, values: [], indices: [] } );
 
-			const materials = textureManager.getMaterials( Array.isArray( this.material ) ? this.material[ this.material.length - 1 ] : this.material );
+			const baseMaterial = Array.isArray( this.material ) ? this.material[ this.material.length - 1 ] : this.material;
+
+			const materials = textureManager.getMaterials( baseMaterial );
 
 			for ( const mat of materials ) {
 

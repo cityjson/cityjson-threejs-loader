@@ -184,12 +184,6 @@ export class CityObjectsBaseMaterial extends ShaderMaterial {
 
 		}
 
-		// for ( let i = data.length; i < 110; i ++ ) {
-
-		// 	data.push( new Color( 0xffffff ).convertSRGBToLinear() );
-
-		// }
-
 		return data;
 
 	}
@@ -411,16 +405,6 @@ export class CityObjectsBaseMaterial extends ShaderMaterial {
 		}
 
 		this.defines.MATERIAL_COUNT = data.length;
-
-		// for ( let i = data.length; i < 110; i ++ ) {
-
-		// 	data.push( {
-		// 		diffuseColor: new Color( 0xffffff ).convertLinearToSRGB(),
-		// 		emissiveColor: new Color( 0xffffff ).convertLinearToSRGB(),
-		// 		specularColor: new Color( 0xffffff ).convertLinearToSRGB(),
-		// 	} );
-
-		// }
 
 		this.uniforms.cityMaterials.value = data;
 
