@@ -72,6 +72,8 @@ ShaderChunk.cityobjectinclude_vertex = `
 
 			uniform CityMaterial cityMaterials[ MATERIAL_COUNT ];
 
+			varying vec3 emissive_;
+
 			attribute int MATERIAL_THEME;
 
 		#endif
@@ -109,6 +111,7 @@ ShaderChunk.cityobjectdiffuse_vertex = `
 			if ( MATERIAL_THEME > - 1 ) {
 
 				diffuse_ = cityMaterials[ MATERIAL_THEME ].diffuseColor;
+				emissive_ = cityMaterials[ MATERIAL_THEME ].emissiveColor;
 
 			}
 
@@ -395,10 +398,14 @@ export class CityObjectsBaseMaterial extends ShaderMaterial {
 		for ( let i = 0; i < materials.length; i ++ ) {
 
 			const mat = Object.assign( {
-				diffuseColor: new Color( 0xffffff ).convertLinearToSRGB(),
-				emissiveColor: new Color( 0xffffff ).convertLinearToSRGB(),
-				specularColor: new Color( 0xffffff ).convertLinearToSRGB(),
+				diffuseColor: [ 1, 1, 1 ],
+				emissiveColor: [ 0, 0, 0 ],
+				specularColor: [ 1, 1, 1 ],
 			}, materials[ i ] );
+
+			mat.diffuseColor = new Color( ...mat.diffuseColor ).convertLinearToSRGB();
+			mat.emissiveColor = new Color( ...mat.emissiveColor ).convertLinearToSRGB();
+			mat.specularColor = new Color( ...mat.specularColor ).convertLinearToSRGB();
 
 			data.push( mat );
 
