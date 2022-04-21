@@ -174,7 +174,11 @@ export class CityObjectsMesh extends Mesh {
 
 			for ( const mat of materials ) {
 
-				mat.textureTheme = theme;
+				if ( mat !== baseMaterial ) {
+
+					mat.textureTheme = theme;
+
+				}
 
 			}
 
