@@ -1,4 +1,4 @@
-import regeneratorRuntime from "regenerator-runtime";
+import 'regenerator-runtime/runtime';
 import {
 	CityJSONLoader,
 	CityJSONWorkerParser
@@ -174,8 +174,10 @@ function init() {
 	colorOptions.open();
 
 	semanticOptions = colorOptions.addFolder( 'Semantics' );
+	semanticOptions.close();
 
 	objectOptions = colorOptions.addFolder( 'City Objects' );
+	objectOptions.close();
 
 	const lightingOptions = gui.addFolder( 'Lights' );
 
