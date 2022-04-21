@@ -130,28 +130,78 @@ export class CityObjectsInstancedMesh extends InstancedMesh {
 
 	}
 
-	setTextureTheme( theme ) {
+	setTextureTheme( theme, textureManager ) {
 
-		const attributeName = `tex${theme}`;
+		if ( theme === "undefined" ) {
+
+			this.unsetTextures();
+			return;
+
+		}
+
+		const themeName = theme.replace( /[^a-z0-9]/gi, '' );
+
+		const attributeName = `tex${themeName}`;
 
 		if ( attributeName in this.geometry.attributes ) {
 
 			const textureIds = this.geometry.attributes[ attributeName ].array;
 
-			const { indices } = textureIds.reduce( ( p, c, i ) => {
+			// Create a lookup of textures
+			const { values, indices } = textureIds.reduce( ( p, c, i ) => {
 
 				if ( p.last !== c ) {
 
+					p.values.push( c );
 					p.indices.push( i );
 					p.last = c;
 
-		  }
+		  		}
 
-		  return p;
+		  		return p;
 
-			}, { last: - 1, indices: [] } );
+			}, { last: - 1, values: [], indices: [] } );
+
+			const baseMaterial = Array.isArray( this.material ) ? this.material[ this.material.length - 1 ] : this.material;
+
+			const materials = textureManager.getMaterials( baseMaterial );
+
+			for ( const mat of materials ) {
+
+				if ( mat !== baseMaterial ) {
+
+					mat.textureTheme = theme;
+
+				}
+
+			}
+
+			// TODO: We need to add the last element here
+			for ( let i = 0; i < indices.length - 1; i ++ ) {
+
+				this.geometry.addGroup( indices[ i ], indices[ i + 1 ] - indices[ i ], values[ i ] > - 1 ? values[ i ] : materials.length - 1 );
+
+			}
+
+			const i = indices.length - 1;
+
+			this.geometry.addGroup( indices[ i ], this.geometry.attributes.type.array.length - indices[ i ], values[ i ] > - 1 ? values[ i ] : materials.length - 1 );
+
+			this.material = materials;
 
 		}
+
+	}
+
+	unsetTextures() {
+
+		if ( Array.isArray( this.material ) ) {
+
+			this.material = this.material[ this.material.length - 1 ];
+
+		}
+
+		this.material.textureTheme = "undefined";
 
 	}
 
