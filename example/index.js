@@ -1,3 +1,4 @@
+import regeneratorRuntime from "regenerator-runtime";
 import {
 	CityJSONLoader,
 	CityJSONWorkerParser
@@ -8,7 +9,6 @@ import {
 	BufferGeometry,
 	Color,
 	DirectionalLight,
-	DoubleSide,
 	Group,
 	Matrix4,
 	PerspectiveCamera,
@@ -21,9 +21,9 @@ import {
 	Vector3,
 	WebGLRenderer
 } from 'three';
-import { BufferGeometryUtils } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { estimateBytesUsed } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import * as dat from 'three/examples/jsm/libs/dat.gui.module.js';
+import * as dat from 'three/examples/jsm/libs/lil-gui.module.min.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 import { AttributeEvaluator } from '../src/helpers/AttributeEvaluator';
 import { TextureManager } from '../src/helpers/TextureManager';
@@ -252,7 +252,7 @@ function chunkUpdate() {
 		if ( c.geometry ) {
 
 			objCount ++;
-			memCount += BufferGeometryUtils.estimateBytesUsed( c.geometry );
+			memCount += estimateBytesUsed( c.geometry );
 			const attr = c.geometry.getAttribute( "type" );
 			vCount += attr.count;
 
@@ -393,11 +393,11 @@ function onComplete() {
 
 	} );
 
-	const controllers = conditionalOptions.__controllers.map( i => i );
+	const controllers = conditionalOptions.controllers.map( i => i );
 
 	for ( const controller of controllers ) {
 
-		conditionalOptions.remove( controller );
+		controller.destroy();
 
 	}
 
@@ -426,13 +426,13 @@ function onComplete() {
 	conditionalOptions.add( params.conditional, "show" );
 	conditionalOptions.add( params.conditional, "attribute", [ ...atts ] ).onChange( attribute => {
 
-		const controllers = conditionalOptions.__controllers.map( i => i );
+		const controllers = conditionalOptions.controllers.map( i => i );
 
 		for ( const controller of controllers ) {
 
 			if ( controller.property != "show" && controller.property != "attribute" ) {
 
-				conditionalOptions.remove( controller );
+				controller.destroy();
 
 			}
 
@@ -476,11 +476,11 @@ function onComplete() {
 
 	} );
 
-	const apControllers = appearanceOptions.__controllers.map( i => i );
+	const apControllers = appearanceOptions.controllers.map( i => i );
 
 	for ( const controller of apControllers ) {
 
-		appearanceOptions.remove( controller );
+		controller.destroy();
 
 	}
 
