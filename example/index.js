@@ -515,7 +515,7 @@ function onComplete() {
 
 	} ).flat( 2 );
 
-	const themeOptions = Object.assign( { "None": undefined }, themes.reduce( ( a, v ) => ( { ...a, [ v ]: v } ), {} ) );
+	const themeOptions = Object.assign( { "None": 'undefined' }, themes.reduce( ( a, v ) => ( { ...a, [ v ]: v } ), {} ) );
 
 	appearanceOptions.add( params.appearance, 'materialTheme', themeOptions ).onChange( value => {
 
@@ -560,7 +560,7 @@ function onComplete() {
 
 	} ).flat( 2 );
 
-	const texThemeOptions = Object.assign( { "None": undefined }, texThemes.reduce( ( a, v ) => ( { ...a, [ v ]: v } ), {} ) );
+	const texThemeOptions = Object.assign( { "None": 'undefined' }, texThemes.reduce( ( a, v ) => ( { ...a, [ v ]: v } ), {} ) );
 
 	appearanceOptions.add( params.appearance, 'textureTheme', texThemeOptions ).onChange( value => {
 
