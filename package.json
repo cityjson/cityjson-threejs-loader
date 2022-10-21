@@ -17,6 +17,8 @@
   },
   "dependencies": {
     "earcut": "^2.2.2",
+    "maplibre-gl": "^2.4.0",
+    "proj4": "^2.8.0",
     "three": "^0.127.0"
   },
   "devDependencies": {

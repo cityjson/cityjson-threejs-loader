@@ -13,20 +13,20 @@ UniformsLib.cityobject = {
 };
 
 ShaderChunk.cityobjectinclude_vertex = `
-        uniform vec3 objectColors[ 110 ];
+        uniform vec3 objectColors[ 10 ];
         uniform vec3 highlightColor;
         uniform float highlightedObjId;
         
         attribute float objectid;
-        attribute int type;
+        attribute float type;
         
         varying vec3 diffuse_;
 
         #ifdef SHOW_SEMANTICS
 
-            uniform vec3 surfaceColors[ 110 ];
+            uniform vec3 surfaceColors[ 10 ];
 
-            attribute int surfacetype;
+            attribute float surfacetype;
 
         #endif
 
@@ -54,7 +54,7 @@ ShaderChunk.cityobjectinclude_vertex = `
 ShaderChunk.cityobjectdiffuse_vertex = `
         #ifdef SHOW_SEMANTICS
 
-            diffuse_ = surfacetype > -1 ? surfaceColors[surfacetype] : objectColors[type];
+            diffuse_ = surfacetype > -1.0 ? surfaceColors[int(surfacetype)] : objectColors[int(type)];
 
         #else
 
