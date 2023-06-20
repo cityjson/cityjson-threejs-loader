@@ -18,12 +18,12 @@ export class GeometryData {
     boundaryIds: Number[];
     lodIds: Number[];
 
-	constructor( geometryType )
+	constructor(geometryType: any);
 
     /**
      * Adds a vertex with the given data
      */
-    addVertex( vertexId, objectId, objectType, surfaceType, geometryIdx, boundaryIdx, lodIdx ) : void
+    addVertex( vertexId: Number, objectId: Number, objectType: Number, surfaceType: Number, geometryIdx: Number, boundaryIdx: Number, lodIdx: Number ) : void
 
     /**
      * Returns the number of vertices
