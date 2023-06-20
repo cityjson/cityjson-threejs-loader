@@ -120,7 +120,7 @@ export class CityObjectParser {
 
 		geom.computeFaceNormals();
 
-		return geom;
+		return geom.toBufferGeometry();
 
 	}
 
