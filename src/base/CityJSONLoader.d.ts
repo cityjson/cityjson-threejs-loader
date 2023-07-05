@@ -1,7 +1,6 @@
 import { Group, Matrix4, Box3 } from "three";
 import { CityJSONWorkerParser } from "../parsers/CityJSONWorkerParser";
-import { CityObjectParser } from "../parsers/CityObjectParser";
-import { ObjectMaterialParser } from "../parsers/ObjectMaterialParser";
+import { CityJSONParser } from "../parsers/CityJSONParser";
 
 export class CityJSONLoader {
 
@@ -11,5 +10,5 @@ export class CityJSONLoader {
 
     load( data : Object ) : void;
     setTexturesPath( path: string ) : void;
-    constructor(parser: CityJSONWorkerParser | CityObjectParser | ObjectMaterialParser);
+    constructor(parser: CityJSONWorkerParser | CityJSONParser);
 }

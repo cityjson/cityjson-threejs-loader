@@ -1,6 +1,6 @@
 import { CityJSONLoader } from './base/CityJSONLoader';
 import { CityJSONWorkerParser } from './parsers/CityJSONWorkerParser';
-import { CityObjectParser } from './parsers/CityObjectParser';
+import { CityJSONParser } from './parsers/CityJSONParser';
 import { ChunkParser } from './parsers/helpers/ChunkParser';
 
 import { CityObjectsMesh } from './objects/CityObjectsMesh';
@@ -18,7 +18,7 @@ import { TextureManager } from './helpers/TextureManager';
 export {
     CityJSONLoader,
     CityJSONWorkerParser,
-    CityObjectParser,
+    CityJSONParser,
     ChunkParser,
 
     CityObjectsInstancedMesh,
