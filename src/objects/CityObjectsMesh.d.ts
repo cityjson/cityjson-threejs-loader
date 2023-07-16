@@ -49,6 +49,6 @@ export class CityObjectsMesh extends Mesh {
      * 
      * @param attributeEvaluator The evaluator that provides the values for the attribute
      */
-    addAttributeByProperty( attributeEvaluator: AttributeEvaluator )
+    addAttributeByProperty( attributeEvaluator: AttributeEvaluator ): void;
 
 }

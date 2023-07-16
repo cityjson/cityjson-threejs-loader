@@ -1,9 +1,8 @@
 import {
-	Face3,
-	Geometry,
 	Mesh,
 	MeshLambertMaterial,
 	Vector3 } from 'three';
+import { Geometry, Face3 } from 'three/examples/jsm/deprecated/Geometry';
 import earcut from 'earcut';
 
 export class CityObjectParser {
@@ -121,7 +120,7 @@ export class CityObjectParser {
 
 		geom.computeFaceNormals();
 
-		return geom;
+		return geom.toBufferGeometry();
 
 	}
 
