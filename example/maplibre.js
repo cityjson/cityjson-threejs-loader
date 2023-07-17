@@ -39,57 +39,15 @@ function onDrop( e ) {
 
 				citymodel = cm;
 
+				const scaleX = 1 / ( 2 * 20037508.34 );
+				const scaleY = 1 / ( 2 * 20037508.34 );
+				const translateX = 0.5;
+				const translateY = 0.5;
+
+				const matrix = new Matrix4();
+				loader.matrix = matrix.set( 1, 0, 0, translateX, 0, - 1, 0, translateY, 0, 0, 1, 0, 0, 0, 0, 1 ).scale( new Vector3( scaleX, scaleY, scaleX ) );
+
 				loader.load( cm );
-
-				const bbox = loader.boundingBox.clone();
-				bbox.applyMatrix4( loader.matrix );
-
-				scene.add( loader.scene );
-
-				fetch( "https://api.allorigins.win/get?url=https://epsg.org/api/v1/CoordRefSystem/7415/export?format=wkt&version=1" )
-					.then( ( response ) => response.json().then( wkt => {
-
-						try {
-
-							proj4.defs( "EPSG:7415", "+proj=sterea +lat_0=52.15616055555555 +lon_0=5.38763888888889 +k=0.999908 +x_0=155000 +y_0=463000 +ellps=bessel +units=m +towgs84=565.2369,50.0087,465.658,-0.406857330322398,0.350732676542563,-1.8703473836068,4.0812 +no_defs +no_defs" );
-							// console.log( wkt.contents );
-							// proj4.defs( "EPSG:7415", wkt.contents );
-
-							const originalCoords = [ - loader.matrix.elements[ 12 ], - loader.matrix.elements[ 13 ] ];
-							const wgsCoords = proj4( "EPSG:7415", 'EPSG:4326', originalCoords );
-							const googleCoords = maplibre.MercatorCoordinate.fromLngLat( wgsCoords, 0 );
-							console.log( `Coords in 28992: ${originalCoords}` );
-							console.log( `Coords in 4326: ${wgsCoords}` );
-							console.log( `Coords in 3857: ${googleCoords.x}, ${googleCoords.y}` );
-
-
-							// const coords = proj4( "EPSG:7415", 'EPSG:4326', [ - loader.matrix.elements[ 12 ] - 155, - loader.matrix.elements[ 13 ] - 65 ] );
-							map.easeTo( { center: wgsCoords, zoom: 16 } );
-
-							const modelAsMercatorCoordinate = maplibre.MercatorCoordinate.fromLngLat(
-								wgsCoords,
-								0
-							);
-							modelTransform = {
-								translateX: modelAsMercatorCoordinate.x,
-								translateY: modelAsMercatorCoordinate.y,
-								translateZ: modelAsMercatorCoordinate.z,
-								rotateX: 0,
-								rotateY: 0,
-								rotateZ: 0,
-								/* Since our 3D model is in real world meters, a scale transform needs to be
-								* applied since the CustomLayerInterface expects units in MercatorCoordinates.
-								*/
-								scale: modelAsMercatorCoordinate.meterInMercatorCoordinateUnits()
-							};
-
-						} catch ( exp ) {
-
-							console.log( exp );
-
-						}
-
-					} ) );
 
 			};
 
@@ -124,8 +82,8 @@ function init() {
 	map = new maplibre.Map( {
 		container: 'map',
 		style: 'https://api.maptiler.com/maps/basic/style.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL', //'https://demotiles.maplibre.org/style.json', // stylesheet location
-		center: [ - 74.5, 40 ], // starting position [lng, lat]
-		zoom: 9 // starting zoom
+		center: [ 0, 0 ], // starting position [lng, lat]
+		zoom: 0 // starting zoom
 	} );
 
 	window.map = map;
@@ -136,11 +94,66 @@ function init() {
 	parser.chunkSize = 2000;
 	parser.onChunkLoad = () => {
 
-		loader.scene.traverse( c => c.material = new MeshLambertMaterial( { color: 0xffffff } ) );
+		loader.scene.traverse( c => c.material = new MeshLambertMaterial( { color: 0xff0000 } ) );
 		console.log( "Loaded chunk" );
 
 	};
-	// parser.onComplete = chunkUpdate;
+
+	parser.onComplete = () => {
+
+		const geom = loader.scene.children[ 0 ].geometry;
+		geom.computeBoundingSphere();
+		const center = geom.boundingSphere.center;
+		// bbox.applyMatrix4( loader.matrix );
+		console.log( loader.matrix );
+		console.log( center );
+
+		scene.add( loader.scene );
+
+		const googleCoords = new maplibre.MercatorCoordinate( center.x, center.y );
+		const wgsCoords = googleCoords.toLngLat();
+		console.log( `WGS: ${wgsCoords}` );
+		console.log( `Mercator: ${center}` );
+
+		map.easeTo( { center: wgsCoords, zoom: 16 } );
+
+		try {
+
+			// const originalCoords = [ - loader.matrix.elements[ 12 ], - loader.matrix.elements[ 13 ] ];
+			// const wgsCoords = proj4( "EPSG:3857", 'EPSG:4326', originalCoords );
+			// const googleCoords = maplibre.MercatorCoordinate.fromLngLat( wgsCoords, 0 );
+			// console.log( `Coords in original: ${originalCoords}` );
+			// console.log( `Coords in 4326: ${wgsCoords}` );
+			// console.log( `Coords in 3857: ${googleCoords.x}, ${googleCoords.y}` );
+
+
+			// const coords = proj4( "EPSG:7415", 'EPSG:4326', [ - loader.matrix.elements[ 12 ] - 155, - loader.matrix.elements[ 13 ] - 65 ] );
+			// map.easeTo( { center: wgsCoords, zoom: 16 } );
+
+			const modelAsMercatorCoordinate = maplibre.MercatorCoordinate.fromLngLat(
+				wgsCoords,
+				0
+			);
+			modelTransform = {
+				translateX: modelAsMercatorCoordinate.x,
+				translateY: modelAsMercatorCoordinate.y,
+				translateZ: modelAsMercatorCoordinate.z,
+				rotateX: 0,
+				rotateY: 0,
+				rotateZ: 0,
+				/* Since our 3D model is in real world meters, a scale transform needs to be
+				* applied since the CustomLayerInterface expects units in MercatorCoordinates.
+				*/
+				scale: modelAsMercatorCoordinate.meterInMercatorCoordinateUnits()
+			};
+
+		} catch ( exp ) {
+
+			console.log( exp );
+
+		}
+
+	};
 
 	loader = new CityJSONLoader( parser );
 
@@ -170,6 +183,8 @@ function init() {
 			dirLight.position.set( 1, 2, 3 );
 			scene.add( dirLight );
 
+			// scene.rotateX( - Math.PI / 2 );
+
 			// use the three.js GLTF loader to add the 3D model to the three.js scene
 			// const gltfLoader = new GLTFLoader();
 			// gltfLoader.load(
@@ -195,55 +210,20 @@ function init() {
 
 			// proj4('EPSG:3857', matrix[])
 
-			const outMatrix = new Matrix4();
-			outMatrix.set( ... matrix );
+			// camera.projectionMatrix = new Matrix4().fromArray( matrix );
 
-			if ( modelTransform ) {
+			const m = new Matrix4().fromArray( matrix );
+			// const p = new Vector3();
+			// const q = new Quaternion();
+			// const s = new Vector3();
+			// m.decompose( p, q, s );
+			camera.projectionMatrix = m;
 
-				const rotationX = new Matrix4().makeRotationAxis(
-					new Vector3( 1, 0, 0 ),
-					modelTransform.rotateX
-				);
-				const rotationY = new Matrix4().makeRotationAxis(
+			if ( loader.scene.children[ 0 ] ) {
 
-					new Vector3( 0, 1, 0 ),
-					modelTransform.rotateY
-
-				);
-				const rotationZ = new Matrix4().makeRotationAxis(
-					new Vector3( 0, 0, 1 ),
-					modelTransform.rotateZ
-				);
-
-				const m = new Matrix4().fromArray( matrix );
-				const l = new Matrix4()
-					.makeTranslation(
-						modelTransform.translateX,
-						modelTransform.translateY,
-						modelTransform.translateZ
-					)
-					.scale(
-						new Vector3(
-							modelTransform.scale,
-							- modelTransform.scale,
-							modelTransform.scale
-						)
-					)
-					.multiply( rotationX )
-					.multiply( rotationY )
-					.multiply( rotationZ );
-
-				camera.projectionMatrix = m.multiply( l );
-
-			} else {
-
-				const p = new Vector3();
-				const q = new Quaternion();
-				const s = new Vector3();
-
-				outMatrix.decompose( p, q, s );
-
-				camera.projectionMatrix = new Matrix4().compose( new Vector3(), q, new Vector3( 0.01, - 0.01, 0.01 ) );
+				const positionArray = loader.scene.children[ 0 ].geometry.attributes.position.array;
+				const vertex = new Vector3( positionArray[ 0 ], positionArray[ 1 ], positionArray[ 2 ] );
+				console.log( vertex.applyMatrix4( m ) );
 
 			}
 
