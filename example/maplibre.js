@@ -45,7 +45,7 @@ function onDrop( e ) {
 				const translateY = 0.5;
 
 				const matrix = new Matrix4();
-				loader.matrix = matrix.set( 1, 0, 0, translateX, 0, - 1, 0, translateY, 0, 0, 1, 0, 0, 0, 0, 1 ).scale( new Vector3( scaleX, scaleY, scaleX ) );
+				// loader.matrix = matrix.set( 1, 0, 0, translateX, 0, - 1, 0, translateY, 0, 0, 1, 0, 0, 0, 0, 1 ).scale( new Vector3( scaleX, scaleY, scaleX ) );
 
 				loader.load( cm );
 
@@ -110,48 +110,25 @@ function init() {
 
 		scene.add( loader.scene );
 
+		const scale = 1 / ( 2 * 20037508.34 );
+		const translateX = 0.5;
+		const translateY = 0.5;
+
+		const matrix = new Matrix4();
+		matrix.set( scale, 0, 0, translateX, 0, - scale, 0, translateY, 0, 0, scale, 0, 0, 0, 0, 1 );
+
+		const fullMatrix = loader.matrix.clone();
+		fullMatrix.invert();
+		fullMatrix.multiplyMatrices( matrix, fullMatrix );
+
+		center.applyMatrix4( fullMatrix );
+
 		const googleCoords = new maplibre.MercatorCoordinate( center.x, center.y );
 		const wgsCoords = googleCoords.toLngLat();
 		console.log( `WGS: ${wgsCoords}` );
 		console.log( `Mercator: ${center}` );
 
 		map.easeTo( { center: wgsCoords, zoom: 16 } );
-
-		try {
-
-			// const originalCoords = [ - loader.matrix.elements[ 12 ], - loader.matrix.elements[ 13 ] ];
-			// const wgsCoords = proj4( "EPSG:3857", 'EPSG:4326', originalCoords );
-			// const googleCoords = maplibre.MercatorCoordinate.fromLngLat( wgsCoords, 0 );
-			// console.log( `Coords in original: ${originalCoords}` );
-			// console.log( `Coords in 4326: ${wgsCoords}` );
-			// console.log( `Coords in 3857: ${googleCoords.x}, ${googleCoords.y}` );
-
-
-			// const coords = proj4( "EPSG:7415", 'EPSG:4326', [ - loader.matrix.elements[ 12 ] - 155, - loader.matrix.elements[ 13 ] - 65 ] );
-			// map.easeTo( { center: wgsCoords, zoom: 16 } );
-
-			const modelAsMercatorCoordinate = maplibre.MercatorCoordinate.fromLngLat(
-				wgsCoords,
-				0
-			);
-			modelTransform = {
-				translateX: modelAsMercatorCoordinate.x,
-				translateY: modelAsMercatorCoordinate.y,
-				translateZ: modelAsMercatorCoordinate.z,
-				rotateX: 0,
-				rotateY: 0,
-				rotateZ: 0,
-				/* Since our 3D model is in real world meters, a scale transform needs to be
-				* applied since the CustomLayerInterface expects units in MercatorCoordinates.
-				*/
-				scale: modelAsMercatorCoordinate.meterInMercatorCoordinateUnits()
-			};
-
-		} catch ( exp ) {
-
-			console.log( exp );
-
-		}
 
 	};
 
@@ -183,18 +160,6 @@ function init() {
 			dirLight.position.set( 1, 2, 3 );
 			scene.add( dirLight );
 
-			// scene.rotateX( - Math.PI / 2 );
-
-			// use the three.js GLTF loader to add the 3D model to the three.js scene
-			// const gltfLoader = new GLTFLoader();
-			// gltfLoader.load(
-			// 	'https://maplibre.org/maplibre-gl-js-docs/assets/34M_17/34M_17.gltf',
-			// 	function ( gltf ) {
-
-			// 		scene.add( gltf.scene );
-
-			// 	}
-			// );
 			map = map;
 
 			renderer = new WebGLRenderer( {
@@ -208,22 +173,23 @@ function init() {
 		},
 		render: function ( gl, matrix ) {
 
-			// proj4('EPSG:3857', matrix[])
-
-			// camera.projectionMatrix = new Matrix4().fromArray( matrix );
-
 			const m = new Matrix4().fromArray( matrix );
-			// const p = new Vector3();
-			// const q = new Quaternion();
-			// const s = new Vector3();
-			// m.decompose( p, q, s );
-			camera.projectionMatrix = m;
 
-			if ( loader.scene.children[ 0 ] ) {
+			const scale = 1 / ( 2 * 20037508.34 );
+			const translateX = 0.5;
+			const translateY = 0.5;
 
-				const positionArray = loader.scene.children[ 0 ].geometry.attributes.position.array;
-				const vertex = new Vector3( positionArray[ 0 ], positionArray[ 1 ], positionArray[ 2 ] );
-				console.log( vertex.applyMatrix4( m ) );
+			const toMercator = new Matrix4();
+			toMercator.set( scale, 0, 0, translateX, 0, - scale, 0, translateY, 0, 0, scale, 0, 0, 0, 0, 1 );
+
+			if ( loader.matrix ) {
+
+				const fullMatrix = loader.matrix.clone();
+				fullMatrix.invert();
+				fullMatrix.multiplyMatrices( toMercator, fullMatrix );
+				fullMatrix.multiplyMatrices( m, fullMatrix );
+
+				camera.projectionMatrix = fullMatrix;
 
 			}
 
