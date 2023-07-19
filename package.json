@@ -1,6 +1,6 @@
 {
   "name": "cityjson-threejs-loader",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A CityJSON loader for three.js",
   "repository": "http://github.com/cityjson/cityjson-threejs-loader",
   "author": "Stelios Vitalis",
