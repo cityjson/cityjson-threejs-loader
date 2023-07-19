@@ -77,7 +77,7 @@ export class CityJSONWorkerParser {
 
 		// Sets the web worker that will parse all normal (ie non-instanced)
 		// geometries
-		const worker = new Worker( "./helpers/ParserWorker.js" );
+		const worker = new Worker( new URL( "./helpers/ParserWorker.js", import.meta.url ), { type: "module" } );
 		const m = this.matrix;
 		const onChunkLoad = this.onChunkLoad;
 		const onComplete = this.onComplete;
