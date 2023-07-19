@@ -18,7 +18,7 @@ function removeDuplicates( array ) {
 
 export class CityObjectsLines extends LineSegments2 {
 
-	constructor( vertices, geometryData, matrix, material ) {
+	constructor( citymodel, vertices, geometryData, matrix, material ) {
 
 		const geom = new LineSegmentsGeometry();
 
@@ -48,6 +48,8 @@ export class CityObjectsLines extends LineSegments2 {
 
 		super( geom, material );
 
+		this.citymodel = citymodel;
+
 		this.isCityObject = true;
 		this.isCityObjectLine = true;
 
@@ -59,7 +61,7 @@ export class CityObjectsLines extends LineSegments2 {
 
 	}
 
-	resolveIntersectionInfo( intersection, citymodel ) {
+	resolveIntersectionInfo( intersection ) {
 
 		const intersectionInfo = {};
 
@@ -70,7 +72,7 @@ export class CityObjectsLines extends LineSegments2 {
 		intersectionInfo.vertexIndex = vertexIdx;
 		intersectionInfo.objectIndex = idx;
 
-		intersectionInfo.objectId = Object.keys( citymodel.CityObjects )[ idx ];
+		intersectionInfo.objectId = Object.keys( this.citymodel.CityObjects )[ idx ];
 		intersectionInfo.geometryIndex = this.geometry.getAttribute( 'geometryid' ).getX( vertexIdx );
 		intersectionInfo.boundaryIndex = this.geometry.getAttribute( 'boundaryid' ).getX( vertexIdx );
 

@@ -1,5 +1,6 @@
 import { Material } from "three";
 import { Matrix4, Mesh, Vector3 } from "three";
+import { AttributeEvaluator } from "../helpers/AttributeEvaluator";
 import { GeometryData } from "../parsers/geometry/GeometryData";
 
 /**
@@ -41,5 +42,13 @@ export class CityObjectsMesh extends Mesh {
      * @param citymodel The CityJSON model
      */
     resolveIntersectionInfo( intersection: Object, citymodel: Object ): Object;
+
+    /**
+     * Prepares the mesh geometry for conditional formatting, by creating a
+     * buffer with the values of the given `attributeEvaluator`.
+     * 
+     * @param attributeEvaluator The evaluator that provides the values for the attribute
+     */
+    addAttributeByProperty( attributeEvaluator: AttributeEvaluator ): void;
 
 }

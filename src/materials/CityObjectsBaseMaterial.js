@@ -4,6 +4,9 @@ UniformsLib.cityobject = {
 
 	objectColors: { value: [] },
 	surfaceColors: { value: [] },
+	attributeColors: { value: [] },
+	cityMaterials: { value: [] },
+	cityTexture: { type: 't' },
 	showLod: { value: - 1 },
 	highlightedObjId: { value: - 1 },
 	highlightedGeomId: { value: - 1 },
@@ -13,7 +16,7 @@ UniformsLib.cityobject = {
 };
 
 ShaderChunk.cityobjectinclude_vertex = `
-        uniform vec3 objectColors[ 110 ];
+        uniform vec3 objectColors[ OBJCOLOR_COUNT ];
         uniform vec3 highlightColor;
         uniform float highlightedObjId;
         
@@ -24,9 +27,17 @@ ShaderChunk.cityobjectinclude_vertex = `
 
         #ifdef SHOW_SEMANTICS
 
-            uniform vec3 surfaceColors[ 110 ];
+            uniform vec3 surfaceColors[ SEMANTIC_COUNT ];
 
             attribute int surfacetype;
+
+        #endif
+
+		#ifdef COLOR_ATTRIBUTE
+
+            uniform vec3 attributeColors[ ATTRIBUTE_COUNT ];
+
+            attribute int attributevalue;
 
         #endif
 
@@ -49,6 +60,33 @@ ShaderChunk.cityobjectinclude_vertex = `
             varying float discard_;
     
         #endif
+
+		#ifdef MATERIAL_THEME
+
+			struct CityMaterial
+			{
+				vec3 diffuseColor;
+				vec3 emissiveColor;
+				vec3 specularColor;
+			};
+
+			uniform CityMaterial cityMaterials[ MATERIAL_COUNT ];
+
+			varying vec3 emissive_;
+
+			attribute int MATERIAL_THEME;
+
+		#endif
+
+		#ifdef TEXTURE_THEME
+
+			attribute int TEXTURE_THEME;
+			attribute vec2 TEXTURE_THEME_UV;
+
+			flat out int vTexIndex;
+			varying vec2 vTexUV;
+
+		#endif
     `;
 
 ShaderChunk.cityobjectdiffuse_vertex = `
@@ -61,6 +99,36 @@ ShaderChunk.cityobjectdiffuse_vertex = `
             diffuse_ = objectColors[type];
 
         #endif
+
+		#ifdef COLOR_ATTRIBUTE
+
+            diffuse_ = attributevalue > -1 ? attributeColors[attributevalue] : vec3( 0.0, 0.0, 0.0 );
+
+        #endif
+
+		#ifdef MATERIAL_THEME
+
+			if ( MATERIAL_THEME > - 1 ) {
+
+				diffuse_ = cityMaterials[ MATERIAL_THEME ].diffuseColor;
+				emissive_ = cityMaterials[ MATERIAL_THEME ].emissiveColor;
+
+			}
+
+		#endif
+
+		#ifdef TEXTURE_THEME
+
+			vTexIndex = TEXTURE_THEME;
+			vTexUV = TEXTURE_THEME_UV;
+
+			if ( vTexIndex > - 1 ) {
+
+				diffuse_ = vec3( 1.0, 1.0, 1.0 );
+
+			}
+
+		#endif
 
         #ifdef SELECT_SURFACE
 
@@ -91,11 +159,20 @@ export class CityObjectsBaseMaterial extends ShaderMaterial {
 
 		this.objectColors = {};
 		this.surfaceColors = {};
+		this.attributeColors = {};
+		this.materials = [];
 		this.showSemantics = true;
+
+		this.textures = [];
 
 		this.instancing = false;
 
 		this.isCityObjectsMaterial = true;
+
+		this.defines.OBJCOLOR_COUNT = 0;
+		this.defines.SEMANTIC_COUNT = 0;
+		this.defines.ATTRIBUTE_COUNT = 0;
+		this.defines.MATERIAL_COUNT = 0;
 
 	}
 
@@ -110,13 +187,48 @@ export class CityObjectsBaseMaterial extends ShaderMaterial {
 
 		}
 
-		for ( let i = data.length; i < 110; i ++ ) {
+		return data;
 
-			data.push( new Color( 0xffffff ).convertSRGBToLinear() );
+	}
+
+	set attributeColors( colors ) {
+
+		this.attributeColorsLookup = colors;
+
+		this.uniforms.attributeColors.value = this.createColorsArray( colors );
+		this.defines.ATTRIBUTE_COUNT = Object.keys( colors ).length;
+
+	}
+
+	get attributeColors() {
+
+		return this.attributeColorsLookup;
+
+	}
+
+	get conditionalFormatting() {
+
+		return Boolean( 'COLOR_ATTRIBUTE' in this.defines );
+
+	}
+
+	set conditionalFormatting( value ) {
+
+		if ( Boolean( value ) !== Boolean( 'COLOR_ATTRIBUTE' in this.defines ) ) {
+
+			this.needsUpdate = true;
 
 		}
 
-		return data;
+		if ( value === true ) {
+
+			this.defines.COLOR_ATTRIBUTE = '';
+
+		} else {
+
+			delete this.defines.COLOR_ATTRIBUTE;
+
+		}
 
 	}
 
@@ -126,6 +238,7 @@ export class CityObjectsBaseMaterial extends ShaderMaterial {
 
 		// Maybe here we check if the key order has changed
 		this.uniforms.objectColors.value = this.createColorsArray( colors );
+		this.defines.OBJCOLOR_COUNT = Object.keys( colors ).length;
 
 	}
 
@@ -141,6 +254,9 @@ export class CityObjectsBaseMaterial extends ShaderMaterial {
 
 		// Maybe here we check if the key order has changed
 		this.uniforms.surfaceColors.value = this.createColorsArray( colors );
+		this.defines.SEMANTIC_COUNT = Object.keys( colors ).length;
+
+		this.needsUpdate = true;
 
 	}
 
@@ -230,6 +346,77 @@ export class CityObjectsBaseMaterial extends ShaderMaterial {
 
 	}
 
+	set materialTheme( value ) {
+
+		const themeName = value.replace( /[^a-z0-9]/gi, '' );
+
+		if ( themeName !== this.defines.MATERIAL_THEME ) {
+
+			this.needsUpdate = true;
+
+		}
+
+		if ( value === "undefined" || value === undefined || value == null ) {
+
+			delete this.defines.MATERIAL_THEME;
+
+		} else {
+
+			this.defines.MATERIAL_THEME = `mat${themeName}`;
+
+		}
+
+	}
+
+	set textureTheme( value ) {
+
+		const themeName = value.replace( /[^a-z0-9]/gi, '' );
+
+		if ( themeName !== this.defines.TEXTURE_THEME ) {
+
+			this.needsUpdate = true;
+
+		}
+
+		if ( value === "undefined" || value === undefined || value == null ) {
+
+			delete this.defines.TEXTURE_THEME;
+			delete this.defines.TEXTURE_THEME_UV;
+
+		} else {
+
+			this.defines.TEXTURE_THEME = `tex${themeName}`;
+			this.defines.TEXTURE_THEME_UV = `tex${themeName}uv`;
+
+		}
+
+	}
+
+	set materials( materials ) {
+
+		const data = [];
+		for ( let i = 0; i < materials.length; i ++ ) {
+
+			const mat = Object.assign( {
+				diffuseColor: [ 1, 1, 1 ],
+				emissiveColor: [ 0, 0, 0 ],
+				specularColor: [ 1, 1, 1 ],
+			}, materials[ i ] );
+
+			mat.diffuseColor = new Color( ...mat.diffuseColor ).convertLinearToSRGB();
+			mat.emissiveColor = new Color( ...mat.emissiveColor ).convertLinearToSRGB();
+			mat.specularColor = new Color( ...mat.specularColor ).convertLinearToSRGB();
+
+			data.push( mat );
+
+		}
+
+		this.defines.MATERIAL_COUNT = data.length;
+
+		this.uniforms.cityMaterials.value = data;
+
+	}
+
 	get highlightColor() {
 
 		return this.uniforms.highlightColor;
@@ -238,7 +425,7 @@ export class CityObjectsBaseMaterial extends ShaderMaterial {
 
 	set highlightColor( color ) {
 
-		if ( color instanceof String ) {
+		if ( typeof color === 'string' || color instanceof String ) {
 
 			this.uniforms.highlightColor.value.setHex( color.replace( '#', '0x' ) );
 

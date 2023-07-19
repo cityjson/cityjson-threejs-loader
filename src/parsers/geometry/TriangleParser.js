@@ -32,60 +32,122 @@ export class TriangleParser extends BaseParser {
 
 	}
 
-	parseGeometry( geometry, objectId, geomIdx ) {
+	/**
+	 * Flattens the given geometry, meaning that a Solid or MultiSolid will be
+	 * basically converted to a MultiSuface
+	 */
+	flattenGeometry( geometry ) {
 
-		const cityObj = this.json.CityObjects[ objectId ];
+		const geometryType = geometry.type;
 
-		const idIdx = cityObj ? this.getObjectIdx( objectId ) : - 1;
+		if ( geometryType == "MultiSurface" || geometryType == "CompositeSurface" ) {
 
-		const objType = cityObj ? this.getObjectTypeIdx( cityObj.type ) : - 1;
+			return geometry;
 
-		const lodIdx = this.getLodIndex( geometry.lod );
+		}
 
-		const geomType = geometry.type;
+		if ( geometryType == "Solid" ) {
 
-		const semanticSurfaces = geometry.semantics ? geometry.semantics.surfaces : [];
+			const newGeometry = Object.assign( {}, geometry );
 
-		if ( geomType == "Solid" ) {
+			newGeometry.boundaries = geometry.boundaries.flat( 1 );
 
-			const shells = geometry.boundaries;
+			if ( geometry.semantics ) {
 
-			for ( let i = 0; i < shells.length; i ++ ) {
-
-				const semantics = geometry.semantics ? geometry.semantics.values[ i ] : [];
-
-				this.parseShell( shells[ i ], idIdx, objType, geomIdx, lodIdx, semantics, semanticSurfaces );
+				newGeometry.semantics.values = geometry.semantics.values.flat( 1 );
 
 			}
 
-		} else if ( geomType == "MultiSurface" || geomType == "CompositeSurface" ) {
+			if ( geometry.material ) {
 
-			const surfaces = geometry.boundaries;
+				for ( const theme in geometry.material ) {
 
-			const semantics = geometry.semantics ? geometry.semantics.values : [];
-			this.parseShell( surfaces, idIdx, objType, geomIdx, lodIdx, semantics, semanticSurfaces );
-
-		} else if ( geomType == "MultiSolid" || geomType == "CompositeSolid" ) {
-
-			const solids = geometry.boundaries;
-
-			for ( let i = 0; i < solids.length; i ++ ) {
-
-				for ( let j = 0; j < solids[ i ].length; j ++ ) {
-
-					const semantics = geometry.semantics ? geometry.semantics.values[ i ][ j ] : [];
-
-					this.parseShell( solids[ i ][ j ], idIdx, objType, geomIdx, lodIdx, semantics, semanticSurfaces );
+					newGeometry.material[ theme ].values = geometry.material[ theme ].values.flat( 1 );
 
 				}
 
 			}
 
+			if ( geometry.texture ) {
+
+				for ( const theme in geometry.texture ) {
+
+					newGeometry.texture[ theme ].values = geometry.texture[ theme ].values.flat( 1 );
+
+				}
+
+			}
+
+			return newGeometry;
+
+		}
+
+		if ( geometryType == "MultiSolid" || geometryType == "CompositeSolid" ) {
+
+			const newGeometry = Object.assign( {}, geometry );
+
+			newGeometry.boundaries = geometry.boundaries.flat( 2 );
+
+			if ( geometry.semantics ) {
+
+				newGeometry.semantics.values = geometry.semantics.values.flat( 2 );
+
+			}
+
+			if ( geometry.material ) {
+
+				for ( const theme in geometry.material ) {
+
+					newGeometry.material[ theme ].values = geometry.material[ theme ].values.flat( 2 );
+
+				}
+
+			}
+
+			if ( geometry.texture ) {
+
+				for ( const theme in geometry.texture ) {
+
+					newGeometry.texture[ theme ].values = geometry.texture[ theme ].values.flat( 2 );
+
+				}
+
+			}
+
+			return newGeometry;
+
 		}
 
 	}
 
-	parseShell( boundaries, idIdx, objType, geomIdx, lodIdx, semantics = [], surfaces = [] ) {
+	parseGeometry( geometry, objectId, geomIdx ) {
+
+		const cityObj = this.json.CityObjects[ objectId ];
+
+		const idIdx = cityObj ? this.getObjectIdx( objectId ) : - 1;
+		const objType = cityObj ? this.getObjectTypeIdx( cityObj.type ) : - 1;
+		const lodIdx = this.getLodIndex( geometry.lod );
+
+		// We flatten the geometry to a MultiSurface, basically, so that it's
+		// easily parsable.
+		const flatGeometry = this.flattenGeometry( geometry );
+
+		if ( flatGeometry ) {
+
+			this.parseShell( flatGeometry, idIdx, objType, geomIdx, lodIdx );
+
+		}
+
+
+	}
+
+	parseShell( geometry, idIdx, objType, geomIdx, lodIdx ) {
+
+		const boundaries = geometry.boundaries;
+		const semantics = geometry.semantics ? geometry.semantics.values : [];
+		const surfaces = geometry.semantics ? geometry.semantics.surfaces : [];
+		const material = geometry.material ? geometry.material : {};
+		const texture = geometry.texture ? geometry.texture : {};
 
 		// Contains the boundary but with the right verticeId
 		for ( let i = 0; i < boundaries.length; i ++ ) {
@@ -94,6 +156,7 @@ export class TriangleParser extends BaseParser {
 			let holes = [];
 
 			const surfaceType = this.getSurfaceTypeIdx( i, semantics, surfaces );
+			const materialValue = this.getSurfaceMaterials( i, material );
 
 			for ( let j = 0; j < boundaries[ i ].length; j ++ ) {
 
@@ -119,7 +182,9 @@ export class TriangleParser extends BaseParser {
 											 surfaceType,
 											 geomIdx,
 											 i,
-											 lodIdx );
+											 lodIdx,
+											 materialValue,
+											 this.getTextureData( i, n, holes, texture ) );
 
 				}
 
@@ -167,7 +232,9 @@ export class TriangleParser extends BaseParser {
 												 surfaceType,
 												 geomIdx,
 												 i,
-												 lodIdx );
+												 lodIdx,
+												 materialValue,
+												 this.getTextureData( i, tr[ k + n ], holes, texture ) );
 
 					}
 

@@ -12,16 +12,14 @@ import { TriangleParser } from './geometry/TriangleParser';
 import { LineParser } from './geometry/LineParser';
 import { PointParser } from './geometry/PointParser';
 import { CityObjectsInstancedMesh } from '../objects/CityObjectsInstancedMesh.js';
+import { ChunkParser } from './helpers/ChunkParser.js';
 
-export class CityJSONWorkerParser {
+export class CityJSONParser {
 
 	constructor() {
 
 		this.matrix = null;
-		this.onChunkLoad = null;
-		this.onComplete = null;
 		this.chunkSize = 2000;
-		this.loading = false;
 
 		this.objectColors = defaultObjectColors;
 		this.surfaceColors = defaultSemanticsColors;
@@ -73,79 +71,69 @@ export class CityJSONWorkerParser {
 
 	parse( data, scene ) {
 
-		this.loading = true;
+		const chunkParser = new ChunkParser();
 
-		// Sets the web worker that will parse all normal (ie non-instanced)
-		// geometries
-		const worker = new Worker( "./helpers/ParserWorker.js" );
-		const m = this.matrix;
-		const onChunkLoad = this.onChunkLoad;
-		const onComplete = this.onComplete;
-		const context = this;
-		const citymodel = data;
+		if ( this.chunkSize ) {
 
-		worker.onmessage = function ( e ) {
+			chunkParser.chunkSize = this.chunkSize;
 
-			if ( e.data.type === "chunkLoaded" ) {
+		}
 
-				const vertices = e.data.v_buffer;
-				const geometryData = e.data.geometryData;
+		if ( this.objectColors ) {
 
-				context.setMaterialsColors( e.data.objectColors, e.data.surfaceColors );
+			chunkParser.objectColors = this.objectColors;
 
-				context.lods = e.data.lods;
-				context.objectColors = e.data.objectColors;
-				context.surfaceColors = e.data.surfaceColors;
+		}
 
-				if ( e.data.geometryData.geometryType == TRIANGLES ) {
+		if ( this.lods ) {
 
-					const mesh = new CityObjectsMesh( citymodel, vertices, geometryData, m, context.meshMaterial );
-					scene.add( mesh );
+			chunkParser.lods = this.lods;
 
-				}
-
-				if ( e.data.geometryData.geometryType == LINES ) {
-
-					const lines = new CityObjectsLines( citymodel, vertices, geometryData, m, context.lineMaterial );
-					scene.add( lines );
-
-				}
-
-				if ( e.data.geometryData.geometryType == POINTS ) {
+		}
 
 
-					const points = new CityObjectsPoints( citymodel, vertices, geometryData, m, context.pointsMaterial );
-					scene.add( points );
+		chunkParser.onchunkload = ( v, geometryData, lods, objectColors, surfaceColors ) => {
 
-				}
+			const vertexArray = new Float32Array( v );
+			const vertexBuffer = vertexArray.buffer;
 
-				if ( onChunkLoad ) {
+			const vertices = vertexBuffer;
+			this.setMaterialsColors( objectColors, surfaceColors );
+			this.lods = lods;
+			this.objectColors = objectColors;
+			this.surfaceColors = surfaceColors;
 
-					onChunkLoad();
+			if ( geometryData.geometryType == TRIANGLES ) {
 
-				}
+				const mesh = new CityObjectsMesh( data, vertices, geometryData, this.matrix, this.meshMaterial );
+				scene.add( mesh );
 
-			} else if ( e.data.type === "done" ) {
+			}
 
-				context.loading = false;
+			if ( geometryData.geometryType == LINES ) {
 
-				if ( data.appearance && data.appearance.materials ) {
+				const lines = new CityObjectsLines( data, vertices, geometryData, this.matrix, this.lineMaterial );
+				scene.add( lines );
 
-					context.meshMaterial.materials = data.appearance.materials;
+			}
 
-				}
+			if ( geometryData.geometryType == POINTS ) {
 
-				if ( onComplete ) {
-
-					onComplete();
-
-				}
+				const points = new CityObjectsPoints( data, vertices, geometryData, this.matrix, this.pointsMaterial );
+				scene.add( points );
 
 			}
 
 		};
 
-		worker.postMessage( [ data, { chunkSize: this.chunkSize, objectColors: this.objectColors, lods: this.lods } ] );
+		chunkParser.parse( data );
+
+		if ( data.appearance && data.appearance.materials ) {
+
+			this.meshMaterial.materials = data.appearance.materials;
+
+		}
+
 
 		// Parse geometry templates
 		if ( data[ 'geometry-templates' ] ) {
@@ -226,7 +214,7 @@ export class CityJSONWorkerParser {
 
 				if ( templatesGeomData[ i ].geometryType == TRIANGLES ) {
 
-					const mesh = new CityObjectsInstancedMesh( citymodel, templatesGeomData[ i ].getVertices( vertices ), templatesGeomData[ i ], instances[ i ], m, this.meshMaterial );
+					const mesh = new CityObjectsInstancedMesh( data, templatesGeomData[ i ].getVertices( vertices ), templatesGeomData[ i ], instances[ i ], this.matrix, this.meshMaterial );
 					scene.add( mesh );
 
 
@@ -238,7 +226,7 @@ export class CityJSONWorkerParser {
 						templatesGeomData[ i ].setObjectType( instances[ i ].objectType[ j ] );
 						templatesGeomData[ i ].setGeometryIdx( instances[ i ].geometryIds[ j ] );
 
-						const line = new CityObjectsLines( templatesGeomData[ i ].getVertices( vertices ), templatesGeomData[ i ], m, this.lineMaterial );
+						const line = new CityObjectsLines( templatesGeomData[ i ].getVertices( vertices ), templatesGeomData[ i ], this.matrix, this.lineMaterial );
 						line.applyMatrix4( instances[ i ].matrices[ j ] );
 						scene.add( line );
 
@@ -252,7 +240,7 @@ export class CityJSONWorkerParser {
 						templatesGeomData[ i ].setObjectType( instances[ i ].objectType[ j ] );
 						templatesGeomData[ i ].setGeometryIdx( instances[ i ].geometryIds[ j ] );
 
-						const line = new CityObjectsPoints( templatesGeomData[ i ].getVertices( vertices ), templatesGeomData[ i ], m, this.pointsMaterial );
+						const line = new CityObjectsPoints( templatesGeomData[ i ].getVertices( vertices ), templatesGeomData[ i ], this.matrix, this.pointsMaterial );
 						line.applyMatrix4( instances[ i ].matrices[ j ] );
 						scene.add( line );
 
@@ -265,5 +253,6 @@ export class CityJSONWorkerParser {
 		}
 
 	}
+
 
 }

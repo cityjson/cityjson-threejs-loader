@@ -1,3 +1,4 @@
+import 'regenerator-runtime/runtime';
 import { ChunkParser } from './ChunkParser.js';
 
 onmessage = function ( e ) {

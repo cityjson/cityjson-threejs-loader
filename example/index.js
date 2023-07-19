@@ -1,3 +1,4 @@
+import 'regenerator-runtime/runtime';
 import {
 	CityJSONLoader,
 	CityJSONWorkerParser
@@ -20,10 +21,12 @@ import {
 	Vector3,
 	WebGLRenderer
 } from 'three';
-import { BufferGeometryUtils } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { estimateBytesUsed } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import * as dat from 'three/examples/jsm/libs/dat.gui.module.js';
+import * as dat from 'three/examples/jsm/libs/lil-gui.module.min.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
+import { AttributeEvaluator } from '../src/helpers/AttributeEvaluator';
+import { TextureManager } from '../src/helpers/TextureManager';
 
 let scene, renderer, camera, controls, stats, raycaster;
 let modelgroup;
@@ -36,6 +39,9 @@ let colorOptions;
 let semanticOptions;
 let objectOptions;
 let marker;
+let conditionalOptions;
+let appearanceOptions;
+let textureManager;
 
 let params = {
 
@@ -46,7 +52,15 @@ let params = {
 	'ambientIntensity': 0.7,
 	'directionalIntensity': 1,
 	'linePickingThreshold': 0.1,
-	'linewidth': 0.001
+	'linewidth': 0.001,
+	'conditional': {
+		'show': false,
+		'attribute': 'None'
+	},
+	'appearance': {
+		'materialTheme': 'None',
+		'textureTheme': 'None'
+	}
 
 };
 
@@ -160,8 +174,10 @@ function init() {
 	colorOptions.open();
 
 	semanticOptions = colorOptions.addFolder( 'Semantics' );
+	semanticOptions.close();
 
 	objectOptions = colorOptions.addFolder( 'City Objects' );
+	objectOptions.close();
 
 	const lightingOptions = gui.addFolder( 'Lights' );
 
@@ -177,6 +193,11 @@ function init() {
 
 	} );
 
+	conditionalOptions = gui.addFolder( 'Conditional' );
+	conditionalOptions.add( params.conditional, "show" );
+	conditionalOptions.add( params.conditional, "attribute", [ "None" ] );
+
+	appearanceOptions = gui.addFolder( 'Appearance' );
 
 	gui.open();
 
@@ -187,7 +208,7 @@ function init() {
 	parser = new CityJSONWorkerParser();
 	parser.chunkSize = 2000;
 	parser.onChunkLoad = chunkUpdate;
-	parser.onComplete = chunkUpdate;
+	parser.onComplete = onComplete;
 
 	loader = new CityJSONLoader( parser );
 
@@ -233,7 +254,7 @@ function chunkUpdate() {
 		if ( c.geometry ) {
 
 			objCount ++;
-			memCount += BufferGeometryUtils.estimateBytesUsed( c.geometry );
+			memCount += estimateBytesUsed( c.geometry );
 			const attr = c.geometry.getAttribute( "type" );
 			vCount += attr.count;
 
@@ -329,6 +350,236 @@ function chunkUpdate() {
 
 }
 
+function colorsFromString( colors ) {
+
+	const result = {};
+
+	for ( const color in colors ) {
+
+		result[ color ] = parseInt( colors[ color ].replace( '#', '' ), 16 );
+
+	}
+
+	return result;
+
+}
+
+function colorsToString( colors ) {
+
+	const result = {};
+
+	for ( const color in colors ) {
+
+		result[ color ] = '#' + colors[ color ].toString( 16 ).padStart( 6, '0' );
+
+	}
+
+	return result;
+
+}
+
+function onComplete() {
+
+	chunkUpdate();
+
+	textureManager = new TextureManager( citymodel );
+	textureManager.onChange = _ => scene.traverse( c => {
+
+		if ( c.supportsMaterials ) {
+
+			c.setTextureTheme( params.appearance.textureTheme, textureManager );
+
+			// c.material.textureTheme = value;
+
+		}
+
+	} );
+
+	const controllers = conditionalOptions.controllers.map( i => i );
+
+	for ( const controller of controllers ) {
+
+		controller.destroy();
+
+	}
+
+	const attributes = new Set( Object.keys( citymodel.CityObjects ).map( objId => {
+
+		const cityobject = citymodel.CityObjects[ objId ];
+
+		if ( cityobject.attributes ) {
+
+			return Object.keys( cityobject.attributes );
+
+		}
+
+		return [];
+
+	} ).flat() );
+
+	const atts = [ ...attributes ].filter( a => {
+
+		const evaluator = new AttributeEvaluator( citymodel, a, false );
+
+		return evaluator.getUniqueValues().length > 1 && evaluator.getUniqueValues().length < 20;
+
+	} );
+
+	conditionalOptions.add( params.conditional, "show" );
+	conditionalOptions.add( params.conditional, "attribute", [ ...atts ] ).onChange( attribute => {
+
+		const controllers = conditionalOptions.controllers.map( i => i );
+
+		for ( const controller of controllers ) {
+
+			if ( controller.property != "show" && controller.property != "attribute" ) {
+
+				controller.destroy();
+
+			}
+
+		}
+
+		const evaluator = new AttributeEvaluator( citymodel, attribute, false );
+		const colors = evaluator.createColors();
+
+		scene.traverse( c => {
+
+			if ( c.supportsConditionalFormatting ) {
+
+				c.addAttributeByProperty( evaluator, false );
+				c.material.attributeColors = colors;
+
+			}
+
+		} );
+
+		params.conditional.colors = colorsToString( colors );
+
+		for ( const color in colors ) {
+
+			conditionalOptions.addColor( params.conditional.colors, color ).onChange( () => {
+
+				const newColors = colorsFromString( params.conditional.colors );
+
+				scene.traverse( c => {
+
+					if ( c.supportsConditionalFormatting ) {
+
+						c.material.attributeColors = newColors;
+
+					}
+
+				} );
+
+			} );
+
+		}
+
+	} );
+
+	const apControllers = appearanceOptions.controllers.map( i => i );
+
+	for ( const controller of apControllers ) {
+
+		controller.destroy();
+
+	}
+
+	const themes = Object.entries( citymodel.CityObjects ).map( cityobject => {
+
+		const [ , obj ] = cityobject;
+
+		if ( obj.geometry ) {
+
+			return obj.geometry.map( geom => {
+
+				if ( geom.material ) {
+
+					return Object.keys( geom.material );
+
+				} else {
+
+					return [];
+
+				}
+
+			} );
+
+		} else {
+
+			return [];
+
+		}
+
+
+	} ).flat( 2 );
+
+	const themeOptions = Object.assign( { "None": 'undefined' }, themes.reduce( ( a, v ) => ( { ...a, [ v ]: v } ), {} ) );
+
+	appearanceOptions.add( params.appearance, 'materialTheme', themeOptions ).onChange( value => {
+
+		scene.traverse( c => {
+
+			if ( c.supportsMaterials ) {
+
+				c.material.materialTheme = value;
+
+			}
+
+		} );
+
+	} );
+
+	const texThemes = Object.entries( citymodel.CityObjects ).map( cityobject => {
+
+		const [ , obj ] = cityobject;
+
+		if ( obj.geometry ) {
+
+			return obj.geometry.map( geom => {
+
+				if ( geom.texture ) {
+
+					return Object.keys( geom.texture );
+
+				} else {
+
+					return [];
+
+				}
+
+			} );
+
+		} else {
+
+			return [];
+
+		}
+
+
+	} ).flat( 2 );
+
+	const texThemeOptions = Object.assign( { "None": 'undefined' }, texThemes.reduce( ( a, v ) => ( { ...a, [ v ]: v } ), {} ) );
+
+	appearanceOptions.add( params.appearance, 'textureTheme', texThemeOptions ).onChange( value => {
+
+		scene.traverse( c => {
+
+			if ( c.supportsMaterials ) {
+
+				c.setTextureTheme( value, textureManager );
+
+				// c.material.textureTheme = value;
+
+			}
+
+		} );
+
+	} );
+
+}
+
 function onMouseMove( e ) {
 
 	if ( ! e.ctrlKey ) {
@@ -351,6 +602,7 @@ function onMouseMove( e ) {
 		const { face, point, object, faceIndex, index } = results[ 0 ];
 
 		let closestPoint = null;
+		let data = {};
 
 		// Snap to closest point
 		const position = object.geometry.getAttribute( 'position' );
@@ -365,13 +617,39 @@ function onMouseMove( e ) {
 			];
 			let dist = point.distanceTo( points[ 0 ] );
 			closestPoint = points[ 0 ];
+			let closest_i = 0;
 			for ( let i = 0; i < 3; i ++ ) {
 
 				const newDist = point.distanceTo( points[ i ] );
 				if ( newDist < dist ) {
 
 					closestPoint = points[ i ];
+					closest_i = i;
 					dist = newDist;
+
+				}
+
+			}
+
+			if ( closestPoint ) {
+
+				for ( const attribute in object.geometry.attributes ) {
+
+					const attr = object.geometry.attributes[ attribute ];
+
+					if ( attr.itemSize == 1 ) {
+
+						data[ attribute ] = attr.getX( face.a + closest_i );
+
+					} else if ( attr.itemSize == 2 ) {
+
+						data[ attribute ] = [ attr.getX( face.a + closest_i ), attr.getY( face.a + closest_i ) ];
+
+					} else {
+
+						data[ attribute ] = [ attr.getX( face.a + closest_i ), attr.getY( face.a + closest_i ), attr.getZ( face.a + closest_i ) ];
+
+					}
 
 				}
 
@@ -412,7 +690,7 @@ function onMouseMove( e ) {
 
 		closestPoint.applyMatrix4( mm );
 
-		let str = `${ Math.round( closestPoint.x * 1000 ) / 1000 }, ${ Math.round( closestPoint.y * 1000 ) / 1000 }, ${ Math.round( closestPoint.z * 1000 ) / 1000 }`;
+		let str = `${ Math.round( closestPoint.x * 1000 ) / 1000 }, ${ Math.round( closestPoint.y * 1000 ) / 1000 }, ${ Math.round( closestPoint.z * 1000 ) / 1000 }\n<pre>` + JSON.stringify( data, null, 2 ) + "</pre>";
 
 		infoContainer.innerHTML = str;
 
@@ -422,9 +700,13 @@ function onMouseMove( e ) {
 
 function onDrop( e ) {
 
+	params.conditional.show = false;
+
 	e.preventDefault();
 
-	if ( ! e.ctrlKey ) {
+	const hasJSON = Object.values( e.dataTransfer.files ).some( file => file.name.split( '.' ).pop().toLowerCase() === 'json' );
+
+	if ( ! e.ctrlKey && hasJSON ) {
 
 		while ( loader.scene.children.length > 0 ) {
 
@@ -436,13 +718,15 @@ function onDrop( e ) {
 
 	}
 
-	for ( const item of e.dataTransfer.items ) {
+	for ( const file of e.dataTransfer.files ) {
 
-		if ( item.kind === 'file' ) {
+		const filename = file.name;
+		const extension = filename.split( '.' ).pop().toLowerCase();
+
+		if ( extension === 'json' ) {
 
 			statsContainer.innerHTML = "Oh, a file! Let me parse this...";
 
-			const file = item.getAsFile();
 			const reader = new FileReader();
 			reader.readAsText( file, "UTF-8" );
 			reader.onload = evt => {
@@ -465,6 +749,10 @@ function onDrop( e ) {
 				modelgroup.add( loader.scene );
 
 			};
+
+		} else {
+
+			textureManager.setTextureFromFile( file );
 
 		}
 
@@ -511,9 +799,19 @@ function onDblClick( e ) {
 
 	modelgroup.traverse( c => {
 
-		if ( c.material && c.material.isCityObjectsMaterial ) {
+		if ( c.material ) {
 
-			c.material.highlightedObject = undefined;
+			const mats = Array.isArray( c.material ) ? c.material : [ c.material ];
+
+			for ( const mat of mats ) {
+
+				if ( mat.isCityObjectsMaterial ) {
+
+					mat.highlightedObject = undefined;
+
+				}
+
+			}
 
 		}
 
@@ -527,11 +825,11 @@ function onDblClick( e ) {
 		const result = getActiveResult( results );
 		const object = result.object;
 
-		const intersectionInfo = object.resolveIntersectionInfo( result, citymodel );
+		const intersectionInfo = object.resolveIntersectionInfo( result );
 
 		if ( intersectionInfo ) {
 
-			const data = Object.assign( {}, citymodel.CityObjects[ intersectionInfo.objectId ] );
+			const data = Object.assign( {}, object.citymodel.CityObjects[ intersectionInfo.objectId ] );
 			delete data.geometry;
 
 			const semId = intersectionInfo.surfaceTypeIndex;
@@ -559,8 +857,6 @@ function onDblClick( e ) {
 
 					if ( parentObject.attributes ) {
 
-						console.log( parentObject.attributes );
-
 						Object.keys( parentObject.attributes ).map( k => {
 
 							str += `<br/>${ k }: ${ parentObject.attributes[ k ] }`;
@@ -575,11 +871,20 @@ function onDblClick( e ) {
 
 			infoContainer.innerHTML = str;
 
-			if ( object.material.isCityObjectsMaterial ) {
+			if ( object.material ) {
 
-				object.material.highlightedObject = intersectionInfo;
+				const mats = Array.isArray( object.material ) ? object.material : [ object.material ];
 
-				object.material.selectSurface = e.shiftKey;
+				for ( const mat of mats ) {
+
+					if ( mat.isCityObjectsMaterial ) {
+
+						mat.highlightedObject = intersectionInfo;
+						mat.selectSurface = e.shiftKey;
+
+					}
+
+				}
 
 			}
 
@@ -597,11 +902,27 @@ function render() {
 
 	scene.traverse( c => {
 
-		if ( c.material && c.material.isCityObjectsMaterial ) {
+		if ( c.material ) {
 
-			c.material.showSemantics = params.showSemantics;
-			c.material.showLod = params.showOnlyLod;
-			c.material.highlightColor = params.highlightColor;
+			const mats = Array.isArray( c.material ) ? c.material : [ c.material ];
+
+			for ( const mat of mats ) {
+
+				if ( mat.isCityObjectsMaterial ) {
+
+					mat.showSemantics = params.showSemantics;
+					mat.showLod = params.showOnlyLod;
+					mat.highlightColor = params.highlightColor;
+
+				}
+
+				if ( c.supportsConditionalFormatting ) {
+
+					mat.conditionalFormatting = params.conditional.show;
+
+				}
+
+			}
 
 		}
 
