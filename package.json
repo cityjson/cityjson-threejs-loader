@@ -1,6 +1,6 @@
 {
   "name": "cityjson-threejs-loader",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "A CityJSON loader for three.js",
   "repository": "http://github.com/cityjson/cityjson-threejs-loader",
   "author": "Stelios Vitalis",
@@ -12,7 +12,6 @@
   ],
   "scripts": {
     "start": "parcel example/*.html",
-    "dev": "concurrently \"parcel watch example/*.html --out-dir ./example/dev-bundle/ --public-url . --no-cache\" \"static-server\"",
     "lint": "eslint \"src/**/*.js\""
   },
   "dependencies": {
