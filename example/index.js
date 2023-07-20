@@ -214,7 +214,7 @@ function init() {
 
 	statsContainer.innerHTML = "Fetching...";
 
-	fetch( "/example/data/tetra.json" )
+	fetch( "/data/tetra.json" )
 		.then( res => {
 
 			if ( res.ok ) {
