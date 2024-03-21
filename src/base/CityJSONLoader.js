@@ -31,11 +31,29 @@ export class CityJSONLoader {
 			// We shallow clone the object to avoid modifying the original
 			// objects vertices
 			const new_data = Object.assign( {}, data );
-			new_data.vertices = this.applyTransform( data );
+			// new_data.vertices = this.applyTransform( data );
+			const transform = new Matrix4().identity();
+
+			if ( data[ "transform" ] != undefined ) {
+
+				const t = data.transform.translate;
+				const s = data.transform.scale;
+
+				transform.set(
+					s[ 0 ], 0, 0, t[ 0 ],
+					0, s[ 1 ], 0, t[ 1 ],
+					0, 0, s[ 2 ], t[ 2 ],
+					0, 0, 0, 1
+				);
+
+			}
 
 			if ( this.matrix == null ) {
 
 				this.computeMatrix( new_data );
+
+				this.matrix = transform;
+				this.matrix.setPosition( 0, 0, 0 );
 
 			}
 

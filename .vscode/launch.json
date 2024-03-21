@@ -19,10 +19,10 @@
             "type": "chrome",
             "request": "launch",
             "name": "Launch Chrome",
-            "url": "http://localhost:9080/example/dev-bundle/index.html",
+            "url": "http://localhost:1234",
             "webRoot": "${workspaceFolder}",
             "sourceMapPathOverrides": {
-                "../*": "${webRoot}/example/*"
+                "../*": "${webRoot}/*"
             }
         }
     ]

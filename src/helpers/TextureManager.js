@@ -53,7 +53,8 @@ export class TextureManager {
 
 					const mat = new CityObjectsMaterial( ShaderLib.lambert, {
 						objectColors: baseMaterial.objectColors,
-						surfaceColors: baseMaterial.surfaceColors
+						surfaceColors: baseMaterial.surfaceColors,
+						transparent: true
 					} );
 
 					mat.uniforms.cityTexture.value = this.textures[ i ];
