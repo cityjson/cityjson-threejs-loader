@@ -57,7 +57,7 @@ if ( intersection ) {
     // Check if this is a city object
     if ( object.isCityObject ) {
 
-        const data = object.resolveIntersectionInfo( intersection[ 0 ], cityjsonData )
+        const data = object.resolveIntersectionInfo( intersection[ 0 ] )
 
         const objectId = data.objectId; // This is the objectId of the city object hit by the ray
 
