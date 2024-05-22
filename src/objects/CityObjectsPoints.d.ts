@@ -12,15 +12,20 @@ import { GeometryData } from "../parsers/geometry/GeometryData";
  */
 export class CityObjectsPoints extends Mesh {
 
+    citymodel: Object;
+    isCityObject: true;
+    isCityObjectPoints: true;
+
     /**
      * Creates a CityObjectMesh from `GeometryData`
      * 
+     * @param citymodel The CityJSON model
      * @param vertices The list of vertices for the mesh
      * @param geometryData The geometry data with all other information (objectIds etc.)
      * @param matrix A matrix to transform the mesh
      * @param material A material (preferably a `CityObjectsMaterial`)
      */
-    constructor ( vertices: Vector3[], geometryData: GeometryData, matrix: Matrix4, material: Material );
+    constructor ( citymodel: Object, vertices: Vector3[], geometryData: GeometryData, matrix: Matrix4, material: Material );
 
     /**
      * Returns the index of one vertex that was close to the intersection as

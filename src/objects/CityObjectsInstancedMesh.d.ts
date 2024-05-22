@@ -11,16 +11,23 @@ import { GeometryData } from "../parsers/geometry/GeometryData";
  */
 export class CityObjectsInstancedMesh extends Mesh {
 
+    citymodel: Object;
+    isCityObject: true;
+    isCityObjectMesh: true;
+    supportsConditionalFormatting: true;
+    supportsMaterials: true;
+
     /**
      * Creates a CityObjectMesh from `GeometryData`
      * 
+     * @param citymodel The CityJSON model
      * @param vertices The list of vertices for the mesh
      * @param geometryData The geometry data with all other information (surfaceTypes etc.)
      * @param isntanceData The data of instanced (objectIds, objectTypes and geometryIds)
      * @param matrix A matrix to transform the mesh
      * @param material A material (preferably a `CityObjectsMaterial`)
      */
-    constructor ( vertices: Vector3[], geometryData: GeometryData, instanceData: Object, matrix: Matrix4, material: Material );
+    constructor ( citymodel: Object, vertices: Vector3[], geometryData: GeometryData, instanceData: Object, matrix: Matrix4, material: Material );
 
     /**
      * Returns the index of one vertex that was close to the intersection as
