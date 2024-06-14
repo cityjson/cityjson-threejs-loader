@@ -46,9 +46,8 @@ export class CityObjectsMesh extends Mesh {
      * { vertexIndex, objectIndex, objectId, geometryIndex, boundaryIndex, objectTypeIndex, surfaceTypeIndex, lodIndex }
      * 
      * @param intersection The intersection (as returned from a `Raycaster`)
-     * @param citymodel The CityJSON model
      */
-    resolveIntersectionInfo( intersection: Object, citymodel: Object ): Object;
+    resolveIntersectionInfo( intersection: Object ): Object;
 
     /**
      * Prepares the mesh geometry for conditional formatting, by creating a
