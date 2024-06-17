@@ -1,8 +1,4 @@
-import { Texture } from "three";
-import { sRGBEncoding } from "three";
-import { ShaderLib } from "three";
-import { RepeatWrapping } from "three";
-import { TextureLoader } from "three";
+import { Texture, ShaderLib, RepeatWrapping, TextureLoader, SRGBColorSpace } from "three";
 import { CityObjectsMaterial } from "../materials/CityObjectsMaterial";
 
 export class TextureManager {
@@ -96,7 +92,7 @@ export class TextureManager {
 
 		new TextureLoader().load( url, ( tex => {
 
-			tex.encoding = sRGBEncoding;
+			tex.encoding = SRGBColorSpace;
 			tex.wrapS = RepeatWrapping;
 			tex.wrapT = RepeatWrapping;
 

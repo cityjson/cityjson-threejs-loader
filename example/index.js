@@ -16,7 +16,7 @@ import {
 	PointsMaterial,
 	Raycaster,
 	Scene,
-	sRGBEncoding,
+	SRGBColorSpace,
 	Vector2,
 	Vector3,
 	WebGLRenderer
@@ -75,7 +75,7 @@ function init() {
 	renderer.setPixelRatio( window.devicePixelRatio );
 	renderer.setSize( window.innerWidth, window.innerHeight );
 	renderer.setClearColor( params.backgroundColor );
-	renderer.outputEncoding = sRGBEncoding;
+	renderer.outputEncoding = SRGBColorSpace;
 
 	document.body.appendChild( renderer.domElement );
 

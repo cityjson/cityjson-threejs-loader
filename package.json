@@ -18,10 +18,10 @@
     "earcut": "^2.2.2"
   },
   "peerDependencies": {
-    "three": ">0.139.2"
+    "three": "^0.165.0"
   },
   "devDependencies": {
-    "@types/three": ">0.139.2",
+    "@types/three": "^0.165.0",
     "concurrently": "^6.0.0",
     "eslint": "^7.18.0",
     "eslint-config-mdcs": "^5.0.0",
