@@ -139,7 +139,7 @@ export class TextureManager {
 
 						const tex = new Texture( evt.target );
 
-						tex.encoding = sRGBEncoding;
+						tex.encoding = SRGBColorSpace;
 						tex.wrapS = RepeatWrapping;
 						tex.wrapT = RepeatWrapping;
 						tex.needsUpdate = true;
