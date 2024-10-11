@@ -29,7 +29,7 @@ export class CityJSONWorkerParser {
      * of a vertex based on its `lodid` attributes. This variable will be filled
      * as the parsing proceeds with as many LoDs are occured in a file.
      */
-    lods: Number[];
+    lods: string[];
 
     /**
      * Callback for when a chunk is finished loading
