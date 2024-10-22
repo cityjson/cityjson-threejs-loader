@@ -10,18 +10,51 @@ export class GeometryData {
      */
     geometryType : Number;
 
+    /**
+     * Array of vertex indices corresponding to the vertices in the CityJSON `vertices` array. 
+     */
     vertexIds: Number[];
+    /**
+     * Array of CityObject indices. Each entry corresponds to a CityObject that the vertices are associated with.
+     */
     objectIds: Number[];
+    /**
+     * Array of CityObject type indices. Each entry corresponds to the type of the CityObject (e.g., "Building", "Bridge"),
+     * which is indexed from the `defaultObjectColors` or `parser.objectColors`.
+     */
     objectTypes: Number[];
+    /**
+     * Array of surface type indices. Each entry represents the type of surface (e.g., "GroundSurface", "WallSurface")
+     * that a vertex belongs to. The index corresponds to entries in the `surfaceColors` or `defaultSemanticsColors` object.
+     */
     semanticSurfaces: Number[];
+    /**
+     * Array of geometry indices. Each entry refers to the index of a geometry in the CityObject's `geometry` array, 
+     * representing which geometric representation the vertex is part of.
+     */
     geometryIds: Number[];
+    /**
+     * Array of boundary indices. Each entry refers to a boundary or shell in the geometry structure, representing 
+     * which boundary a vertex belongs to.
+     */
     boundaryIds: Number[];
+    /**
+     * Array of Level of Detail (LoD) indices. Each entry corresponds to a LoD level associated with the vertex, 
+     * indicating which LoD geometry representation the vertex is part of.
+     */
     lodIds: Number[];
 
-	constructor(geometryType: any);
+	constructor(geometryType: number);
 
     /**
      * Adds a vertex with the given data
+     * @param vertexId The index of the vertex in the CityJSON `vertices` array.
+     * @param objectId The index of the CityObject this vertex belongs to.
+     * @param objectType  The type of the CityObject (e.g., "Building", "Bridge") as indexed in the `defaultObjectColors` or `parser.objectColors` array.
+     * @param surfaceType The index of the surface type in the `surfaceColors` object. Check `defaultSemanticsColors` for example.
+     * @param geometryIdx The index of the geometry in the CityObject's `geometry` array.
+     * @param boundaryIdx The index of the boundary or shell that this vertex belongs to within the geometry structure.
+     * @param lodIdx The Level of Detail (LoD) index that defines which LoD this vertex is associated with.
      */
     addVertex( vertexId: Number, objectId: Number, objectType: Number, surfaceType: Number, geometryIdx: Number, boundaryIdx: Number, lodIdx: Number ) : void
 
