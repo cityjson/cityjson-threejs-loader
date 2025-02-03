@@ -1,5 +1,5 @@
 import { ShaderChunk, UniformsLib, UniformsUtils } from "three";
-import { CityObjectsBaseMaterial } from "./CityObjectsBaseMaterial";
+import { CityObjectsBaseMaterial } from "./CityObjectsBaseMaterial.js";
 
 export class CityObjectsMaterial extends CityObjectsBaseMaterial {
 

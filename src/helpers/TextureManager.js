@@ -1,5 +1,5 @@
 import { Texture, ShaderLib, RepeatWrapping, TextureLoader, SRGBColorSpace } from "three";
-import { CityObjectsMaterial } from "../materials/CityObjectsMaterial";
+import { CityObjectsMaterial } from "../materials/CityObjectsMaterial.js";
 
 export class TextureManager {
 

@@ -4,7 +4,7 @@ import {
 	BufferGeometry,
 	Group,
 	Matrix4 } from 'three';
-import { CityJSONWorkerParser } from '../parsers/CityJSONWorkerParser';
+import { CityJSONWorkerParser } from '../parsers/CityJSONWorkerParser.js';
 
 export class CityJSONLoader {
 

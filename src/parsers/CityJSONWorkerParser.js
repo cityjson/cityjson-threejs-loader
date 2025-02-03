@@ -1,16 +1,16 @@
 import { Matrix4, ShaderLib } from 'three';
 import { defaultObjectColors, defaultSemanticsColors } from '../defaults/colors.js';
-import { POINTS, LINES, TRIANGLES } from './geometry/GeometryData';
-import 'three/examples/jsm/lines/LineMaterial';
+import { POINTS, LINES, TRIANGLES } from './geometry/GeometryData.js';
+import 'three/examples/jsm/lines/LineMaterial.js';
 import { CityObjectsMaterial } from '../materials/CityObjectsMaterial.js';
 import { CityObjectsMesh } from '../objects/CityObjectsMesh.js';
 import { CityObjectsLines } from '../objects/CityObjectsLines.js';
 import { CityObjectsPoints } from '../objects/CityObjectsPoints.js';
 import { CityObjectsLineMaterial } from '../materials/CityObjectsLineMaterial.js';
 import { CityObjectsPointsMaterial } from '../materials/CityObjectsPointsMaterial.js';
-import { TriangleParser } from './geometry/TriangleParser';
-import { LineParser } from './geometry/LineParser';
-import { PointParser } from './geometry/PointParser';
+import { TriangleParser } from './geometry/TriangleParser.js';
+import { LineParser } from './geometry/LineParser.js';
+import { PointParser } from './geometry/PointParser.js';
 import { CityObjectsInstancedMesh } from '../objects/CityObjectsInstancedMesh.js';
 
 export class CityJSONWorkerParser {

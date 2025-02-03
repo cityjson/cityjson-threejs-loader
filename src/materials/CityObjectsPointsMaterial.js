@@ -2,8 +2,8 @@ import { ShaderChunk,
 		 ShaderLib,
 		 UniformsLib,
 		 UniformsUtils } from "three";
-import 'three/examples/jsm/lines/LineMaterial';
-import { CityObjectsBaseMaterial } from "./CityObjectsBaseMaterial";
+import 'three/examples/jsm/lines/LineMaterial.js';
+import { CityObjectsBaseMaterial } from "./CityObjectsBaseMaterial.js";
 
 export class CityObjectsPointsMaterial extends CityObjectsBaseMaterial {
 
