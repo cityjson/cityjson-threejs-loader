@@ -29,7 +29,7 @@ export class CityJSONParser {
      * of a vertex based on its `lodid` attributes. This variable will be filled
      * as the parsing proceeds with as many LoDs are occured in a file.
      */
-    lods: Number[];
+    lods: string[];
     
     /**
      * Parses a CityJSON file (`data`) and adds it to the `scene`.
