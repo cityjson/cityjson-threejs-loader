@@ -10,11 +10,24 @@
   "files": [
     "src/*"
   ],
+  "targets": {
+    "main": {
+      "source": "src/index.js",
+      "distDir": "./dist"
+    },
+    "examples": {
+      "source": "example/*.html",
+      "distDir": "./dist-examples"
+    }
+  },
   "scripts": {
-    "start": "parcel example/*.html",
-    "lint": "eslint \"src/**/*.js\""
+    "start": "parcel serve --target examples",
+    "build": "parcel build --target main",
+    "lint": "eslint \"src/**/*.js\"",
+    "lint:fix": "eslint \"src/**/*.js\" --fix"
   },
   "dependencies": {
+    "@cityjson/cjseq": "^0.0.1",
     "earcut": "^2.2.2"
   },
   "peerDependencies": {
