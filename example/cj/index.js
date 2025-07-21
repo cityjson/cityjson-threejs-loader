@@ -260,7 +260,7 @@ function chunkUpdate() {
 
 		}
 
-		statsContainer.innerHTML = `${ objCount } meshes (${ ( memCount / 1024 / 1024 ).toFixed( 2 ) } MB) - ${ vCount } vertices`;
+		statsContainer.innerHTML = `${objCount} meshes (${( memCount / 1024 / 1024 ).toFixed( 2 )} MB) - ${vCount} vertices`;
 
 		if ( parser.loading ) {
 
@@ -690,7 +690,7 @@ function onMouseMove( e ) {
 
 		closestPoint.applyMatrix4( mm );
 
-		let str = `${ Math.round( closestPoint.x * 1000 ) / 1000 }, ${ Math.round( closestPoint.y * 1000 ) / 1000 }, ${ Math.round( closestPoint.z * 1000 ) / 1000 }\n<pre>` + JSON.stringify( data, null, 2 ) + "</pre>";
+		let str = `${Math.round( closestPoint.x * 1000 ) / 1000}, ${Math.round( closestPoint.y * 1000 ) / 1000}, ${Math.round( closestPoint.z * 1000 ) / 1000}\n<pre>` + JSON.stringify( data, null, 2 ) + "</pre>";
 
 		infoContainer.innerHTML = str;
 
@@ -834,13 +834,13 @@ function onDblClick( e ) {
 
 			const semId = intersectionInfo.surfaceTypeIndex;
 
-			let str = `<b>${ data.type }${ semId >= 0 ? ' - ' + Object.keys( parser.surfaceColors )[ semId ] : '' }</b>`;
-			str += `<br/>Geometry: ${ intersectionInfo.geometryIndex } / Surface: ${ intersectionInfo.boundaryIndex } / LoD: ${ parser.lods[ intersectionInfo.lodIndex ] }`;
+			let str = `<b>${data.type}${semId >= 0 ? ' - ' + Object.keys( parser.surfaceColors )[ semId ] : ''}</b>`;
+			str += `<br/>Geometry: ${intersectionInfo.geometryIndex} / Surface: ${intersectionInfo.boundaryIndex} / LoD: ${parser.lods[ intersectionInfo.lodIndex ]}`;
 			if ( data.attributes ) {
 
 				Object.keys( data.attributes ).map( k => {
 
-					str += `<br/>${ k }: ${ data.attributes[ k ] }`;
+					str += `<br/>${k}: ${data.attributes[ k ]}`;
 
 				} );
 
@@ -859,7 +859,7 @@ function onDblClick( e ) {
 
 						Object.keys( parentObject.attributes ).map( k => {
 
-							str += `<br/>${ k }: ${ parentObject.attributes[ k ] }`;
+							str += `<br/>${k}: ${parentObject.attributes[ k ]}`;
 
 						} );
 
@@ -956,9 +956,9 @@ function fitCameraToSelection( camera, controls, box, fitOffset = 1.2 ) {
 	const distance = fitOffset * Math.max( fitHeightDistance, fitWidthDistance );
 
 	const direction = controls.target.clone()
-	  .sub( camera.position )
-	  .normalize()
-	  .multiplyScalar( distance );
+		.sub( camera.position )
+		.normalize()
+		.multiplyScalar( distance );
 
 	controls.maxDistance = distance * 10;
 	controls.target.copy( center );

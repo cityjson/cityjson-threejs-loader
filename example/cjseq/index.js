@@ -1,0 +1,975 @@
+import 'regenerator-runtime/runtime';
+import {
+	CityJSONSeqLoader,
+	CityJSONWorkerParser
+} from '../../src/index';
+import {
+	AmbientLight,
+	BufferAttribute,
+	BufferGeometry,
+	Color,
+	DirectionalLight,
+	Group,
+	Matrix4,
+	PerspectiveCamera,
+	Points,
+	PointsMaterial,
+	Raycaster,
+	Scene,
+	SRGBColorSpace,
+	Vector2,
+	Vector3,
+	WebGLRenderer
+} from 'three';
+import { estimateBytesUsed } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import * as dat from 'three/examples/jsm/libs/lil-gui.module.min.js';
+import Stats from 'three/examples/jsm/libs/stats.module.js';
+import { AttributeEvaluator } from '../../src/helpers/AttributeEvaluator';
+import { TextureManager } from '../../src/helpers/TextureManager';
+
+let scene, renderer, camera, controls, stats, raycaster;
+let modelgroup;
+let citymodel;
+let parser;
+let loader;
+let statsContainer;
+let infoContainer;
+let colorOptions;
+let semanticOptions;
+let objectOptions;
+let marker;
+let conditionalOptions;
+let appearanceOptions;
+let textureManager;
+
+let params = {
+
+	'showOnlyLod': - 1,
+	'showSemantics': true,
+	'highlightColor': '#FFC107',
+	'backgroundColor': '#1c1c1c',
+	'ambientIntensity': 0.7,
+	'directionalIntensity': 1,
+	'linePickingThreshold': 0.1,
+	'linewidth': 0.001,
+	'conditional': {
+		'show': false,
+		'attribute': 'None'
+	},
+	'appearance': {
+		'materialTheme': 'None',
+		'textureTheme': 'None'
+	}
+
+};
+
+init();
+render();
+
+function init() {
+
+	scene = new Scene();
+
+	renderer = new WebGLRenderer();
+	renderer.setPixelRatio( window.devicePixelRatio );
+	renderer.setSize( window.innerWidth, window.innerHeight );
+	renderer.setClearColor( params.backgroundColor );
+	renderer.outputEncoding = SRGBColorSpace;
+
+	document.body.appendChild( renderer.domElement );
+
+	camera = new PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 0.0001, 4000 );
+	camera.position.set( 1, 1, 1 );
+	camera.up.set( 0, 0, 1 );
+
+	const ambientLight = new AmbientLight( 0x666666, params.ambientIntensity ); // soft white light
+	scene.add( ambientLight );
+
+	// lights
+	const dirLight = new DirectionalLight( 0xffffff, params.directionalIntensity );
+	dirLight.position.set( 1, 2, 3 );
+	scene.add( dirLight );
+
+	modelgroup = new Group();
+	scene.add( modelgroup );
+
+	controls = new OrbitControls( camera, renderer.domElement );
+	controls.screenSpacePanning = false;
+	controls.enableDamping = true;
+	controls.dampingFactor = 0.05;
+
+	raycaster = new Raycaster();
+	raycaster.params.Line.threshold = params.linePickingThreshold;
+	raycaster.params.Points.threshold = params.linePickingThreshold;
+
+	renderer.domElement.addEventListener( 'dblclick', onDblClick, false );
+	renderer.domElement.ondragover = ev => ev.preventDefault();
+	renderer.domElement.ondrop = onDrop;
+	renderer.domElement.addEventListener( 'mousemove', onMouseMove, false );
+
+	const mat = new PointsMaterial( { color: 0xe91e64, size: 10, sizeAttenuation: false } );
+	const pointGeom = new BufferGeometry();
+	pointGeom.setAttribute( "position", new BufferAttribute( new Float32Array( [ 0.0, 0.0, 0.0 ] ), 3 ) );
+	marker = new Points( pointGeom, mat );
+	scene.add( marker );
+	marker.visible = false;
+
+	// controls.addEventListener( 'change', render );
+
+	statsContainer = document.createElement( 'div' );
+	statsContainer.style.position = 'absolute';
+	statsContainer.style.top = 0;
+	statsContainer.style.left = 0;
+	statsContainer.style.color = 'white';
+	statsContainer.style.width = '100%';
+	statsContainer.style.textAlign = 'center';
+	statsContainer.style.padding = '5px';
+	statsContainer.style.pointerEvents = 'none';
+	statsContainer.style.lineHeight = '1.5em';
+	document.body.appendChild( statsContainer );
+
+	infoContainer = document.createElement( 'div' );
+	infoContainer.style.position = 'absolute';
+	infoContainer.style.bottom = 0;
+	infoContainer.style.left = 0;
+	infoContainer.style.color = 'white';
+	infoContainer.style.width = '30%';
+	infoContainer.style.maxHeight = '100%';
+	infoContainer.style.textAlign = 'left';
+	infoContainer.style.padding = '5px';
+	infoContainer.style.pointerEvents = 'none';
+	infoContainer.style.lineHeight = '1.5em';
+	document.body.appendChild( infoContainer );
+
+	// GUI
+	const gui = new dat.GUI();
+	gui.width = 300;
+
+	const visualOptions = gui.addFolder( 'Visual Options' );
+	visualOptions.add( params, 'showSemantics' );
+	visualOptions.add( params, 'showOnlyLod' ).min( - 1 ).max( 10 ).step( 1 );
+	visualOptions.add( params, 'linewidth' ).min( 0.001 ).max( 0.01 ).step( 0.001 ).onChange( ( v ) => {
+
+		scene.traverse( m => {
+
+			if ( m.material && m.material.linewidth ) {
+
+				m.material.linewidth = v;
+
+			}
+
+		} );
+
+	} );
+	visualOptions.open();
+
+	colorOptions = gui.addFolder( 'Colors' );
+	colorOptions.addColor( params, 'backgroundColor' ).onChange( v => {
+
+		renderer.setClearColor( v );
+
+	} );
+	colorOptions.addColor( params, 'highlightColor' );
+	colorOptions.open();
+
+	semanticOptions = colorOptions.addFolder( 'Semantics' );
+	semanticOptions.close();
+
+	objectOptions = colorOptions.addFolder( 'City Objects' );
+	objectOptions.close();
+
+	const lightingOptions = gui.addFolder( 'Lights' );
+
+	lightingOptions.add( params, "ambientIntensity" ).min( 0 ).max( 1 ).step( 0.1 ).onChange( ( v ) => {
+
+		ambientLight.intensity = v;
+
+	} );
+
+	lightingOptions.add( params, "directionalIntensity" ).min( 0 ).max( 1 ).step( 0.1 ).onChange( ( v ) => {
+
+		dirLight.intensity = v;
+
+	} );
+
+	conditionalOptions = gui.addFolder( 'Conditional' );
+	conditionalOptions.add( params.conditional, "show" );
+	conditionalOptions.add( params.conditional, "attribute", [ "None" ] );
+
+	appearanceOptions = gui.addFolder( 'Appearance' );
+
+	gui.open();
+
+	stats = new Stats();
+	stats.showPanel( 0 );
+	document.body.appendChild( stats.dom );
+
+	parser = new CityJSONWorkerParser();
+	parser.chunkSize = 2000;
+	parser.onChunkLoad = chunkUpdate;
+	parser.onComplete = onComplete;
+
+	loader = new CityJSONSeqLoader( parser );
+
+	statsContainer.innerHTML = "Fetching...";
+	fetch( "Your cityjsonseq file" )
+		.then( res => {
+
+			if ( res.ok ) {
+
+				return res.text();
+
+			}
+
+		} )
+		.then( data => {
+
+			citymodel = data;
+
+			loader.load( data );
+
+			const bbox = loader.boundingBox.clone();
+			bbox.applyMatrix4( loader.matrix );
+
+			fitCameraToSelection( camera, controls, bbox );
+
+			statsContainer.innerHTML = "Parsing...";
+
+			modelgroup.add( loader.scene );
+
+		} );
+
+}
+
+function chunkUpdate() {
+
+	let objCount = 0;
+	let memCount = 0;
+	let vCount = 0;
+
+	modelgroup.traverse( c => {
+
+		if ( c.geometry ) {
+
+			objCount ++;
+			memCount += estimateBytesUsed( c.geometry );
+			const attr = c.geometry.getAttribute( "type" );
+			vCount += attr.count;
+
+		}
+
+		statsContainer.innerHTML = `${objCount} meshes (${( memCount / 1024 / 1024 ).toFixed( 2 )} MB) - ${vCount} vertices`;
+
+		if ( parser.loading ) {
+
+			statsContainer.innerHTML += " - Parsing...";
+
+		}
+
+	} );
+
+	for ( const surface in parser.surfaceColors ) {
+
+		const exists = Object.keys( params ).indexOf( surface ) > - 1;
+
+		params[ surface ] = '#' + parser.surfaceColors[ surface ].toString( 16 ).padStart( 6, '0' );
+
+		if ( ! exists ) {
+
+			semanticOptions.addColor( params, surface ).onChange( () => {
+
+				modelgroup.traverse( c => {
+
+					if ( c.material && c.material.isCityObjectsMaterial ) {
+
+						c.material.showSemantics = params.showSemantics;
+						c.material.showLod = params.showOnlyLod;
+						c.material.highlightColor = params.highlightColor;
+
+						for ( const surface in params ) {
+
+							const idx = Object.keys( parser.surfaceColors ).indexOf( surface );
+							if ( idx > - 1 ) {
+
+								const col = new Color();
+								col.setHex( params[ surface ].replace( '#', '0x' ) );
+								c.material.uniforms.surfaceColors.value[ idx ] = col;
+
+							}
+
+						}
+
+					}
+
+				} );
+
+			} );
+
+		}
+
+	}
+
+	for ( const objtype in parser.objectColors ) {
+
+		const exists = Object.keys( params ).indexOf( objtype ) > - 1;
+
+		params[ objtype ] = '#' + parser.objectColors[ objtype ].toString( 16 ).padStart( 6, '0' );
+
+		if ( ! exists ) {
+
+			objectOptions.addColor( params, objtype ).onChange( () => {
+
+				modelgroup.traverse( c => {
+
+					if ( c.material ) {
+
+						for ( const objtype in params ) {
+
+							const idx = Object.keys( parser.objectColors ).indexOf( objtype );
+							if ( idx > - 1 ) {
+
+								const col = new Color();
+								col.setHex( params[ objtype ].replace( '#', '0x' ) );
+								c.material.uniforms.objectColors.value[ idx ] = col;
+
+							}
+
+						}
+
+					}
+
+				} );
+
+			} );
+
+		}
+
+	}
+
+}
+
+function colorsFromString( colors ) {
+
+	const result = {};
+
+	for ( const color in colors ) {
+
+		result[ color ] = parseInt( colors[ color ].replace( '#', '' ), 16 );
+
+	}
+
+	return result;
+
+}
+
+function colorsToString( colors ) {
+
+	const result = {};
+
+	for ( const color in colors ) {
+
+		result[ color ] = '#' + colors[ color ].toString( 16 ).padStart( 6, '0' );
+
+	}
+
+	return result;
+
+}
+
+function onComplete() {
+
+	chunkUpdate();
+
+	textureManager = new TextureManager( citymodel );
+	textureManager.onChange = _ => scene.traverse( c => {
+
+		if ( c.supportsMaterials ) {
+
+			c.setTextureTheme( params.appearance.textureTheme, textureManager );
+
+			// c.material.textureTheme = value;
+
+		}
+
+	} );
+
+	const controllers = conditionalOptions.controllers.map( i => i );
+
+	for ( const controller of controllers ) {
+
+		controller.destroy();
+
+	}
+
+	const attributes = new Set(
+		( citymodel?.CityObjects ? Object.keys( citymodel.CityObjects ) : [] ).map( objId => {
+
+			const cityobject = citymodel.CityObjects[ objId ];
+
+			if ( cityobject?.attributes ) {
+
+				return Object.keys( cityobject.attributes );
+
+			}
+
+			return [];
+
+		} ).flat()
+	);
+
+	const atts = [ ...attributes ].filter( a => {
+
+		const evaluator = new AttributeEvaluator( citymodel, a, false );
+
+		return evaluator.getUniqueValues().length > 1 && evaluator.getUniqueValues().length < 20;
+
+	} );
+
+	conditionalOptions.add( params.conditional, "show" );
+	conditionalOptions.add( params.conditional, "attribute", [ ...atts ] ).onChange( attribute => {
+
+		const controllers = conditionalOptions.controllers.map( i => i );
+
+		for ( const controller of controllers ) {
+
+			if ( controller.property != "show" && controller.property != "attribute" ) {
+
+				controller.destroy();
+
+			}
+
+		}
+
+		const evaluator = new AttributeEvaluator( citymodel, attribute, false );
+		const colors = evaluator.createColors();
+
+		scene.traverse( c => {
+
+			if ( c.supportsConditionalFormatting ) {
+
+				c.addAttributeByProperty( evaluator, false );
+				c.material.attributeColors = colors;
+
+			}
+
+		} );
+
+		params.conditional.colors = colorsToString( colors );
+
+		for ( const color in colors ) {
+
+			conditionalOptions.addColor( params.conditional.colors, color ).onChange( () => {
+
+				const newColors = colorsFromString( params.conditional.colors );
+
+				scene.traverse( c => {
+
+					if ( c.supportsConditionalFormatting ) {
+
+						c.material.attributeColors = newColors;
+
+					}
+
+				} );
+
+			} );
+
+		}
+
+	} );
+
+	const apControllers = appearanceOptions.controllers.map( i => i );
+
+	for ( const controller of apControllers ) {
+
+		controller.destroy();
+
+	}
+
+	const themes = Object.entries( citymodel?.CityObjects || {} ).map( cityobject => {
+
+		const [ , obj ] = cityobject;
+
+		if ( obj.geometry ) {
+
+			return obj.geometry.map( geom => {
+
+				if ( geom.material ) {
+
+					return Object.keys( geom.material );
+
+				} else {
+
+					return [];
+
+				}
+
+			} );
+
+		} else {
+
+			return [];
+
+		}
+
+
+	} ).flat( 2 );
+
+	const themeOptions = Object.assign( { "None": 'undefined' }, themes.reduce( ( a, v ) => ( { ...a, [ v ]: v } ), {} ) );
+
+	appearanceOptions.add( params.appearance, 'materialTheme', themeOptions ).onChange( value => {
+
+		scene.traverse( c => {
+
+			if ( c.supportsMaterials ) {
+
+				c.material.materialTheme = value;
+
+			}
+
+		} );
+
+	} );
+
+	const texThemes = Object.entries( citymodel?.CityObjects || {} ).map( cityobject => {
+
+		const [ , obj ] = cityobject;
+
+		if ( obj.geometry ) {
+
+			return obj.geometry.map( geom => {
+
+				if ( geom.texture ) {
+
+					return Object.keys( geom.texture );
+
+				} else {
+
+					return [];
+
+				}
+
+			} );
+
+		} else {
+
+			return [];
+
+		}
+
+
+	} ).flat( 2 );
+
+	const texThemeOptions = Object.assign( { "None": 'undefined' }, texThemes.reduce( ( a, v ) => ( { ...a, [ v ]: v } ), {} ) );
+
+	appearanceOptions.add( params.appearance, 'textureTheme', texThemeOptions ).onChange( value => {
+
+		scene.traverse( c => {
+
+			if ( c.supportsMaterials ) {
+
+				c.setTextureTheme( value, textureManager );
+
+				// c.material.textureTheme = value;
+
+			}
+
+		} );
+
+	} );
+
+}
+
+function onMouseMove( e ) {
+
+	if ( ! e.ctrlKey ) {
+
+		return;
+
+	}
+
+	const bounds = this.getBoundingClientRect();
+	const mouse = new Vector2();
+	mouse.x = e.clientX - bounds.x;
+	mouse.y = e.clientY - bounds.y;
+	mouse.x = ( mouse.x / bounds.width ) * 2 - 1;
+	mouse.y = - ( mouse.y / bounds.height ) * 2 + 1;
+	raycaster.setFromCamera( mouse, camera );
+
+	const results = raycaster.intersectObject( modelgroup, true );
+	if ( results.length ) {
+
+		const { face, point, object, faceIndex, index } = results[ 0 ];
+
+		let closestPoint = null;
+		let data = {};
+
+		// Snap to closest point
+		const position = object.geometry.getAttribute( 'position' );
+		const m = object.matrixWorld;
+
+		if ( object.isCityObjectMesh ) {
+
+			const points = [
+				new Vector3( position.getX( face.a ), position.getY( face.a ), position.getZ( face.a ) ).applyMatrix4( m ),
+				new Vector3( position.getX( face.b ), position.getY( face.b ), position.getZ( face.b ) ).applyMatrix4( m ),
+				new Vector3( position.getX( face.c ), position.getY( face.c ), position.getZ( face.c ) ).applyMatrix4( m )
+			];
+			let dist = point.distanceTo( points[ 0 ] );
+			closestPoint = points[ 0 ];
+			let closest_i = 0;
+			for ( let i = 0; i < 3; i ++ ) {
+
+				const newDist = point.distanceTo( points[ i ] );
+				if ( newDist < dist ) {
+
+					closestPoint = points[ i ];
+					closest_i = i;
+					dist = newDist;
+
+				}
+
+			}
+
+			if ( closestPoint ) {
+
+				for ( const attribute in object.geometry.attributes ) {
+
+					const attr = object.geometry.attributes[ attribute ];
+
+					if ( attr.itemSize == 1 ) {
+
+						data[ attribute ] = attr.getX( face.a + closest_i );
+
+					} else if ( attr.itemSize == 2 ) {
+
+						data[ attribute ] = [ attr.getX( face.a + closest_i ), attr.getY( face.a + closest_i ) ];
+
+					} else {
+
+						data[ attribute ] = [ attr.getX( face.a + closest_i ), attr.getY( face.a + closest_i ), attr.getZ( face.a + closest_i ) ];
+
+					}
+
+				}
+
+			}
+
+		} else if ( object.isCityObjectLine ) {
+
+			const instanceStart = object.geometry.getAttribute( 'instanceStart' );
+			closestPoint = new Vector3( instanceStart.getX( faceIndex ), instanceStart.getY( faceIndex ), instanceStart.getZ( faceIndex ) ).applyMatrix4( m );
+
+		} else {
+
+			closestPoint = new Vector3( position.getX( index ), position.getY( index ), position.getZ( index ) ).applyMatrix4( m );
+
+		}
+
+		if ( closestPoint === undefined ) {
+
+			closestPoint = point;
+
+		}
+
+		// Compute and show a marker at the intersection point
+		marker.position.copy( closestPoint );
+		// const normal = face.normal;
+		// normal.transformDirection( object.matrixWorld );
+		// marker.lookAt(
+		// 	closestPoint.x + normal.x,
+		// 	closestPoint.y + normal.y,
+		// 	closestPoint.z + normal.z
+		// );
+
+		marker.visible = true;
+
+		const mm = new Matrix4();
+		mm.copy( parser.matrix );
+		mm.invert();
+
+		closestPoint.applyMatrix4( mm );
+
+		let str = `${Math.round( closestPoint.x * 1000 ) / 1000}, ${Math.round( closestPoint.y * 1000 ) / 1000}, ${Math.round( closestPoint.z * 1000 ) / 1000}\n<pre>` + JSON.stringify( data, null, 2 ) + "</pre>";
+
+		infoContainer.innerHTML = str;
+
+	}
+
+}
+
+function onDrop( e ) {
+
+	params.conditional.show = false;
+
+	e.preventDefault();
+
+	const hasJSON = Object.values( e.dataTransfer.files ).some( file => file.name.split( '.' ).pop().toLowerCase() === 'json' );
+
+	if ( ! e.ctrlKey && hasJSON ) {
+
+		while ( loader.scene.children.length > 0 ) {
+
+			loader.scene.remove( loader.scene.children[ 0 ] );
+
+		}
+
+		loader.matrix = null;
+
+	}
+
+	for ( const file of e.dataTransfer.files ) {
+
+		const filename = file.name;
+		const extension = filename.split( '.' ).pop().toLowerCase();
+
+		if ( extension === 'json' ) {
+
+			statsContainer.innerHTML = "Oh, a file! Let me parse this...";
+
+			const reader = new FileReader();
+			reader.readAsText( file, "UTF-8" );
+			reader.onload = evt => {
+
+				const cm = JSON.parse( evt.target.result );
+
+				statsContainer.innerHTML = "Okay. Now I'll load it...";
+
+				citymodel = cm;
+
+				parser.resetMaterial();
+
+				loader.load( cm );
+
+				const bbox = loader.boundingBox.clone();
+				bbox.applyMatrix4( loader.matrix );
+
+				fitCameraToSelection( camera, controls, bbox );
+
+				modelgroup.add( loader.scene );
+
+			};
+
+		} else {
+
+			textureManager.setTextureFromFile( file );
+
+		}
+
+	}
+
+}
+
+function getActiveResult( results ) {
+
+	// Only pick a result as soon as its LoD is shown
+	if ( params.showOnlyLod > - 1 ) {
+
+		for ( let i = 0; i < results.length; i ++ ) {
+
+			const { face, object, faceIndex } = results[ i ];
+
+			const vertexIdx = face ? face.a : faceIndex * 2;
+
+			const lodIdx = object.geometry.getAttribute( "lodid" ).getX( vertexIdx );
+
+			if ( lodIdx == params.showOnlyLod || lodIdx == - 1 ) {
+
+				return results[ i ];
+
+			}
+
+		}
+
+	}
+
+	return results[ 0 ];
+
+}
+
+function onDblClick( e ) {
+
+	const bounds = this.getBoundingClientRect();
+	const mouse = new Vector2();
+	mouse.x = e.clientX - bounds.x;
+	mouse.y = e.clientY - bounds.y;
+	mouse.x = ( mouse.x / bounds.width ) * 2 - 1;
+	mouse.y = - ( mouse.y / bounds.height ) * 2 + 1;
+	raycaster.setFromCamera( mouse, camera );
+
+	modelgroup.traverse( c => {
+
+		if ( c.material ) {
+
+			const mats = Array.isArray( c.material ) ? c.material : [ c.material ];
+
+			for ( const mat of mats ) {
+
+				if ( mat.isCityObjectsMaterial ) {
+
+					mat.highlightedObject = undefined;
+
+				}
+
+			}
+
+		}
+
+	} );
+
+	infoContainer.innerHTML = "";
+
+	const results = raycaster.intersectObject( modelgroup, true );
+	if ( results.length ) {
+
+		const result = getActiveResult( results );
+		const object = result.object;
+
+		const intersectionInfo = object.resolveIntersectionInfo( result );
+
+		if ( intersectionInfo ) {
+
+			const data = Object.assign( {}, object.citymodel.CityObjects[ intersectionInfo.objectId ] );
+			delete data.geometry;
+
+			const semId = intersectionInfo.surfaceTypeIndex;
+
+			let str = `<b>${data.type}${semId >= 0 ? ' - ' + Object.keys( parser.surfaceColors )[ semId ] : ''}</b>`;
+			str += `<br/>Geometry: ${intersectionInfo.geometryIndex} / Surface: ${intersectionInfo.boundaryIndex} / LoD: ${parser.lods[ intersectionInfo.lodIndex ]}`;
+			if ( data.attributes ) {
+
+				Object.keys( data.attributes ).map( k => {
+
+					str += `<br/>${k}: ${data.attributes[ k ]}`;
+
+				} );
+
+			}
+
+			if ( data.parents ) {
+
+				Object.values( data.parents ).map( parentID => {
+
+					str += '<br/><b> Parent attributes</b>';
+
+					const parentObject = Object.assign( {}, citymodel.CityObjects[ parentID ] );
+					delete parentObject.geometry;
+
+					if ( parentObject.attributes ) {
+
+						Object.keys( parentObject.attributes ).map( k => {
+
+							str += `<br/>${k}: ${parentObject.attributes[ k ]}`;
+
+						} );
+
+					}
+
+				} );
+
+			}
+
+			infoContainer.innerHTML = str;
+
+			if ( object.material ) {
+
+				const mats = Array.isArray( object.material ) ? object.material : [ object.material ];
+
+				for ( const mat of mats ) {
+
+					if ( mat.isCityObjectsMaterial ) {
+
+						mat.highlightedObject = intersectionInfo;
+						mat.selectSurface = e.shiftKey;
+
+					}
+
+				}
+
+			}
+
+		}
+
+	}
+
+}
+
+function render() {
+
+	requestAnimationFrame( render );
+
+	raycaster.params.Line.threshold = params.linePickingThreshold;
+
+	scene.traverse( c => {
+
+		if ( c.material ) {
+
+			const mats = Array.isArray( c.material ) ? c.material : [ c.material ];
+
+			for ( const mat of mats ) {
+
+				if ( mat.isCityObjectsMaterial ) {
+
+					mat.showSemantics = params.showSemantics;
+					mat.showLod = params.showOnlyLod;
+					mat.highlightColor = params.highlightColor;
+
+				}
+
+				if ( c.supportsConditionalFormatting ) {
+
+					mat.conditionalFormatting = params.conditional.show;
+
+				}
+
+			}
+
+		}
+
+	} );
+
+	controls.update();
+	renderer.render( scene, camera );
+	stats.update();
+
+}
+
+function fitCameraToSelection( camera, controls, box, fitOffset = 1.2 ) {
+
+	// From https://discourse.threejs.org/t/camera-zoom-to-fit-object/936/24
+
+	// const box.makeEmpty();
+	// for ( const object of selection ) {
+
+	//   box.expandByObject( object );
+
+	// }
+	const size = new Vector3();
+	const center = new Vector3();
+
+	box.getSize( size );
+	box.getCenter( center );
+
+	const maxSize = Math.max( size.x, size.y, size.z );
+	const fitHeightDistance = maxSize / ( 2 * Math.atan( Math.PI * camera.fov / 360 ) );
+	const fitWidthDistance = fitHeightDistance / camera.aspect;
+	const distance = fitOffset * Math.max( fitHeightDistance, fitWidthDistance );
+
+	const direction = controls.target.clone()
+		.sub( camera.position )
+		.normalize()
+		.multiplyScalar( distance );
+
+	controls.maxDistance = distance * 10;
+	controls.target.copy( center );
+
+	camera.near = distance / 100;
+	camera.far = distance * 100;
+	camera.updateProjectionMatrix();
+
+	camera.position.copy( controls.target ).sub( direction );
+
+	controls.update();
+
+}
