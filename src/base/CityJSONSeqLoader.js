@@ -115,7 +115,6 @@ export class CityJSONSeqLoader extends CityJSONLoader {
 		// Convert any Map objects to plain JSON objects
 		const cityJSONData = this._convertMapToJson( rawCityJSONData );
 
-		console.log( "converted cityJSONData", cityJSONData );
 
 		// Use the parent CityJSONLoader to load the converted data
 		super.load( cityJSONData );
