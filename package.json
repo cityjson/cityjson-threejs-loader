@@ -23,8 +23,8 @@
   "scripts": {
     "start": "parcel serve --target examples",
     "build": "parcel build --target main",
-    "lint": "eslint \"src/**/*.js\" \"src/**/*.d.ts\" \"example/**/*.js\"",
-    "lint:fix": "eslint \"src/**/*.js\" \"src/**/*.d.ts\" \"example/**/*.js\" --fix"
+    "lint": "eslint \"src/**/*.js\" \"example/**/*.js\"",
+    "lint:fix": "eslint \"src/**/*.js\" \"example/**/*.js\" --fix"
   },
   "dependencies": {
     "@cityjson/cjseq": "^0.0.1",
