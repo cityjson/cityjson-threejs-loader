@@ -12,7 +12,8 @@
   ],
   "scripts": {
     "start": "parcel example/*.html",
-    "lint": "eslint \"src/**/*.js\""
+    "lint": "eslint \"src/**/*.js\"",
+    "lint:fix": "eslint \"src/**/*.js\" \"example/**/*.js\" --fix"
   },
   "dependencies": {
     "earcut": "^2.2.2"
