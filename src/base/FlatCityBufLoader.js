@@ -18,7 +18,7 @@ export class FlatCityBufLoader {
 		this.parser = parser || new CityJSONWorkerParser();
 		this.httpReader = null;
 		this.fcbUrl = null;
-		this.maxFeatures = 100;
+		this.maxFeatures = 1000;
 		this.metadata = null;
 		this.header = null;
 		this.isInitialized = false;
@@ -189,7 +189,8 @@ export class FlatCityBufLoader {
 
 			}
 
-			const cityjson = FlatCityBufLoader.mapToJson(cjseqToCj(this.header, features));
+
+			const cityjson = FlatCityBufLoader.mapToJson(await cjseqToCj(this.header, features));
 
 
 			return cityjson;
