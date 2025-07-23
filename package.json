@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@cityjson/cjseq": "^0.0.1",
+    "cityjson-threejs-loader": "file:cityjson-threejs-loader",
     "earcut": "^2.2.2"
   },
   "peerDependencies": {
