@@ -110,10 +110,10 @@ export class FlatCityBufLoader {
 				const ge = this.geographicalExtent;
 				const center = [ge[0] + (ge[3] - ge[0]) / 2, ge[1] + (ge[4] - ge[1]) / 2];
 				const bbox = {
-					minX: center[0] - 500,
-					minY: center[1] - 500,
-					maxX: center[0] + 500,
-					maxY: center[1] + 500
+					minX: center[0] - 1000,
+					minY: center[1] - 1000,
+					maxX: center[0] + 1000,
+					maxY: center[1] + 1000
 				};
 
 				// 	[
@@ -355,9 +355,31 @@ export class FlatCityBufLoader {
 
 		// Create geographical extent visualization
 		const [minX, minY, minZ, maxX, maxY, maxZ] = this.geographicalExtent;
-		const width = maxX - minX;
-		const depth = maxY - minY;
-		const height = Math.max(maxZ - minZ, 50); // Minimum height for visibility
+
+		// Transform the extent corners to get proper dimensions in display coordinates
+		const minCorner = new Vector3(minX, minY, minZ);
+		const maxCorner = new Vector3(maxX, maxY, maxZ);
+
+		// Apply coordinate transformations to both corners
+		if (this.originalTransform) {
+
+			const inverseOriginal = this.originalTransform.clone().invert();
+			minCorner.applyMatrix4(inverseOriginal);
+			maxCorner.applyMatrix4(inverseOriginal);
+
+		}
+
+		if (this.matrix) {
+
+			minCorner.applyMatrix4(this.matrix);
+			maxCorner.applyMatrix4(this.matrix);
+
+		}
+
+		// Calculate dimensions in transformed coordinate space
+		const width = Math.abs(maxCorner.x - minCorner.x);
+		const depth = Math.abs(maxCorner.z - minCorner.z);
+		const height = Math.max(Math.abs(maxCorner.y - minCorner.y), 50); // Minimum height for visibility
 
 		const geoExtentGeometry = new BoxGeometry(width, height, depth);
 		const geoExtentMaterial = new MeshBasicMaterial({
@@ -367,29 +389,21 @@ export class FlatCityBufLoader {
 			opacity: 0.9
 		});
 
+		console.log("geoExtentGeometry:", geoExtentGeometry);
+		console.log("width:", width);
+		console.log("height:", height);
+		console.log("depth:", depth);
+
 		this.geographicalExtentHelper = new Mesh(geoExtentGeometry, geoExtentMaterial);
 
-		// Position at center of geographical extent
-		// Need to transform from Dutch coordinates to display coordinates
+		// Position at center of transformed extent
 		const centerPoint = new Vector3(
-			(minX + maxX) / 2,
-			(minY + maxY) / 2,
-			(minZ + maxZ) / 2
+			(minCorner.x + maxCorner.x) / 2,
+			(minCorner.y + maxCorner.y) / 2,
+			(minCorner.z + maxCorner.z) / 2
 		);
 
-		// Apply transforms to position correctly in Three.js space
-		if (this.originalTransform) {
-
-			const inverseOriginal = this.originalTransform.clone().invert();
-			centerPoint.applyMatrix4(inverseOriginal);
-
-		}
-
-		if (this.matrix) {
-
-			centerPoint.applyMatrix4(this.matrix);
-
-		}
+		console.log("centerPoint:", centerPoint);
 
 		this.geographicalExtentHelper.position.copy(centerPoint);
 		this.scene.add(this.geographicalExtentHelper);
@@ -400,6 +414,8 @@ export class FlatCityBufLoader {
 
 	createDynamicExtentHelper(intersectionPoint) {
 
+		console.log("intersectionPoint:", intersectionPoint);
+
 		// Remove existing helper if it exists
 		if (this.extentHelper) {
 
@@ -407,16 +423,81 @@ export class FlatCityBufLoader {
 
 		}
 
+		// The intersection point is in Three.js display coordinates
+		// We need to transform it back to Dutch coordinates to create the bounding box
+		const dutchPoint = intersectionPoint.clone();
+
+		console.log("dutchPoint:", dutchPoint);
+
+		// Reverse the display transformation
+		if (this.matrix) {
+
+			const inverseMatrix = this.matrix.clone().invert();
+			dutchPoint.applyMatrix4(inverseMatrix);
+
+		}
+
+		// Apply original transform to get Dutch coordinates
+		if (this.originalTransform) {
+
+			dutchPoint.applyMatrix4(this.originalTransform);
+
+		}
+
+		console.log("dutchPoint:", dutchPoint);
+
+		// Create 1000m × 1000m bounding box corners in Dutch coordinates
+		const minCorner = new Vector3(dutchPoint.x - 500, 0, dutchPoint.y - 500);
+		const maxCorner = new Vector3(dutchPoint.x + 500, 10, dutchPoint.y + 500); // Small height for visibility
+
+		console.log("minCorner:", minCorner);
+		console.log("maxCorner:", maxCorner);
+
+		// Transform corners back to display coordinates
+		if (this.originalTransform) {
+
+			const inverseOriginal = this.originalTransform.clone().invert();
+			minCorner.applyMatrix4(inverseOriginal);
+			maxCorner.applyMatrix4(inverseOriginal);
+
+		}
+
+		if (this.matrix) {
+
+			minCorner.applyMatrix4(this.matrix);
+			maxCorner.applyMatrix4(this.matrix);
+
+		}
+
+		// Calculate dimensions in transformed coordinate space
+		const width = Math.abs(maxCorner.x - minCorner.x);
+		const depth = Math.abs(maxCorner.z - minCorner.z);
+		const height = Math.max(Math.abs(maxCorner.y - minCorner.y), 50); // Fixed small height for visibility
+
 		// Create extent visualization helper
-		const extentGeometry = new BoxGeometry(500, 10, 500);
+		const extentGeometry = new BoxGeometry(width, height, depth);
 		const extentMaterial = new MeshBasicMaterial({
-			color: 0x0066ff,
+			color: 0xff0000,
 			wireframe: true
 		});
 
+		console.log("extentGeometry:", extentGeometry);
+		console.log("width:", width);
+		console.log("height:", height);
+		console.log("depth:", depth);
+
 		this.extentHelper = new Mesh(extentGeometry, extentMaterial);
-		this.extentHelper.position.copy(intersectionPoint);
-		this.extentHelper.position.y = 5; // Slightly above ground
+
+		// Position at center of transformed extent
+		const centerPoint = new Vector3(
+			(minCorner.x + maxCorner.x) / 2,
+
+			(minCorner.z + maxCorner.z) / 2
+		);
+
+		console.log("centerPoint:", centerPoint);
+
+		this.extentHelper.position.copy(centerPoint);
 
 		this.scene.add(this.extentHelper);
 
@@ -426,16 +507,8 @@ export class FlatCityBufLoader {
 
 	updateDynamicExtentHelper(intersectionPoint) {
 
-		if (this.extentHelper) {
-
-			this.extentHelper.position.copy(intersectionPoint);
-			this.extentHelper.position.y = 5; // Slightly above ground
-
-		} else {
-
-			this.createDynamicExtentHelper(intersectionPoint);
-
-		}
+		// Always recreate to ensure proper transformation with current intersection point
+		this.createDynamicExtentHelper(intersectionPoint);
 
 	}
 
