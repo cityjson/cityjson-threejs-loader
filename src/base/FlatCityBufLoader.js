@@ -16,10 +16,11 @@ export class FlatCityBufLoader {
 		this.matrix = null;
 		this.originalTransform = null; // Store original CityJSON transform for coordinate conversion
 		this.boundingBox = null;
+		this.geographicalExtent = null;
 		this.parser = parser || new CityJSONWorkerParser();
 		this.httpReader = null;
 		this.fcbUrl = null;
-		this.maxFeatures = 1000;
+		this.maxFeatures = 5000;
 		this.metadata = null;
 		this.header = null;
 		this.isInitialized = false;
@@ -98,7 +99,8 @@ export class FlatCityBufLoader {
 				this.isInitialized = true;
 
 				// NOTE: Because there is not way to guess the first location of the data, we use the center of the geographical extent as the first location and a buffer of 500 meters
-				const ge = this.header.metadata.geographicalExtent;
+				this.geographicalExtent = this.header.metadata.geographicalExtent;
+				const ge = this.geographicalExtent;
 				const center = [ge[0] + (ge[3] - ge[0]) / 2, ge[1] + (ge[4] - ge[1]) / 2];
 				const bbox = {
 					minX: center[0] - 500,
@@ -162,7 +164,7 @@ export class FlatCityBufLoader {
 			if (this.matrix == null) {
 
 				this.computeMatrix(cityJsonData);
-
+				console.log("matrix:", this.matrix);
 				// Keep the centering matrix separate from the original transform
 				// this.matrix is used for display, originalTransform for coordinate conversion
 
@@ -302,7 +304,8 @@ export class FlatCityBufLoader {
 
 		normGeom.computeBoundingBox();
 		this.boundingBox = normGeom.boundingBox;
-		console.log('Bounding box:', this.boundingBox);
+		console.log('Bounding box:', this.boundingBox.max);
+		console.log('Bounding box:', this.boundingBox.min);
 		const centre = new Vector3();
 
 		normGeom.boundingBox.getCenter(centre);
