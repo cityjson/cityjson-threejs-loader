@@ -14,6 +14,7 @@ export class FlatCityBufLoader {
 		this.texturesPath = '';
 		this.scene = new Group();
 		this.matrix = null;
+		this.originalTransform = null; // Store original CityJSON transform for coordinate conversion
 		this.boundingBox = null;
 		this.parser = parser || new CityJSONWorkerParser();
 		this.httpReader = null;
@@ -51,13 +52,13 @@ export class FlatCityBufLoader {
 
 			console.log('Initializing FlatCityBuf WASM module...');
 
-			// Import the real fcb_wasm module
-			const fcb_wasm = await import('fcb_wasm');
+			// Import the real FlatCityBuf module
+			const fcb = await import('@cityjson/flatcitybuf');
 
 			// Initialize WASM
-			await fcb_wasm.default();
+			await fcb.default();
 
-			this._wasmModule = fcb_wasm;
+			this._wasmModule = fcb;
 			this._wasmInitialized = true;
 
 			console.log('FlatCityBuf WASM module initialized successfully');
@@ -106,6 +107,13 @@ export class FlatCityBufLoader {
 					maxY: center[1] + 500
 				};
 
+				// 	[
+				// 		85264.94593708635,
+				// 		446223.9782615192,
+				// 		85829.99561029772,
+				// 		446706.5022204295
+				// ]
+
 				dataExtent = { minX: bbox.minX, minY: bbox.minY, maxX: bbox.maxX, maxY: bbox.maxY };
 
 			}
@@ -142,14 +150,21 @@ export class FlatCityBufLoader {
 					0, 0, 0, 1
 				);
 
+				// Store original transform for coordinate conversion
+				if (this.originalTransform == null) {
+
+					this.originalTransform = transform.clone();
+
+				}
+
 			}
 
 			if (this.matrix == null) {
 
 				this.computeMatrix(cityJsonData);
 
-				this.matrix = transform;
-				this.matrix.setPosition(0, 0, 0);
+				// Keep the centering matrix separate from the original transform
+				// this.matrix is used for display, originalTransform for coordinate conversion
 
 			}
 
@@ -170,6 +185,8 @@ export class FlatCityBufLoader {
 
 	async _fetchCityJSON(minX, minY, maxX, maxY) {
 
+
+
 		if (!this.httpReader) {
 
 			throw new Error('HTTP reader not initialized');
@@ -184,7 +201,7 @@ export class FlatCityBufLoader {
 
 			if (!this._cjseqInitialized) {
 
-				this._cjseq = init();
+				this._cjseq = await init();
 				this._cjseqInitialized = true;
 
 			}
@@ -213,6 +230,11 @@ export class FlatCityBufLoader {
 		}
 
 		try {
+
+			console.log("minX:", minX);
+			console.log("minY:", minY);
+			console.log("maxX:", maxX);
+			console.log("maxY:", maxY);
 
 			// Create spatial query for bounding box
 			const spatialQuery = new this._wasmModule.WasmSpatialQuery({
@@ -258,6 +280,7 @@ export class FlatCityBufLoader {
 			}
 
 
+			console.log("features:", features);
 			return features;
 
 		} catch (error) {
