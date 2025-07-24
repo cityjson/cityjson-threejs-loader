@@ -3,7 +3,10 @@ import {
 	BufferAttribute,
 	BufferGeometry,
 	Group,
-	Matrix4
+	Matrix4,
+	BoxGeometry,
+	MeshBasicMaterial,
+	Mesh
 } from 'three';
 import { CityJSONWorkerParser } from '../parsers/CityJSONWorkerParser';
 import init, { cjseqToCj } from '@cityjson/cjseq';
@@ -30,6 +33,10 @@ export class FlatCityBufLoader {
 		this._wasmInitialized = false;
 		this._cjseqInitialized = false;
 		this._cjseq = null;
+
+		// Visualization helpers
+		this.extentHelper = null;
+		this.geographicalExtentHelper = null;
 
 	}
 
@@ -173,6 +180,12 @@ export class FlatCityBufLoader {
 			this.parser.matrix = this.matrix;
 			this.parser.parse(cityJsonData, this.scene);
 
+			// Create geographical extent visualization on first load
+			if (!this.geographicalExtentHelper) {
+
+				this.createGeographicalExtentHelper();
+
+			}
 
 			return this.scene;
 
@@ -322,6 +335,107 @@ export class FlatCityBufLoader {
 		);
 
 		this.matrix = matrix;
+
+	}
+
+	createGeographicalExtentHelper() {
+
+		if (!this.geographicalExtent) {
+
+			return null;
+
+		}
+
+		// Remove existing helper if it exists
+		if (this.geographicalExtentHelper) {
+
+			this.scene.remove(this.geographicalExtentHelper);
+
+		}
+
+		// Create geographical extent visualization
+		const [minX, minY, minZ, maxX, maxY, maxZ] = this.geographicalExtent;
+		const width = maxX - minX;
+		const depth = maxY - minY;
+		const height = Math.max(maxZ - minZ, 50); // Minimum height for visibility
+
+		const geoExtentGeometry = new BoxGeometry(width, height, depth);
+		const geoExtentMaterial = new MeshBasicMaterial({
+			color: 0x00ff00,
+			wireframe: true,
+			transparent: true,
+			opacity: 0.9
+		});
+
+		this.geographicalExtentHelper = new Mesh(geoExtentGeometry, geoExtentMaterial);
+
+		// Position at center of geographical extent
+		// Need to transform from Dutch coordinates to display coordinates
+		const centerPoint = new Vector3(
+			(minX + maxX) / 2,
+			(minY + maxY) / 2,
+			(minZ + maxZ) / 2
+		);
+
+		// Apply transforms to position correctly in Three.js space
+		if (this.originalTransform) {
+
+			const inverseOriginal = this.originalTransform.clone().invert();
+			centerPoint.applyMatrix4(inverseOriginal);
+
+		}
+
+		if (this.matrix) {
+
+			centerPoint.applyMatrix4(this.matrix);
+
+		}
+
+		this.geographicalExtentHelper.position.copy(centerPoint);
+		this.scene.add(this.geographicalExtentHelper);
+
+		return this.geographicalExtentHelper;
+
+	}
+
+	createDynamicExtentHelper(intersectionPoint) {
+
+		// Remove existing helper if it exists
+		if (this.extentHelper) {
+
+			this.scene.remove(this.extentHelper);
+
+		}
+
+		// Create extent visualization helper
+		const extentGeometry = new BoxGeometry(500, 10, 500);
+		const extentMaterial = new MeshBasicMaterial({
+			color: 0x0066ff,
+			wireframe: true
+		});
+
+		this.extentHelper = new Mesh(extentGeometry, extentMaterial);
+		this.extentHelper.position.copy(intersectionPoint);
+		this.extentHelper.position.y = 5; // Slightly above ground
+
+		this.scene.add(this.extentHelper);
+
+		return this.extentHelper;
+
+	}
+
+	updateDynamicExtentHelper(intersectionPoint) {
+
+		if (this.extentHelper) {
+
+			this.extentHelper.position.copy(intersectionPoint);
+			this.extentHelper.position.y = 5; // Slightly above ground
+
+		} else {
+
+			this.createDynamicExtentHelper(intersectionPoint);
+
+		}
 
 	}
 
