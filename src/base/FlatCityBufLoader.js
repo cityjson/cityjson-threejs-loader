@@ -23,7 +23,7 @@ export class FlatCityBufLoader {
 		this.parser = parser || new CityJSONWorkerParser();
 		this.httpReader = null;
 		this.fcbUrl = null;
-		this.maxFeatures = 5000;
+		this.maxFeatures = 1000;
 		this.metadata = null;
 		this.header = null;
 		this.isInitialized = false;
@@ -58,7 +58,6 @@ export class FlatCityBufLoader {
 
 		try {
 
-			console.log('Initializing FlatCityBuf WASM module...');
 
 			// Import the real FlatCityBuf module
 			const fcb = await import('@cityjson/flatcitybuf');
@@ -69,7 +68,6 @@ export class FlatCityBufLoader {
 			this._wasmModule = fcb;
 			this._wasmInitialized = true;
 
-			console.log('FlatCityBuf WASM module initialized successfully');
 			return this._wasmModule;
 
 		} catch (error) {
@@ -116,12 +114,7 @@ export class FlatCityBufLoader {
 					maxY: center[1] + 1000
 				};
 
-				// 	[
-				// 		85264.94593708635,
-				// 		446223.9782615192,
-				// 		85829.99561029772,
-				// 		446706.5022204295
-				// ]
+
 
 				dataExtent = { minX: bbox.minX, minY: bbox.minY, maxX: bbox.maxX, maxY: bbox.maxY };
 
@@ -142,8 +135,19 @@ export class FlatCityBufLoader {
 			// Get CityJSON directly from FlatCityBuf
 			const cityJsonData = await this._fetchCityJSON(dataExtent.minX, dataExtent.minY, dataExtent.maxX, dataExtent.maxY);
 
-			// Clear previous scene
-			this.scene.clear();
+			// Clear previous scene except for the geographical extent helper
+			const objectsToRemove = [];
+			this.scene.traverse(child => {
+
+				if (child.isMesh && child !== this.geographicalExtentHelper) {
+
+					objectsToRemove.push(child);
+
+				}
+
+			});
+			objectsToRemove.forEach(obj => this.scene.remove(obj));
+			// this.scene.clear();
 
 			const transform = new Matrix4().identity();
 
@@ -160,25 +164,29 @@ export class FlatCityBufLoader {
 				);
 
 				// Store original transform for coordinate conversion
-				if (this.originalTransform == null) {
+				console.log("transform:", transform);
+				console.log("originalTransform:", this.originalTransform);
 
-					this.originalTransform = transform.clone();
-
-				}
+				this.originalTransform = transform.clone();
 
 			}
 
 			if (this.matrix == null) {
 
 				this.computeMatrix(cityJsonData);
-				console.log("matrix:", this.matrix);
-				// Keep the centering matrix separate from the original transform
-				// this.matrix is used for display, originalTransform for coordinate conversion
+
+				this.matrix = transform;
+				this.matrix.setPosition(0, 0, 0);
 
 			}
 
+
+
+
 			this.parser.matrix = this.matrix;
 			this.parser.parse(cityJsonData, this.scene);
+
+			console.log("this scene:", this.scene);
 
 			// Create geographical extent visualization on first load
 			if (!this.geographicalExtentHelper) {
@@ -246,10 +254,6 @@ export class FlatCityBufLoader {
 
 		try {
 
-			console.log("minX:", minX);
-			console.log("minY:", minY);
-			console.log("maxX:", maxX);
-			console.log("maxY:", maxY);
 
 			// Create spatial query for bounding box
 			const spatialQuery = new this._wasmModule.WasmSpatialQuery({
@@ -271,7 +275,6 @@ export class FlatCityBufLoader {
 					const feature = await iterator.next();
 					if (!feature) {
 
-						console.log('No more features');
 						break;
 
 					}
@@ -294,8 +297,6 @@ export class FlatCityBufLoader {
 
 			}
 
-
-			console.log("features:", features);
 			return features;
 
 		} catch (error) {
@@ -310,15 +311,12 @@ export class FlatCityBufLoader {
 	computeMatrix(data, scale = false) {
 
 		const normGeom = new BufferGeometry();
-		console.log('Data:', data);
 
 		const vertices = new Float32Array(data.vertices.flatMap(v => [v[0], v[1], v[2]]));
 		normGeom.setAttribute('position', new BufferAttribute(vertices, 3));
 
 		normGeom.computeBoundingBox();
 		this.boundingBox = normGeom.boundingBox;
-		console.log('Bounding box:', this.boundingBox.max);
-		console.log('Bounding box:', this.boundingBox.min);
 		const centre = new Vector3();
 
 		normGeom.boundingBox.getCenter(centre);
@@ -389,11 +387,6 @@ export class FlatCityBufLoader {
 			opacity: 0.9
 		});
 
-		console.log("geoExtentGeometry:", geoExtentGeometry);
-		console.log("width:", width);
-		console.log("height:", height);
-		console.log("depth:", depth);
-
 		this.geographicalExtentHelper = new Mesh(geoExtentGeometry, geoExtentMaterial);
 
 		// Position at center of transformed extent
@@ -403,8 +396,6 @@ export class FlatCityBufLoader {
 			(minCorner.z + maxCorner.z) / 2
 		);
 
-		console.log("centerPoint:", centerPoint);
-
 		this.geographicalExtentHelper.position.copy(centerPoint);
 		this.scene.add(this.geographicalExtentHelper);
 
@@ -413,8 +404,6 @@ export class FlatCityBufLoader {
 	}
 
 	createDynamicExtentHelper(intersectionPoint) {
-
-		console.log("intersectionPoint:", intersectionPoint);
 
 		// Remove existing helper if it exists
 		if (this.extentHelper) {
@@ -426,8 +415,6 @@ export class FlatCityBufLoader {
 		// The intersection point is in Three.js display coordinates
 		// We need to transform it back to Dutch coordinates to create the bounding box
 		const dutchPoint = intersectionPoint.clone();
-
-		console.log("dutchPoint:", dutchPoint);
 
 		// Reverse the display transformation
 		if (this.matrix) {
@@ -444,14 +431,9 @@ export class FlatCityBufLoader {
 
 		}
 
-		console.log("dutchPoint:", dutchPoint);
-
 		// Create 1000m × 1000m bounding box corners in Dutch coordinates
 		const minCorner = new Vector3(dutchPoint.x - 500, 0, dutchPoint.y - 500);
 		const maxCorner = new Vector3(dutchPoint.x + 500, 10, dutchPoint.y + 500); // Small height for visibility
-
-		console.log("minCorner:", minCorner);
-		console.log("maxCorner:", maxCorner);
 
 		// Transform corners back to display coordinates
 		if (this.originalTransform) {
@@ -481,11 +463,6 @@ export class FlatCityBufLoader {
 			wireframe: true
 		});
 
-		console.log("extentGeometry:", extentGeometry);
-		console.log("width:", width);
-		console.log("height:", height);
-		console.log("depth:", depth);
-
 		this.extentHelper = new Mesh(extentGeometry, extentMaterial);
 
 		// Position at center of transformed extent
@@ -494,8 +471,6 @@ export class FlatCityBufLoader {
 
 			(minCorner.z + maxCorner.z) / 2
 		);
-
-		console.log("centerPoint:", centerPoint);
 
 		this.extentHelper.position.copy(centerPoint);
 
