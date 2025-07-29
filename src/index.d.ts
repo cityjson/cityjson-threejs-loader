@@ -1,4 +1,5 @@
 import { CityJSONLoader } from './base/CityJSONLoader';
+import { FlatCityBufLoader } from './base/FlatCityBufLoader';
 import { CityJSONWorkerParser } from './parsers/CityJSONWorkerParser';
 import { CityJSONParser } from './parsers/CityJSONParser';
 import { ChunkParser } from './parsers/helpers/ChunkParser';
@@ -17,6 +18,7 @@ import { TextureManager } from './helpers/TextureManager';
 
 export {
     CityJSONLoader,
+    FlatCityBufLoader,
     CityJSONWorkerParser,
     CityJSONParser,
     ChunkParser,
